@@ -1,0 +1,1939 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Hqub.Lastfm</name>
+    </assembly>
+    <members>
+        <member name="T:Hqub.Lastfm.Cache.FileRequestCache">
+            <summary>
+            Caches requests on disk.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Cache.FileRequestCache.Timeout">
+            <summary>
+            Gets or sets the timeout for a cache entry to expire.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.FileRequestCache.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Hqub.Lastfm.Cache.FileRequestCache"/> class.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.FileRequestCache.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Hqub.Lastfm.Cache.FileRequestCache"/> class.
+            </summary>
+            <param name="path">The local path of the cache.</param>
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.FileRequestCache.Add(System.String,System.IO.Stream)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.FileRequestCache.TryGetCachedItem(System.String,System.IO.Stream@)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.FileRequestCache.Cleanup">
+            <summary>
+            Remove all expired entries from the cache.
+            </summary>
+            <returns>The number of expired entries.</returns>
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.FileRequestCache.Clear">
+            <summary>
+            Remove all cache entries.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.FileRequestCache.CacheEntry.GetHash(System.Byte[],System.Int32)">
+            <summary>
+            Returns the hash of a string (based on MD5, but only 16 instead of 32 bytes).
+            </summary>
+            <param name="bytes">Input bytes.</param>
+            <param name="count">The number of bytes to consider.</param>
+            <returns>MD5 hash.</returns>
+        </member>
+        <member name="T:Hqub.Lastfm.Cache.FileScrobbleCache">
+            <summary>
+            Scrobble cache that writes scrobbles to local disk.
+            </summary>
+            <remarks>
+            The implementation is not thread-safe. The user is responsible to synchronize read and write operations.
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.FileScrobbleCache.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Hqub.Lastfm.Cache.FileScrobbleCache"/> class.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.FileScrobbleCache.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Hqub.Lastfm.Cache.FileScrobbleCache"/> class.
+            </summary>
+            <param name="path">The local directory to use for the cache.</param>
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.FileScrobbleCache.Add(System.Collections.Generic.IEnumerable{Hqub.Lastfm.Entities.Scrobble})">
+            <inheritdoc/>
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.FileScrobbleCache.Get(System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.FileScrobbleCache.Remove(System.Collections.Generic.IEnumerable{Hqub.Lastfm.Entities.Scrobble})">
+            <inheritdoc/>
+        </member>
+        <member name="T:Hqub.Lastfm.Cache.IRequestCache">
+            <summary>
+            Request cache interface.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.IRequestCache.Add(System.String,System.IO.Stream)">
+            <summary>
+            Add a request and its response to the cache.
+            </summary>
+            <param name="request">The request URI.</param>
+            <param name="response">The server response to be cached.</param>
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.IRequestCache.TryGetCachedItem(System.String,System.IO.Stream@)">
+            <summary>
+            Try to get a request from cache.
+            </summary>
+            <param name="request">The request URI.</param>
+            <param name="stream">The server response stream read from cache.</param>
+            <returns>True, if a cache entry matching the request was found.</returns>
+        </member>
+        <member name="T:Hqub.Lastfm.Cache.IScrobbleCache">
+            <summary>
+            Scrobble cache interface.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.IScrobbleCache.Add(System.Collections.Generic.IEnumerable{Hqub.Lastfm.Entities.Scrobble})">
+            <summary>
+            Add a list of scrobbles to the cache.
+            </summary>
+            <param name="scrobbles">The scrobbles to be cached.</param>
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.IScrobbleCache.Get(System.Boolean)">
+            <summary>
+            Get all cached scrobbles.
+            </summary>
+            <param name="remove">If true, all scrobbles will be removed from cache.</param>
+            <returns>The list of cached scrobbles.</returns>
+            <remarks>
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.IScrobbleCache.Remove(System.Collections.Generic.IEnumerable{Hqub.Lastfm.Entities.Scrobble})">
+            <summary>
+            Remove a list of scrobbles from the cache.
+            </summary>
+            <param name="scrobbles">The scrobbles to be removed from cache.</param>
+        </member>
+        <member name="T:Hqub.Lastfm.Cache.MemoryScrobbleCache">
+            <summary>
+            A scrobble cache that caches scrobbles in memory (not persistant).
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.MemoryScrobbleCache.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Hqub.Lastfm.Cache.MemoryScrobbleCache"/> class.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.MemoryScrobbleCache.Add(System.Collections.Generic.IEnumerable{Hqub.Lastfm.Entities.Scrobble})">
+            <inheritdoc/>
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.MemoryScrobbleCache.Get(System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.MemoryScrobbleCache.Remove(System.Collections.Generic.IEnumerable{Hqub.Lastfm.Entities.Scrobble})">
+            <inheritdoc/>
+        </member>
+        <member name="T:Hqub.Lastfm.Cache.NullRequestCache">
+            <summary>
+            A cache that does not cache anything.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Cache.NullRequestCache.Default">
+            <summary>
+            Gets the default <see cref="T:Hqub.Lastfm.Cache.NullRequestCache"/> instance.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.NullRequestCache.Add(System.String,System.IO.Stream)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Cache.NullRequestCache.TryGetCachedItem(System.String,System.IO.Stream@)">
+            <inheritdoc />
+        </member>
+        <member name="T:Hqub.Lastfm.ChartResponse`1">
+            <summary>
+            Chart response (user.getweeklyXXXchart requests).
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="P:Hqub.Lastfm.ChartResponse`1.Chart">
+            <summary>
+            Fets or sets the chart timespan.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.ChartResponse`1.Item(System.Int32)">
+            <summary>
+            Returns the item at given index.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.ChartResponse`1.Count">
+            <summary>
+            Gets the number of chart items.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.ChartResponse`1.Items">
+            <summary>
+            Gets the list of chart items.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.ChartResponse`1.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Hqub.Lastfm.ChartResponse`1"/> class.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.ChartResponse`1.GetEnumerator">
+            <summary>
+            Returns an enumerator that iterates through a collection.
+            </summary>
+            <returns>An enumerator that can be used to iterate through the collection.</returns>
+        </member>
+        <member name="T:Hqub.Lastfm.ChartTimeSpan">
+            <summary>
+            A time span of a weekly chart.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.ChartTimeSpan.From">
+            <summary>
+            The beginning date.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.ChartTimeSpan.To">
+            <summary>
+            The end date.
+            </summary>
+        </member>
+        <member name="T:Hqub.Lastfm.Entities.Album">
+            <summary>
+            Represents a Last.fm album.
+            </summary>
+            <see href="https://www.last.fm/api/show/album.getInfo"/>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Album.Name">
+            <summary>
+            Gets or sets the album name.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Album.MBID">
+            <summary>
+            Gets or sets the MusicBrainz id.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Album.Match">
+            <summary>
+            Gets or sets the match value (available only with album.getSimilar).
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Album.Url">
+            <summary>
+            Gets or sets the url.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Album.Artist">
+            <summary>
+            Gets or sets the album artist.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Album.Images">
+            <summary>
+            Gets or sets a list of images.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Album.Tags">
+            <summary>
+            Gets or sets a list of tags.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Album.Tracks">
+            <summary>
+            Gets or sets a list of tracks.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Album.Statistics">
+            <summary>
+            Gets or sets album statistics.
+            </summary>
+        </member>
+        <member name="T:Hqub.Lastfm.Entities.Artist">
+            <summary>
+            Represents a Last.fm artist.
+            </summary>
+            <see href="https://www.last.fm/api/show/artist.getInfo"/>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Artist.Name">
+            <summary>
+            Gets or sets the artist name.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Artist.MBID">
+            <summary>
+            Gets or sets the MusicBrainz id.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Artist.Match">
+            <summary>
+            Gets or sets the match value (available only with artist.getSimilar).
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Artist.Url">
+            <summary>
+            Gets or sets the url.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Artist.Images">
+            <summary>
+            Gets or sets a list of images.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Artist.Tags">
+            <summary>
+            Gets or sets a list of tags.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Artist.Similar">
+            <summary>
+            Gets or sets a list of similar artists.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Artist.Statistics">
+            <summary>
+            Gets or sets artist statistics.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Artist.Biography">
+            <summary>
+            Gets or sets the artist biography.
+            </summary>
+        </member>
+        <member name="T:Hqub.Lastfm.Entities.Biography">
+            <summary>
+            Biography class.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Biography.Published">
+            <summary>
+            Gets or sets the publish date.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Biography.Summary">
+            <summary>
+            Gets or sets the summary.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Biography.Content">
+            <summary>
+            Gets or sets the content.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Biography.Links">
+            <summary>
+            Gets or sets a list of links.
+            </summary>
+        </member>
+        <member name="T:Hqub.Lastfm.Entities.Image">
+            <summary>
+            Represents an image resource.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Image.Size">
+            <summary>
+            Gets or sets the image size.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Image.Url">
+            <summary>
+            Gets or sets the image url.
+            </summary>
+        </member>
+        <member name="T:Hqub.Lastfm.Entities.Scrobble">
+            <summary>
+            A track that will be send to the Last.fml scrobble API.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Scrobble.Track">
+            <summary>
+            Gets or sets the track name.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Scrobble.Artist">
+            <summary>
+            Gets or sets the artist.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Scrobble.Date">
+            <summary>
+            Gets or sets the date the track was played.
+            </summary>
+            <remarks>
+            Last.fm allows scrobbling tracks from the past 2 weeks.
+            Any tracks older than 2 weeks will be ignored.
+            </remarks>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Scrobble.Album">
+            <summary>
+            Gets or sets the album (optional).
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Scrobble.AlbumArtist">
+            <summary>
+            Gets or sets the album artist (optional).
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Scrobble.MBID">
+            <summary>
+            Gets or sets the MusicBrainz id (optional).
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Scrobble.Duration">
+            <summary>
+            Gets or sets the track duration in seconds (optional).
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Scrobble.TrackNumber">
+            <summary>
+            Gets or sets the track number (optional).
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Scrobble.ChosenByUser">
+            <summary>
+            Gets or sets a value indicating whether the user chose this song (optional).
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Scrobble.ErrorCode">
+            <summary>
+            Gets an error code if the scrobble wasn't accepted by the server.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Scrobble.IgnoredMessage">
+            <summary>
+            Gets an error message if the scrobble wasn't accepted by the server.
+            </summary>
+        </member>
+        <member name="T:Hqub.Lastfm.Entities.Statistics">
+            <summary>
+            Statistics class.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Statistics.Listeners">
+            <summary>
+            Gets or sets the listeners count.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Statistics.PlayCount">
+            <summary>
+            Gets or sets the play count.
+            </summary>
+        </member>
+        <member name="T:Hqub.Lastfm.Entities.Tag">
+            <summary>
+            Represents a Last.fm tag.
+            </summary>
+            <see href="https://www.last.fm/api/show/tag.getInfo"/>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Tag.Name">
+            <summary>
+            Gets or sets the tag name.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Tag.Count">
+            <summary>
+            Gets or sets the tag count.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Tag.Total">
+            <summary>
+            Gets or sets the total tag count (available only with tag.getInfo).
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Tag.Reach">
+            <summary>
+            Gets or sets the tag reach (available only with tag.getInfo).
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Tag.Url">
+            <summary>
+            Gets or sets the url.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Tag.Wiki">
+            <summary>
+            Gets or sets the tag wiki (available only with tag.getInfo requests).
+            </summary>
+        </member>
+        <member name="T:Hqub.Lastfm.Entities.Track">
+            <summary>
+            Represents a Last.fm track.
+            </summary>
+            <see href="https://www.last.fm/api/show/track.getInfo"/>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Track.Name">
+            <summary>
+            Gets or sets the track name.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Track.MBID">
+            <summary>
+            Gets or sets the MusicBrainz id.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Track.Match">
+            <summary>
+            Gets or sets the match value (available only with track.getSimilar).
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Track.Url">
+            <summary>
+            Gets or sets the url.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Track.Duration">
+            <summary>
+            Gets or sets the track duration (in milliseconds).
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Track.Date">
+            <summary>
+            Gets or sets the date the track was played (available only for users, i.e. user.getRecentTracks).
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Track.Artist">
+            <summary>
+            Gets or sets the artist.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Track.Album">
+            <summary>
+            Gets or sets the album.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Track.Wiki">
+            <summary>
+            Gets or sets the wiki information.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Track.Images">
+            <summary>
+            Gets or sets a list of images.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Track.Tags">
+            <summary>
+            Gets or sets a list of tags.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Track.Statistics">
+            <summary>
+            Gets or sets the track statistics.
+            </summary>
+        </member>
+        <member name="T:Hqub.Lastfm.Entities.User">
+            <summary>
+            Represents a Last.fm user.
+            </summary>
+            <see href="https://www.last.fm/api/show/user.getInfo"/>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.User.Name">
+            <summary>
+            Gets the user name.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.User.RealName">
+            <summary>
+            Gets or sets the real name.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.User.Url">
+            <summary>
+            Gets or sets the url.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.User.Country">
+            <summary>
+            Gets or sets the country.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.User.Age">
+            <summary>
+            Gets or sets the age.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.User.Gender">
+            <summary>
+            Gets or sets the gender.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.User.Playcount">
+            <summary>
+            Gets or sets the total playcount.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.User.Playlists">
+            <summary>
+            Gets or sets the number of playlists.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.User.Registered">
+            <summary>
+            Gets or sets the date of registration.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.User.Type">
+            <summary>
+            Gets or sets the type.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.User.Images">
+            <summary>
+            Gets or sets a list of images.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.Entities.User.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Hqub.Lastfm.Entities.User"/> class.
+            </summary>
+            <param name="name">The user name.</param>
+        </member>
+        <member name="T:Hqub.Lastfm.Entities.Wiki">
+            <summary>
+            Represents a Last.fm wiki entry.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Wiki.Published">
+            <summary>
+            Gets or sets the published date.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Wiki.Summary">
+            <summary>
+            Gets or sets the summary.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.Entities.Wiki.Content">
+            <summary>
+            Gets or sets the wiki content.
+            </summary>
+        </member>
+        <member name="T:Hqub.Lastfm.LastfmClient">
+            <summary>
+            Last.fm client.
+            </summary>
+        </member>
+        <member name="F:Hqub.Lastfm.LastfmClient.Album">
+            <summary>
+            The Last.fm <see cref="T:Hqub.Lastfm.Services.IAlbumService"/>.
+            </summary>
+        </member>
+        <member name="F:Hqub.Lastfm.LastfmClient.Artist">
+            <summary>
+            The Last.fm <see cref="T:Hqub.Lastfm.Services.IArtistService"/>.
+            </summary>
+        </member>
+        <member name="F:Hqub.Lastfm.LastfmClient.Chart">
+            <summary>
+            The Last.fm <see cref="T:Hqub.Lastfm.Services.IChartService"/>.
+            </summary>
+        </member>
+        <member name="F:Hqub.Lastfm.LastfmClient.Geo">
+            <summary>
+            The Last.fm <see cref="T:Hqub.Lastfm.Services.IGeoService"/>.
+            </summary>
+        </member>
+        <member name="F:Hqub.Lastfm.LastfmClient.Library">
+            <summary>
+            The Last.fm <see cref="T:Hqub.Lastfm.Services.ILibraryService"/>.
+            </summary>
+        </member>
+        <member name="F:Hqub.Lastfm.LastfmClient.Tag">
+            <summary>
+            The Last.fm <see cref="T:Hqub.Lastfm.Services.ITagService"/>.
+            </summary>
+        </member>
+        <member name="F:Hqub.Lastfm.LastfmClient.Track">
+            <summary>
+            The Last.fm <see cref="T:Hqub.Lastfm.Services.ITrackService"/>.
+            </summary>
+        </member>
+        <member name="F:Hqub.Lastfm.LastfmClient.User">
+            <summary>
+            The Last.fm <see cref="T:Hqub.Lastfm.Services.IUserService"/>.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.LastfmClient.Version">
+            <summary>
+            Gets the version of this assembly.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.LastfmClient.UserAgent">
+            <summary>
+            Gets the user-agent string.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.LastfmClient.Language">
+            <summary>
+            Gets or sets the language to return a biography in (ISO 639 alpha-2 code).
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.LastfmClient.Session">
+            <summary>
+            Gets the last.fm client session.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.LastfmClient.Proxy">
+            <summary>
+            Gets or sets the <see cref="T:System.Net.IWebProxy"/> to be used in making all the calls to last.fm.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.LastfmClient.Cache">
+            <summary>
+            Gets or sets the <see cref="T:Hqub.Lastfm.Cache.IRequestCache"/>.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.LastfmClient.ScrobbleCache">
+            <summary>
+            Gets or sets the <see cref="T:Hqub.Lastfm.Cache.IScrobbleCache"/>.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.LastfmClient.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Hqub.Lastfm.LastfmClient"/> class.
+            </summary>
+            <param name="apiKey">The last.fm API key.</param>
+        </member>
+        <member name="M:Hqub.Lastfm.LastfmClient.#ctor(System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Hqub.Lastfm.LastfmClient"/> class.
+            </summary>
+            <param name="apiKey">The last.fm API key.</param>
+            <param name="apiSecret">The last.fm API secret.</param>
+        </member>
+        <member name="M:Hqub.Lastfm.LastfmClient.#ctor(System.String,System.Net.IWebProxy)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Hqub.Lastfm.LastfmClient"/> class.
+            </summary>
+            <param name="apiKey">The last.fm API key.</param>
+            <param name="proxy">The <see cref="T:System.Net.IWebProxy"/> to be used for web requests.</param>
+        </member>
+        <member name="M:Hqub.Lastfm.LastfmClient.#ctor(System.String,System.String,System.Net.IWebProxy)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Hqub.Lastfm.LastfmClient"/> class.
+            </summary>
+            <param name="apiKey">The last.fm API key.</param>
+            <param name="apiSecret">The last.fm API secret.</param>
+            <param name="proxy">The <see cref="T:System.Net.IWebProxy"/> to be used for web requests.</param>
+        </member>
+        <member name="M:Hqub.Lastfm.LastfmClient.AuthenticateAsync(System.String,System.String)">
+            <summary>
+            Authenticate the client <see cref="P:Hqub.Lastfm.LastfmClient.Session"/> using a username and a password.
+            </summary>
+            <param name="username">The user name.</param>
+            <param name="password">The plain text password.</param>
+            <remarks>
+            See https://www.last.fm/api/mobileauth
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.LastfmClient.GetWebAuthenticationUrlAsync">
+            <summary>
+            Returns the url for web authentication.
+            </summary>
+            <returns></returns>
+            <remarks>
+            <see cref="M:Hqub.Lastfm.LastfmClient.AuthenticateViaWebAsync"/> should be called once the user is done.
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.LastfmClient.AuthenticateViaWebAsync">
+            <summary>
+            Complete the web authentication.
+            </summary>
+        </member>
+        <member name="T:Hqub.Lastfm.MD5">
+            <summary>
+            MD5 helper class.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.MD5.ComputeHash(System.String)">
+            <summary>
+            Returns the MD5 hash of a string.
+            </summary>
+            <param name="text"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Hqub.Lastfm.MD5.ComputeHash(System.Byte[])">
+            <summary>
+            Returns the MD5 hash of a byte array.
+            </summary>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Hqub.Lastfm.MD5.ComputeHash(System.Byte[],System.Int32)">
+            <summary>
+            Returns the MD5 hash of a byte array.
+            </summary>
+            <param name="data"></param>
+            <param name="size"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Hqub.Lastfm.NotAuthenticatedException">
+            <summary>
+            This exception is thrown whenever a method is called thar required an authenticated 
+            <see cref="T:Hqub.Lastfm.Session"/> object and the given was not.
+            </summary>
+        </member>
+        <member name="T:Hqub.Lastfm.PageInfo">
+            <summary>
+            Info about the current page.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.PageInfo.Total">
+            <summary>
+            Gets or sets the number of items.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.PageInfo.Page">
+            <summary>
+            Gets or sets the current page number.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.PageInfo.PerPage">
+            <summary>
+            Gets or sets the number of items per page.
+            </summary>
+        </member>
+        <member name="T:Hqub.Lastfm.PagedResponse`1">
+            <summary>
+            Paged response (used for search requests).
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.PagedResponse`1.PageInfo">
+            <summary>
+            Gets or sets the info of the current page.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.PagedResponse`1.Item(System.Int32)">
+            <summary>
+            Gets the itemat given index from the current page.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.PagedResponse`1.Count">
+            <summary>
+            Gets the size of the current page.
+            </summary>
+            <remarks>
+            For the number of total availabe items see <see cref="P:Hqub.Lastfm.PagedResponse`1.PageInfo"/>.
+            </remarks>
+        </member>
+        <member name="P:Hqub.Lastfm.PagedResponse`1.Items">
+            <summary>
+            Gets the list of items of the current page.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.PagedResponse`1.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Hqub.Lastfm.PagedResponse`1"/> class.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.PagedResponse`1.GetEnumerator">
+            <summary>
+            Returns an enumerator that iterates through a collection.
+            </summary>
+            <returns>An enumerator that can be used to iterate through the collection.</returns>
+        </member>
+        <member name="T:Hqub.Lastfm.Period">
+            <summary>
+            A period of time value.
+            </summary>
+        </member>
+        <member name="F:Hqub.Lastfm.Period.Overall">
+            <summary>
+            Overall period.
+            </summary>
+        </member>
+        <member name="F:Hqub.Lastfm.Period.SevenDay">
+            <summary>
+            7 days period.
+            </summary>
+        </member>
+        <member name="F:Hqub.Lastfm.Period.OneMonth">
+            <summary>
+            1 month period.
+            </summary>
+        </member>
+        <member name="F:Hqub.Lastfm.Period.ThreeMonth">
+            <summary>
+            3 months period.
+            </summary>
+        </member>
+        <member name="F:Hqub.Lastfm.Period.SixMonth">
+            <summary>
+            6 months period.
+            </summary>
+        </member>
+        <member name="F:Hqub.Lastfm.Period.TwelveMonth">
+            <summary>
+            12 months period.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.Request.FixOpenSearchNamespace(System.String)">
+            <summary>
+            Since last.fm doesn't set the opensearch namespace, add it manually.
+            </summary>
+            <param name="xml"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Hqub.Lastfm.ScrobbleResponse">
+            <summary>
+            Response of a scrobble request.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.ScrobbleResponse.Accepted">
+            <summary>
+            Gets or sets the number of accepted scrobbles.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.ScrobbleResponse.Ignored">
+            <summary>
+            Gets or sets the number of ignored scrobbles.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.ScrobbleResponse.Scrobbles">
+            <summary>
+            Gets the list of scrobbles.
+            </summary>
+        </member>
+        <member name="T:Hqub.Lastfm.ServiceException">
+            <summary>
+            A last.fm web service exception
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.ServiceException.Method">
+            <summary>
+            Gets the last.fm service method that caused the exception.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.ServiceException.ErrorCode">
+            <summary>
+            Gets the last.fm error code.
+            </summary>
+        </member>
+        <member name="P:Hqub.Lastfm.ServiceException.StatusCode">
+            <summary>
+            Gets the HTTP status code.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.ServiceException.#ctor(System.String,System.Int32,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Hqub.Lastfm.ServiceException"/> class.
+            </summary>
+            <param name="method">The Last.fm service method that failed.</param>
+            <param name="error">The error code.</param>
+            <param name="message">The error message.</param>
+        </member>
+        <member name="M:Hqub.Lastfm.ServiceException.#ctor(System.String,System.Int32,System.Net.HttpStatusCode,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Hqub.Lastfm.ServiceException"/> class.
+            </summary>
+            <param name="method">The last.fm service method that failed.</param>
+            <param name="error">The error code.</param>
+            <param name="statusCode">The HTTP status code.</param>
+            <param name="message">The error message.</param>
+        </member>
+        <member name="M:Hqub.Lastfm.ServiceException.GetErrorDescription(System.Int32)">
+            <summary>
+            Gets a description of the error code.
+            </summary>
+            <param name="code">The error code</param>
+            <returns></returns>
+            <remarks>
+            See https://www.last.fm/api/errorcodes
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.AlbumService.SearchAsync(System.String,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.AlbumService.GetInfoAsync(System.String,System.String,System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.AlbumService.GetTagsAsync(System.String,System.String,System.String,System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.AlbumService.GetTopTagsAsync(System.String,System.String,System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.AlbumService.AddTagsAsync(System.String,System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.AlbumService.RemoveTagAsync(System.String,System.String,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ArtistService.SearchAsync(System.String,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ArtistService.GetInfoAsync(System.String,System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ArtistService.GetCorrectionAsync(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ArtistService.GetSimilarAsync(System.String,System.Int32,System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ArtistService.GetTagsAsync(System.String,System.String,System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ArtistService.GetTopAlbumsAsync(System.String,System.Boolean,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ArtistService.GetTopTagsAsync(System.String,System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ArtistService.GetTopTracksAsync(System.String,System.Boolean,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ArtistService.AddTagsAsync(System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ArtistService.RemoveTagAsync(System.String,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ChartService.GetTopArtistsAsync(System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ChartService.GetTopTracksAsync(System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ChartService.GetTopTagsAsync(System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.GeoService.GetTopArtistsAsync(System.String,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.GeoService.GetTopTracksAsync(System.String,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="T:Hqub.Lastfm.Services.IAlbumService">
+            <summary>
+            Last.fm album service.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IAlbumService.SearchAsync(System.String,System.Int32,System.Int32)">
+            <summary>
+            Search for an album by name. Returns album matches sorted by relevance.
+            </summary>
+            <param name="album">The album name.</param>
+            <param name="page">The page number to fetch. Defaults to first page.</param>
+            <param name="limit">The number of results to fetch per page. Defaults to 30.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/album.search
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IAlbumService.GetInfoAsync(System.String,System.String,System.Boolean)">
+            <summary>
+            Get the metadata for an album.
+            </summary>
+            <param name="artist">The artist name.</param>
+            <param name="album">The album name.</param>
+            <param name="autocorrect">Transform misspelled album names into correct album names (optional).</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/album.getInfo
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IAlbumService.GetTagsAsync(System.String,System.String,System.String,System.Boolean)">
+            <summary>
+            Get the tags applied by an individual user to an album on Last.fm.
+            </summary>
+            <param name="artist">The artist name.</param>
+            <param name="album">The album name.</param>
+            <param name="user">The user to look up.</param>
+            <param name="autocorrect">Transform misspelled track names into correct track names (optional).</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/album.getTags
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IAlbumService.GetTopTagsAsync(System.String,System.String,System.Boolean)">
+            <summary>
+            Get the top tags for an album on Last.fm, ordered by popularity.
+            </summary>
+            <param name="artist">The artist name.</param>
+            <param name="album">The album name.</param>
+            <param name="autocorrect">Transform misspelled album names into correct album names (optional).</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/album.getTopTags
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IAlbumService.AddTagsAsync(System.String,System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Tag an album using a list of user supplied tags.
+            </summary>
+            <param name="artist">The artist name.</param>
+            <param name="album">The album name.</param>
+            <param name="tags">A list of user supplied tags to apply to this album. Accepts a maximum of 10 tags.</param>
+            <returns></returns>
+            <remarks>
+            This service requires authentication.
+            
+            https://www.last.fm/api/show/album.addTags
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IAlbumService.RemoveTagAsync(System.String,System.String,System.String)">
+            <summary>
+            Remove a user's tag from an album.
+            </summary>
+            <param name="artist">The artist name.</param>
+            <param name="album">The album name.</param>
+            <param name="tag">A single user tag to remove from this album.</param>
+            <returns></returns>
+            <remarks>
+            This service requires authentication.
+            
+            https://www.last.fm/api/show/album.removeTag
+            </remarks>
+        </member>
+        <member name="T:Hqub.Lastfm.Services.IArtistService">
+            <summary>
+            Last.fm artist service.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IArtistService.SearchAsync(System.String,System.Int32,System.Int32)">
+            <summary>
+            Search for an artist by name. Returns artist matches sorted by relevance.
+            </summary>
+            <param name="artist">The artist name.</param>
+            <param name="page">The page number to fetch. Defaults to first page.</param>
+            <param name="limit">The number of results to fetch per page. Defaults to 30.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/artist.search
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IArtistService.GetCorrectionAsync(System.String)">
+            <summary>
+            Use the last.fm corrections data to check whether the supplied artist has a correction to a canonical artist.
+            </summary>
+            <param name="artist">The artist name.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/artist.getCorrection
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IArtistService.GetInfoAsync(System.String,System.Boolean)">
+            <summary>
+            Get the metadata for an artist.
+            </summary>
+            <param name="artist">The artist name.</param>
+            <param name="autocorrect">Transform misspelled artist names into correct artist names (optional).</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/artist.getInfo
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IArtistService.GetSimilarAsync(System.String,System.Int32,System.Boolean)">
+            <summary>
+            Get all the artists similar to this artist.
+            </summary>
+            <param name="artist">The artist name.</param>
+            <param name="limit">Limit the number of similar artists returned (optional).</param>
+            <param name="autocorrect">Transform misspelled artist names into correct artist names (optional).</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/artist.getSimilar
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IArtistService.GetTagsAsync(System.String,System.String,System.Boolean)">
+            <summary>
+            Get the tags applied by an individual user to an artist on Last.fm.
+            </summary>
+            <param name="artist">The artist name.</param>
+            <param name="user">The user to look up.</param>
+            <param name="autocorrect">Transform misspelled track names into correct track names (optional).</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/artist.getTags
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IArtistService.GetTopAlbumsAsync(System.String,System.Boolean,System.Int32,System.Int32)">
+            <summary>
+            Get the top albums for an artist on Last.fm, ordered by popularity.
+            </summary>
+            <param name="artist">The artist name.</param>
+            <param name="page">The page number to fetch. Defaults to first page.</param>
+            <param name="limit">The number of results to fetch per page. Defaults to 50.</param>
+            <param name="autocorrect">Transform misspelled artist names into correct artist names (optional).</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/artist.getTopAlbums
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IArtistService.GetTopTagsAsync(System.String,System.Boolean)">
+            <summary>
+            Get the top tags for an artist on Last.fm, ordered by popularity.
+            </summary>
+            <param name="artist">The artist name.</param>
+            <param name="autocorrect">Transform misspelled artist names into correct artist names (optional).</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/artist.getTopTags
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IArtistService.GetTopTracksAsync(System.String,System.Boolean,System.Int32,System.Int32)">
+            <summary>
+            Get the top tracks by an artist on Last.fm, ordered by popularity.
+            </summary>
+            <param name="artist">The artist name.</param>
+            <param name="page">The page number to fetch. Defaults to first page.</param>
+            <param name="limit">The number of results to fetch per page. Defaults to 50.</param>
+            <param name="autocorrect">Transform misspelled artist names into correct artist names (optional).</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/artist.getTopTracks
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IArtistService.AddTagsAsync(System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Tag an artist with one or more user supplied tags.
+            </summary>
+            <param name="artist">The artist name.</param>
+            <param name="tags">A list of user supplied tags to apply to this artist. Accepts a maximum of 10 tags.</param>
+            <returns></returns>
+            <remarks>
+            This service requires authentication.
+            
+            https://www.last.fm/api/show/artist.addTags
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IArtistService.RemoveTagAsync(System.String,System.String)">
+            <summary>
+            Remove a user's tag from an artist.
+            </summary>
+            <param name="artist">The artist name.</param>
+            <param name="tag">A single user tag to remove from this artist.</param>
+            <returns></returns>
+            <remarks>
+            This service requires authentication.
+            
+            https://www.last.fm/api/show/artist.removeTag
+            </remarks>
+        </member>
+        <member name="T:Hqub.Lastfm.Services.IChartService">
+            <summary>
+            Last.fm chart service.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IChartService.GetTopArtistsAsync(System.Int32,System.Int32)">
+            <summary>
+            Gets a paginated list of top artists.
+            </summary>
+            <param name="page">The page number to fetch. Defaults to first page.</param>
+            <param name="limit">The number of results to fetch per page. Defaults to 50.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/chart.getTopArtists
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IChartService.GetTopTracksAsync(System.Int32,System.Int32)">
+            <summary>
+            Gets a paginated list of top tracks.
+            </summary>
+            <param name="page">The page number to fetch. Defaults to first page.</param>
+            <param name="limit">The number of results to fetch per page. Defaults to 50.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/chart.getTopTracks
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IChartService.GetTopTagsAsync(System.Int32,System.Int32)">
+            <summary>
+            Gets a paginated list of top tags. 
+            </summary>
+            <param name="page">The page number to fetch. Defaults to first page.</param>
+            <param name="limit">The number of results to fetch per page. Defaults to 50.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/chart.getTopTags
+            </remarks>
+        </member>
+        <member name="T:Hqub.Lastfm.Services.IGeoService">
+            <summary>
+            Last.fm geo service.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IGeoService.GetTopArtistsAsync(System.String,System.Int32,System.Int32)">
+            <summary>
+            Get the most popular artists by country.
+            </summary>
+            <param name="country">A country name, as defined by the ISO 3166-1 country names standard.</param>
+            <param name="page">The page number to fetch. Defaults to first page.</param>
+            <param name="limit">The number of results to fetch per page. Defaults to 50.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/geo.getTopArtists
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IGeoService.GetTopTracksAsync(System.String,System.Int32,System.Int32)">
+            <summary>
+            Get the most popular tracks by country.
+            </summary>
+            <param name="country">A country name, as defined by the ISO 3166-1 country names standard.</param>
+            <param name="page">The page number to fetch. Defaults to first page.</param>
+            <param name="limit">The number of results to fetch per page. Defaults to 50.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/geo.getTopTracks
+            </remarks>
+        </member>
+        <member name="T:Hqub.Lastfm.Services.ILibraryService">
+            <summary>
+            Last.fm library service.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ILibraryService.GetArtistsAsync(System.String,System.Int32,System.Int32)">
+            <summary>
+            Gets a paginated list of all the artists in a user's library, with play counts and tag counts. 
+            </summary>
+            <param name="user">The user name.</param>
+            <param name="page">The page number to fetch. Defaults to first page.</param>
+            <param name="limit">The number of results to fetch per page. Defaults to 50.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/library.getArtists
+            </remarks>
+        </member>
+        <member name="T:Hqub.Lastfm.Services.ITagService">
+            <summary>
+            Last.fm tag service.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ITagService.GetInfoAsync(System.String,System.String)">
+            <summary>
+            Get the metadata for a tag.
+            </summary>
+            <param name="tag">The tag name.</param>
+            <param name="lang">The language to return the biography in, expressed as an ISO 639 alpha-2 code (optional).</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/tag.getInfo
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ITagService.GetTopAlbumsAsync(System.String,System.Int32,System.Int32)">
+            <summary>
+            Get the top albums tagged by this tag, ordered by tag count.
+            </summary>
+            <param name="tag">The tag name.</param>
+            <param name="page">The page number to fetch. Defaults to first page.</param>
+            <param name="limit">The number of results to fetch per page. Defaults to 50.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/artist.getTopAlbums
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ITagService.GetTopArtistsAsync(System.String,System.Int32,System.Int32)">
+            <summary>
+            Get the top artists tagged by this tag, ordered by tag count.
+            </summary>
+            <param name="tag">The tag name.</param>
+            <param name="page">The page number to fetch. Defaults to first page.</param>
+            <param name="limit">The number of results to fetch per page. Defaults to 50.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/artist.getTopArtists
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ITagService.GetTopTagsAsync">
+            <summary>
+            Fetches the top global tags on Last.fm, sorted by popularity (number of times used).
+            </summary>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/tag.getTopTags
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ITagService.GetTopTracksAsync(System.String,System.Int32,System.Int32)">
+            <summary>
+            Get the top tracks by a tag on Last.fm, ordered by popularity.
+            </summary>
+            <param name="tag">The tag name.</param>
+            <param name="page">The page number to fetch. Defaults to first page.</param>
+            <param name="limit">The number of results to fetch per page. Defaults to 50.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/tag.getTopTracks
+            </remarks>
+        </member>
+        <member name="T:Hqub.Lastfm.Services.ITrackService">
+            <summary>
+            Last.fm track service.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ITrackService.SearchAsync(System.String,System.String,System.Int32,System.Int32)">
+            <summary>
+            Search for a track by name. Returns track matches sorted by relevance.
+            </summary>
+            <param name="track">The track name.</param>
+            <param name="artist">The artist name.</param>
+            <param name="page">The page number to fetch. Defaults to first page.</param>
+            <param name="limit">The number of results to fetch per page. Defaults to 30.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/track.search
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ITrackService.GetInfoAsync(System.String,System.String,System.Boolean)">
+            <summary>
+            Get the metadata for a track.
+            </summary>
+            <param name="track">The track name.</param>
+            <param name="artist">The artist name.</param>
+            <param name="autocorrect">Transform misspelled track names into correct track names (optional).</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/track.getInfo
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ITrackService.GetCorrectionAsync(System.String,System.String)">
+            <summary>
+            Use the last.fm corrections data to check whether the supplied track has a correction to a canonical track.
+            </summary>
+            <param name="track">The track name.</param>
+            <param name="artist">The artist name.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/track.getCorrection
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ITrackService.GetSimilarAsync(System.String,System.String,System.Int32,System.Boolean)">
+            <summary>
+            Get all the artists similar to this track.
+            </summary>
+            <param name="track">The track name.</param>
+            <param name="artist">The artist name.</param>
+            <param name="limit">Limit the number of similar tracks returned (optional).</param>
+            <param name="autocorrect">Transform misspelled track names into correct track names (optional).</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/track.getSimilar
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ITrackService.GetTagsAsync(System.String,System.String,System.String,System.Boolean)">
+            <summary>
+            Get the tags applied by an individual user to a track on Last.fm.
+            </summary>
+            <param name="user">The user to look up.</param>
+            <param name="track">The track name.</param>
+            <param name="artist">The artist name.</param>
+            <param name="autocorrect">Transform misspelled track names into correct track names (optional).</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/track.getTags
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ITrackService.GetTopTagsAsync(System.String,System.String,System.Boolean)">
+            <summary>
+            Get the top tags for a track on Last.fm, ordered by popularity.
+            </summary>
+            <param name="track">The track name.</param>
+            <param name="artist">The artist name.</param>
+            <param name="autocorrect">Transform misspelled track names into correct track names (optional).</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/track.getTopTags
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ITrackService.LoveAsync(System.String,System.String)">
+            <summary>
+            Love a track for a user profile. 
+            </summary>
+            <param name="track">The track name.</param>
+            <param name="artist">The artist name.</param>
+            <returns></returns>
+            <remarks>
+            This service requires authentication.
+            
+            https://www.last.fm/api/show/track.love
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ITrackService.UnloveAsync(System.String,System.String)">
+            <summary>
+            Unlove a track for a user profile. 
+            </summary>
+            <param name="track">The track name.</param>
+            <param name="artist">The artist name.</param>
+            <returns></returns>
+            <remarks>
+            This service requires authentication.
+            
+            https://www.last.fm/api/show/track.unlove
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ITrackService.UpdateNowPlayingAsync(System.String,System.String,System.Int32,System.String,System.String)">
+            <summary>
+            Used to notify Last.fm that a user has started listening to a track.
+            </summary>
+            <param name="track">The track name.</param>
+            <param name="artist">The artist name.</param>
+            <param name="trackNumber">The track number (optional).</param>
+            <param name="album">The album name (optional).</param>
+            <param name="albumArtist">The album artist name (optional).</param>
+            <returns></returns>
+            <remarks>
+            This service requires authentication.
+            
+            https://www.last.fm/api/show/track.updateNowPlaying
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ITrackService.ScrobbleAsync(Hqub.Lastfm.Entities.Scrobble)">
+            <summary>
+            Scrobble a track.
+            </summary>
+            <param name="scrobble">The <see cref="T:Hqub.Lastfm.Entities.Scrobble"/> item.</param>
+            <returns></returns>
+            <remarks>
+            This service requires authentication.
+            
+            https://www.last.fm/api/show/track.scrobble
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ITrackService.ScrobbleAsync(System.Collections.Generic.IEnumerable{Hqub.Lastfm.Entities.Scrobble})">
+            <summary>
+            Scrobble a batch of tracks.
+            </summary>
+            <param name="scrobbles">The <see cref="T:Hqub.Lastfm.Entities.Scrobble"/> list.</param>
+            <returns></returns>
+            <remarks>
+            This service requires authentication.
+            
+            https://www.last.fm/api/show/track.scrobble
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ITrackService.AddTagsAsync(System.String,System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Tag a track using a list of user supplied tags.
+            </summary>
+            <param name="track">The track name.</param>
+            <param name="artist">The artist name.</param>
+            <param name="tags">A list of user supplied tags to apply to this track. Accepts a maximum of 10 tags.</param>
+            <returns></returns>
+            <remarks>
+            This service requires authentication.
+            
+            https://www.last.fm/api/show/track.addTags
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.ITrackService.RemoveTagAsync(System.String,System.String,System.String)">
+            <summary>
+            Remove a user's tag from a track.
+            </summary>
+            <param name="track">The track name.</param>
+            <param name="artist">The artist name.</param>
+            <param name="tag">A single user tag to remove from this track.</param>
+            <returns></returns>
+            <remarks>
+            This service requires authentication.
+            
+            https://www.last.fm/api/show/track.removeTag
+            </remarks>
+        </member>
+        <member name="T:Hqub.Lastfm.Services.IUserService">
+            <summary>
+            Last.fm user service.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IUserService.GetInfoAsync(System.String)">
+            <summary>
+            Get the metadata for a user.
+            </summary>
+            <param name="user">The user name.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/user.getInfo
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IUserService.GetFriendsAsync(System.String,System.Boolean,System.Int32,System.Int32)">
+            <summary>
+            Gets a paginated list of the user's friends on Last.fm.
+            </summary>
+            <param name="user">The user name.</param>
+            <param name="recenttracks">Whether or not to include information about friends' recent listening in the response.</param>
+            <param name="page">The page number to fetch. Defaults to first page.</param>
+            <param name="limit">The number of results to fetch per page. Defaults to 50.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/user.getFriends
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IUserService.GetLovedTracksAsync(System.String,System.Int32,System.Int32)">
+            <summary>
+            Gets a paginated list of the tracks recently loved by a user. 
+            </summary>
+            <param name="user">The user name.</param>
+            <param name="page">The page number to fetch. Defaults to first page.</param>
+            <param name="limit">The number of results to fetch per page. Defaults to 50.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/user.getLovedTracks
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IUserService.GetRecentTracksAsync(System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Int32,System.Int32)">
+            <summary>
+            Gets a paginated list of the recent tracks listened to by this user.
+            </summary>
+            <param name="user">The user name.</param>
+            <param name="from">Beginning timestamp of a range (only display scrobbles after this time).</param>
+            <param name="to">End timestamp of a range (only display scrobbles before this time).</param>
+            <param name="page">The page number to fetch. Defaults to first page.</param>
+            <param name="limit">The number of results to fetch per page. Defaults to 50.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/user.getRecentTracks
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IUserService.GetTopAlbumsAsync(System.String,Hqub.Lastfm.Period,System.Int32,System.Int32)">
+            <summary>
+            Gets a paginated list of top albums listened to by a user.
+            </summary>
+            <param name="user">The user name.</param>
+            <param name="period">The time period over which to retrieve top albums for.</param>
+            <param name="page">The page number to fetch. Defaults to first page.</param>
+            <param name="limit">The number of results to fetch per page. Defaults to 50.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/user.getTopAlbums
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IUserService.GetTopArtistsAsync(System.String,Hqub.Lastfm.Period,System.Int32,System.Int32)">
+            <summary>
+            Gets a paginated list of top artists listened to by a user.
+            </summary>
+            <param name="user">The user name.</param>
+            <param name="period">The time period over which to retrieve top artists for.</param>
+            <param name="page">The page number to fetch. Defaults to first page.</param>
+            <param name="limit">The number of results to fetch per page. Defaults to 50.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/user.getTopArtists
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IUserService.GetTopTracksAsync(System.String,Hqub.Lastfm.Period,System.Int32,System.Int32)">
+            <summary>
+            Gets a paginated list of top tracks listened to by a user.
+            </summary>
+            <param name="user">The user name.</param>
+            <param name="period">The time period over which to retrieve top tracks for.</param>
+            <param name="page">The page number to fetch. Defaults to first page.</param>
+            <param name="limit">The number of results to fetch per page. Defaults to 50.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/user.getTopTracks
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IUserService.GetTopTagsAsync(System.String,System.Int32)">
+            <summary>
+            Gets a paginated list of top tags used by this user. 
+            </summary>
+            <param name="user">The user name.</param>
+            <param name="limit">Limit the number of tags returned.</param>
+            <returns></returns>
+            <remarks>
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/user.getTopTags
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IUserService.GetWeeklyChartListAsync(System.String)">
+            <summary>
+            Get a list of available charts for this user, expressed as date ranges which can be sent to the chart services. 
+            </summary>
+            <param name="user">The user name.</param>
+            <returns></returns>
+            <remarks>
+            
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/user.getWeeklyChartList
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IUserService.GetWeeklyAlbumChartAsync(System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+            <summary>
+            Get an album chart for a user profile, for a given date range.
+            </summary>
+            <param name="user">The user name.</param>
+            <param name="from">The date at which the chart should start from (optional).</param>
+            <param name="to">The date at which the chart should end on (optional).</param>
+            <returns></returns>
+            <remarks>
+            See user.getChartsList. If no date range is supplied, it will return the most recent track chart for this user.
+            
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/user.getWeeklyAlbumChart
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IUserService.GetWeeklyArtistChartAsync(System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+            <summary>
+            Get an artist chart for a user profile, for a given date range.
+            </summary>
+            <param name="user">The user name.</param>
+            <param name="from">The date at which the chart should start from (optional).</param>
+            <param name="to">The date at which the chart should end on (optional).</param>
+            <returns></returns>
+            <remarks>
+            See user.getChartsList. If no date range is supplied, it will return the most recent track chart for this user.
+            
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/user.getWeeklyArtistChart
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.IUserService.GetWeeklyTrackChartAsync(System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+            <summary>
+            Get a track chart for a user profile, for a given date range.
+            </summary>
+            <param name="user">The user name.</param>
+            <param name="from">The date at which the chart should start from (optional).</param>
+            <param name="to">The date at which the chart should end on (optional).</param>
+            <returns></returns>
+            <remarks>
+            See user.getChartsList. If no date range is supplied, it will return the most recent track chart for this user.
+            
+            This service does not require authentication.
+            
+            https://www.last.fm/api/show/user.getWeeklyTrackChart
+            </remarks>
+        </member>
+        <member name="M:Hqub.Lastfm.Services.LibraryService.GetArtistsAsync(System.String,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.TagService.GetInfoAsync(System.String,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.TagService.GetTopAlbumsAsync(System.String,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.TagService.GetTopArtistsAsync(System.String,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.TagService.GetTopTagsAsync">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.TagService.GetTopTracksAsync(System.String,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.TrackService.SearchAsync(System.String,System.String,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.TrackService.GetInfoAsync(System.String,System.String,System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.TrackService.GetCorrectionAsync(System.String,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.TrackService.GetSimilarAsync(System.String,System.String,System.Int32,System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.TrackService.GetTagsAsync(System.String,System.String,System.String,System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.TrackService.GetTopTagsAsync(System.String,System.String,System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.TrackService.LoveAsync(System.String,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.TrackService.UnloveAsync(System.String,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.TrackService.UpdateNowPlayingAsync(System.String,System.String,System.Int32,System.String,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.TrackService.ScrobbleAsync(Hqub.Lastfm.Entities.Scrobble)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.TrackService.ScrobbleAsync(System.Collections.Generic.IEnumerable{Hqub.Lastfm.Entities.Scrobble})">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.TrackService.AddTagsAsync(System.String,System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.TrackService.RemoveTagAsync(System.String,System.String,System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.UserService.GetInfoAsync(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.UserService.GetFriendsAsync(System.String,System.Boolean,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.UserService.GetLovedTracksAsync(System.String,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.UserService.GetRecentTracksAsync(System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime},System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.UserService.GetTopAlbumsAsync(System.String,Hqub.Lastfm.Period,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.UserService.GetTopArtistsAsync(System.String,Hqub.Lastfm.Period,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.UserService.GetTopTracksAsync(System.String,Hqub.Lastfm.Period,System.Int32,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.UserService.GetTopTagsAsync(System.String,System.Int32)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.UserService.GetWeeklyChartListAsync(System.String)">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.UserService.GetWeeklyAlbumChartAsync(System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.UserService.GetWeeklyArtistChartAsync(System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+            <inheritdoc />
+        </member>
+        <member name="M:Hqub.Lastfm.Services.UserService.GetWeeklyTrackChartAsync(System.String,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+            <inheritdoc />
+        </member>
+        <member name="T:Hqub.Lastfm.Session">
+            <summary>
+            Represents your identity tokens provided by Last.fm.
+            </summary>
+            <remarks>
+            A session with only API key and API secret is not authenticated and it wouldn't
+            let you perform write operations on Last.fm.  In order to have it authenticated
+            you can call
+            <code>
+            client.AuthenticateAsync(username, password);
+            </code>
+            </remarks>
+        </member>
+        <member name="P:Hqub.Lastfm.Session.ApiKey">
+            <summary>
+            Gets or sets the Last.fm API key.
+            </summary>
+            <remarks>
+            To acquire one, please see https://www.last.fm/api/account/create
+            </remarks>
+        </member>
+        <member name="P:Hqub.Lastfm.Session.ApiSecret">
+            <summary>
+            Gets or sets the Last.fm API secret.
+            </summary>
+            <remarks>
+            To acquire one, please see https://www.last.fm/api/account/create
+            </remarks>
+        </member>
+        <member name="P:Hqub.Lastfm.Session.SessionKey">
+             <summary>
+             Gets or sets the session secret.
+             </summary>
+             <remarks>
+             The Session key represents the user's permission to let you perform "write"
+             operations on his/her profile.
+            
+             To set this value, you have to use either one of the authentication methods
+             of the <see cref="T:Hqub.Lastfm.LastfmClient"/> class.
+             </remarks>
+        </member>
+        <member name="P:Hqub.Lastfm.Session.Authenticated">
+            <summary>
+            Returns true if the session is authenticated.
+            </summary>
+        </member>
+        <member name="M:Hqub.Lastfm.Session.#ctor(System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Hqub.Lastfm.Session"/> class.
+            </summary>
+            <param name="apiKey">The Last.fm API key.</param>
+            <param name="apiSecret">The Last.fm API secret.</param>
+        </member>
+        <member name="M:Hqub.Lastfm.Session.#ctor(System.String,System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Hqub.Lastfm.Session"/> class.
+            </summary>
+            <param name="apiKey">The Last.fm API key.</param>
+            <param name="apiSecret">The Last.fm API secret.</param>
+            <param name="sessionKey">The Last.fm session key.</param>
+        </member>
+    </members>
+</doc>
