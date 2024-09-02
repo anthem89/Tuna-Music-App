@@ -2,4 +2,4 @@
 Simple desktop music library / player. Uses Audd.io REST API to automatically detect meta data for each file and populate album artwork etc for the user's music library.
 
 <br>
-<img src="https://github.com/anthem89/Tuna-Music-App/blob/main/GitHubScreenshot.PNG" width="700">
+<img src="https://github.com/anthem89/Tuna-Music-App/blob/main/notes/GitHubScreenshot.PNG" width="700">
