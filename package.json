@@ -1,0 +1,23 @@
+{
+	"name": "tuna-music-app",
+	"version": "1.0.0",
+	"description": "Simple desktop music library / player. Uses Audd.io REST API to automatically detect meta data for each file and populate album artwork etc for the user's music library.",
+	"main": "./server/server.js",
+	"scripts": {
+		"start": "node ./server/server.js",
+		"start-dev": "nodemon ./server/server.js"
+	},
+	"type": "module",
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"@distube/ytdl-core": "^4.14.4",
+		"express": "^4.19.2",
+		"ffmpeg-static": "^5.2.0",
+		"fluent-ffmpeg": "^2.1.3",
+		"node-fetch": "^3.3.2",
+		"sqlite3": "^5.1.7",
+		"uuid": "^10.0.0",
+		"ytmusic-api": "^5.2.2"
+	}
+}

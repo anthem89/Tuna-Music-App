@@ -1,0 +1,89 @@
+:root {
+	--primary-color: #dffe13;
+	--text-primary: #ff7007;
+}
+
+a {
+	cursor: pointer;
+	text-decoration: none !important;
+}
+
+a:hover {
+	text-decoration: underline !important;
+}
+
+button {
+	background-color: fuchsia;
+	color: white;
+	font-weight: bold;
+}
+
+#app-container {
+	display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+#app-header {
+	background-color: var(--primary-color);
+	width: 100%;
+	padding: 10px;
+	display: flex;
+	justify-content: space-between;
+}
+
+#app-header a {
+	color: blue;
+	margin: 10px;
+	font-size: 18px;
+	font-weight: bold;
+	white-space: nowrap;
+	text-wrap: nowrap;
+}
+
+#app-header h1 {
+	color: var(--text-primary);
+    font-style: italic;
+	font-weight: bold;
+    font-family: sans-serif;
+}
+
+#app-body {
+	padding: 20px;
+	width: 100%;
+	flex-grow: 1;
+	overflow: auto;
+}
+
+#app-player {
+	width: 100%;
+	background-color: #d7d7d7;
+	padding: 10px;
+}
+
+audio-player {
+	width: 100%;
+}
+
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 16px;
+	text-align: left;
+  }
+  
+  th, td {
+	padding: 12px;
+	border-bottom: 1px solid #ddd;
+  }
+  
+  th {
+	color: #333;
+	font-weight: bold;
+	text-align: center;
+  }
+  
+  tr:nth-child(even) {
+	background-color: #f9f9f9;
+  }

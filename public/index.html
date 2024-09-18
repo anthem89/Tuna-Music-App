@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="./css/index.css" rel="stylesheet" type="text/css">
+	<title>Tuna Music</title>
+	<link rel="icon" type="image/x-icon" href="./assets/tuna-app-logo.ico">
+
+	<link href="./vendor/bootstrap-v.5.3.3.min.css" rel="stylesheet">
+	<link href="./vendor/bootstrap-icons-v1.11.3.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+	<div id="app-container">
+		<div id="app-header">
+			<h1>Tuna Music Library</h1>
+
+			<div>
+				<a class="screen-link" name="discover-songs">Discover Songs</a>
+				<a class="screen-link" name="my-library">My Library</a>
+			</div>
+		</div>
+
+		<div id="app-body">
+			<discover-screen></discover-screen>
+		</div>
+		<div id="app-player">
+			<audio-player></audio-player>
+		</div>
+
+	</div>
+
+
+	<!-- Scripts -->
+	<script src="./vendor/bootstrap.bundle-v5.3.3.min.js"></script>
+
+	<script src="./js/index.js" type="module"></script>
+	<script src="./js/utils.js" type="module"></script>
+	<script src="./js/components/autocomplete-input.js" type="module"></script>
+	<script src="./js/components/audio-player.js" type="module"></script>
+
+	<script src="./js/screens/discover-screen.js" type="module"></script>
+	<script src="./js/screens/library-screen.js" type="module"></script>
+</body>
+
+</html>

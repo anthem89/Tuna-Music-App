@@ -1,0 +1,55 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Chrome Port 3000",
+            "request": "launch",
+            "type": "chrome",
+            "url": "http://localhost:3000/",
+            "webRoot": "${workspaceFolder}\\public",
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/**",
+                "!**/node_modules/**"
+            ],
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Start Server (nodemon)",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run-script", "start-dev"
+            ],
+            "console": "integratedTerminal",
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Start Server",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run-script", "start"
+            ],
+            "console": "integratedTerminal",
+        }
+    ],
+    "compounds": [
+        {
+          "name": "Start Server & Client (nodemon)",
+          "configurations": ["Start Server (nodemon)","Chrome Port 3000"]
+        },
+        {
+            "name": "Start Server & Client",
+            "configurations": ["Start Server","Chrome Port 3000"]
+          }
+      ]
+}
