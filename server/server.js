@@ -14,7 +14,7 @@ import userLibraryRoute from "../routes/user-library.js"
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const app = express()
-const port = 3000
+const port = 5502
 
 // Serve static files from the "public" folder
 app.use(express.static(path.join(__dirname, "../public")))
