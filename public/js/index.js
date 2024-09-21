@@ -184,7 +184,10 @@ function Initialize() {
 		}
 	}
 
-	window.scrollTo(0, 1)
+	window.scrollTo(0, 100)
+	setTimeout(() => {
+		document.body.style.height = "100dvh"
+	}, 100);
 }
 
 Initialize()
