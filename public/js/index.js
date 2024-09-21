@@ -183,6 +183,8 @@ function Initialize() {
 			SwitchToScreen(clickTarget.dataset.screen)
 		}
 	}
+
+	window.scrollTo(0, 1)
 }
 
 Initialize()
