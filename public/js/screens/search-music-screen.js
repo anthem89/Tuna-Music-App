@@ -1,8 +1,9 @@
-import { InjectGlobalStylesheets, secondsToTimestamp } from "../utils.js"
+import { InjectGlobalStylesheets, secondsToTimestamp, RemoveAllChildren, CreateElementFromHTML } from "../utils.js"
 import { AutocompleteInput } from "../components/autocomplete-input.js"
-import { DataTable, DataTableHeader } from "../components/data-table.js"
+import { DataTable } from "../components/data-table.js"
 import { AudioPlayer } from "../components/audio-player.js"
 import { TrackData } from "../components/track-data.js"
+import { SongTile } from "../components/song-tile.js"
 
 export class SearchMusicScreen extends HTMLElement {
 	constructor() {
@@ -54,7 +55,7 @@ export class SearchMusicScreen extends HTMLElement {
 				const res = await fetch("/search?query=" + query)
 				const resJson = await res.json()
 
-				const columnHeaders = ["Actions", "Album Artwork", "Artist", "Song Title", "Album Name", "Duration"].map((header) => new DataTableHeader({ name: header, resizeable: false, sortable: false }))
+				const columnHeaders = ["", "", "Album Name", "Duration"]
 
 				const tableData = []
 				this.resultsData = []
@@ -62,28 +63,28 @@ export class SearchMusicScreen extends HTMLElement {
 				if (Array.isArray(resJson)) {
 					resJson.forEach((result, index) => {
 						const actionsHtml = `<div data-video-id="${result["videoId"]}" data-index="${index}"><a class="link-underline btn-play">Play</a><span> | </span><a class="link-underline btn-add">Add</a></div>`
-						let thumbnail = result["thumbnails"]
-						thumbnail = (Array.isArray(thumbnail) ? (thumbnail[thumbnail.length - 1]?.["url"] || "") : "")
-						const albumArtwork = `<img class="album-artwork" src="${thumbnail}">`
+						let albumArtwork = result["thumbnails"]
+						albumArtwork = (Array.isArray(albumArtwork) ? (albumArtwork[albumArtwork.length - 1]?.["url"] || "") : "")
 						const artistName = result["artist"]["name"]
 						const songTitle = result["name"]
 						const albumName = result["album"]["name"]
 						const duration = result["duration"]
 
-						this.resultsData.push(new TrackData({
-							album_art: thumbnail,
+						const trackData = new TrackData({
+							album_art: albumArtwork,
 							artist: artistName,
 							title: songTitle,
 							album: albumName,
 							duration: duration
-						}))
-
-						tableData.push([actionsHtml, albumArtwork, artistName, songTitle, albumName, secondsToTimestamp(duration)])
+						})
+						this.resultsData.push(trackData)
+						tableData.push([ new SongTile(trackData),CreateElementFromHTML(actionsHtml), albumName, secondsToTimestamp(duration)])
 					})
 				}
 
 				const searchResultsTable = new DataTable(columnHeaders, tableData)
-				this.dataTableWrapper.innerHTML = ""
+				searchResultsTable.classList.toggle("song-list-table", true)
+				RemoveAllChildren(this.dataTableWrapper)
 				this.dataTableWrapper.appendChild(searchResultsTable)
 
 			} catch (e) {
