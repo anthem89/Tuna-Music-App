@@ -36,3 +36,11 @@ export function secondsToTimestamp(seconds) {
 	const formattedSeconds = remainingSeconds < 10 ? `0${remainingSeconds}` : remainingSeconds
 	return `${minutes}:${formattedSeconds}`
 }
+
+export function RemoveAllChildren(parent) {
+	while (parent.firstChild) {
+		// Recursively remove all children of the current child element
+		RemoveAllChildren(parent.firstChild)
+		parent.removeChild(parent.firstChild)
+	}
+}

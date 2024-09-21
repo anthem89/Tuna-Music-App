@@ -2,48 +2,86 @@
 <html lang="en">
 
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link href="./css/index.css" rel="stylesheet" type="text/css">
-	<title>Tuna Music</title>
-	<link rel="icon" type="image/x-icon" href="./assets/tuna-app-logo.ico">
+	<meta charset="utf-8">
+	<meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-	<link href="./vendor/bootstrap-v.5.3.3.min.css" rel="stylesheet">
-	<link href="./vendor/bootstrap-icons-v1.11.3.min.css" rel="stylesheet">
+	<title>Tuna Music</title>
+	<link href="./assets/img/tuna-logo.png" rel="icon">
+
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
+		integrity="sha512-jnSuA4Ss2PkkikSOLtYs8BlYIeeIK1h99ty4YfvRPAlzr377vr3CXDb7sb7eEEBYjDtcYj+AjBH3FLv5uSJuXg=="
+		crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+	<link rel="stylesheet"
+		href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css"
+		integrity="sha512-dPXYcDub/aeb08c63jRq/k6GaKccl256JQy/AnOq7CAnEZ9FzSL9wSbcZkMp4R26vBsMLFYH4kQ67/bbV8XaCQ=="
+		crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&display=swap" rel="stylesheet">
+
+	<link href="./css/index.css" rel="stylesheet">
 </head>
 
 <body>
 
-	<div id="app-container">
-		<div id="app-header">
-			<h1>Tuna Music Library</h1>
-
-			<div>
-				<a class="screen-link" name="discover-songs">Discover Songs</a>
-				<a class="screen-link" name="my-library">My Library</a>
+	<!-- Header -->
+	<header id="header" class="header fixed-top d-flex align-items-center">
+		<div class="d-flex align-items-center justify-content-between flex-grow-1">
+			<!-- Sidebar Toggle Button -->
+			<i class="bi bi-list toggle-sidebar-btn"></i>
+			<!-- App Logo -->
+			<div class="logo d-flex align-items-center">
+				<span class="d-none d-lg-block user-select-none">Tuna Music</span>
+				<img src="./assets/img/fish.png" alt="">
 			</div>
 		</div>
+	</header>
 
-		<div id="app-body">
-			<discover-screen></discover-screen>
+	<!-- Sidebar Menu -->
+	<aside id="sidebar" class="sidebar">
+		<ul class="sidebar-nav" id="sidebar-nav">
+			<!-- Nav menu contents will be dynamically injected here -->
+			<!-- Nav menu contents will be dynamically injected here -->
+			<!-- Nav menu contents will be dynamically injected here -->
+		</ul>
+	</aside>
+
+	<!-- Main Content Panel -->
+	<main id="module-content-container">
+		<div class="module-title-container">
+			<div>
+				<h1 id="module-title"></h1>
+			</div>
 		</div>
-		<div id="app-player">
-			<audio-player></audio-player>
-		</div>
+		<section>
+			<!-- Module contents will be dynamically injected here -->
+			<!-- Module contents will be dynamically injected here -->
+			<!-- Module contents will be dynamically injected here -->
+		</section>
+	</main>
 
-	</div>
+	<!-- Footer -->
+	<footer id="footer" class="footer">
+		<audio-player></audio-player>
+	</footer>
+
+	<div id="sidebar-nav-page-mask"></div>
 
 
-	<!-- Scripts -->
-	<script src="./vendor/bootstrap.bundle-v5.3.3.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"
+		integrity="sha512-7Pi/otdlbbCR+LnW+F7PwFcSDJOuUJB3OxtEHbg4vSMvzvJjde4Po1v4BR9Gdc9aXNUNFVUY+SK51wWT8WF0Gg=="
+		crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 	<script src="./js/index.js" type="module"></script>
 	<script src="./js/utils.js" type="module"></script>
 	<script src="./js/components/autocomplete-input.js" type="module"></script>
 	<script src="./js/components/audio-player.js" type="module"></script>
 
-	<script src="./js/screens/discover-screen.js" type="module"></script>
+	<script src="./js/screens/search-music-screen.js" type="module"></script>
 	<script src="./js/screens/library-screen.js" type="module"></script>
+
 </body>
 
 </html>

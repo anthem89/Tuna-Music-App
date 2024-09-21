@@ -4,7 +4,7 @@ import { DataTable, DataTableHeader } from "../components/data-table.js"
 import { AudioPlayer } from "../components/audio-player.js"
 import { TrackData } from "../components/track-data.js"
 
-export class DiscoverScreen extends HTMLElement {
+export class SearchMusicScreen extends HTMLElement {
 	constructor() {
 		super()
 		this.attachShadow({ mode: "open" })
@@ -12,7 +12,7 @@ export class DiscoverScreen extends HTMLElement {
 
 	connectedCallback() {
 		this.shadowRoot.innerHTML = `
-			<link href="./js/screens/discover-screen.css" rel="stylesheet" type="text/css">
+			<link href="./js/screens/search-music-screen.css" rel="stylesheet" type="text/css">
 
 			<div class="d-flex">
 				<autocomplete-input></autocomplete-input>
@@ -134,7 +134,7 @@ export class DiscoverScreen extends HTMLElement {
 	}
 }
 
-customElements.define("discover-screen", DiscoverScreen)
+customElements.define("search-music-screen", SearchMusicScreen)
 
 
 
