@@ -2,21 +2,21 @@ import { RemoveAllChildren } from "./utils.js"
 
 export const NavMenuStructure = {
 	homeSection: { title: null, parent: null },
-	home: { title: "Home", tagName: "home-screen", icon: "bi bi-grid", parent: "homeSection" },
+	home: { title: "Home", tagName: "home-screen", icon: "bi bi-house-door", parent: "homeSection" },
 
 	musicSection: { title: "Music", parent: null },
-	searchMusic: { title: "Discover", tagName: "search-music-screen", icon: "bi bi-card-checklist", parent: "musicSection" },
+	searchMusic: { title: "Discover", tagName: "search-music-screen", icon: "bi bi-search", parent: "musicSection" },
 
-	library: { title: "My Library", icon: "bi bi-graph-up-arrow", parent: "musicSection" },
+	library: { title: "My Library", icon: "bi bi-collection", parent: "musicSection" },
 	allSongs: { title: "All Songs", tagName: "library-screen", icon: null, parent: "library" },
 	playlists: { title: "Playlists", tagName: "playlists-screen", icon: null, parent: "library" },
 
 	podcastsSection: { title: "Podcasts", parent: null },
-	searchPodcasts: { title: "Search Podcasts", tagName: "search-podcasts-screen", icon: "bi bi-bank", parent: "podcastsSection" },
-	myPodcasts: { title: "My Podcasts", tagName: "podcasts-screen", icon: "bi bi-bank", parent: "podcastsSection" },
+	searchPodcasts: { title: "Search Podcasts", tagName: "search-podcasts-screen", icon: "bi bi-search", parent: "podcastsSection" },
+	myPodcasts: { title: "My Podcasts", tagName: "podcasts-screen", icon: "bi bi-headphones", parent: "podcastsSection" },
 
 	settingsSection: { title: "Settings", parent: null },
-	settings: { title: "My Settings", tagName: "settings-screen", icon: "bi bi-question-circle", parent: "settingsSection" },
+	settings: { title: "My Settings", tagName: "settings-screen", icon: "bi bi-gear", parent: "settingsSection" },
 
 }
 

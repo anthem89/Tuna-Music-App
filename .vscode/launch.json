@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Chrome Port 3000",
+            "name": "Chrome Port 5502",
             "request": "launch",
             "type": "chrome",
-            "url": "http://localhost:3000/",
+            "url": "http://localhost:5502/",
             "webRoot": "${workspaceFolder}\\public",
             "resolveSourceMapLocations": [
                 "${workspaceFolder}/**",
@@ -45,11 +45,11 @@
     "compounds": [
         {
           "name": "Start Server & Client (nodemon)",
-          "configurations": ["Start Server (nodemon)","Chrome Port 3000"]
+          "configurations": ["Start Server (nodemon)","Chrome Port 5502"]
         },
         {
             "name": "Start Server & Client",
-            "configurations": ["Start Server","Chrome Port 3000"]
+            "configurations": ["Start Server","Chrome Port 5502"]
           }
       ]
 }
