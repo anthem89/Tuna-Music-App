@@ -14,7 +14,7 @@
 body {
 	display: flex;
 	flex-direction: column;
-	height: 100dvh;
+	height: calc(100dvh + 1px);
 }
 
 #module-content-container {
