@@ -183,11 +183,6 @@ function Initialize() {
 			SwitchToScreen(clickTarget.dataset.screen)
 		}
 	}
-
-	window.scrollTo(0, 100)
-	setTimeout(() => {
-		document.body.style.height = "100dvh"
-	}, 100);
 }
 
 Initialize()
