@@ -183,6 +183,11 @@ function Initialize() {
 			SwitchToScreen(clickTarget.dataset.screen)
 		}
 	}
+
+	const appHeader = document.querySelector("#header")
+	document.querySelector("#module-content-container").addEventListener("scroll", (e) => {
+			e.target.classList.toggle("collapse-to-header", e.target.scrollTop > 20)
+	}, { passive: true })
 }
 
 Initialize()

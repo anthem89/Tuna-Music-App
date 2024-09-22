@@ -1,9 +1,15 @@
-song-tile {
-	display: flex;
-	align-items: center;
-	max-width: 350px;
-	width: fit-content;
-	cursor: pointer;
+/* Apply header-collapse class to document body in order to collapse the app header */
+body.header-collapse .header {
+	height: 0px !important;
+	opacity: 0%;
+}
+
+body.header-collapse .sidebar {
+	top: 0px;
+}
+
+body.header-collapse #module-content-container {
+	margin-top: 0px;
 }
 
 /* Mobile View */
@@ -12,6 +18,32 @@ song-tile {
 		width: calc(100vw - 20px);
 		max-width: unset;
 	}
+
+	/* When scrolling in mobile view, collapse the module title to the app header to save vertical space */
+	#module-content-container.collapse-to-header section {
+		margin-top: 45px;
+	}
+
+	#module-title {
+		transition: all 0.3s ease;
+		height: 45px;
+		margin-bottom: 0px;
+	}
+
+	#module-content-container.collapse-to-header #module-title {
+		position: absolute;
+		z-index: 1000;
+		font-size: 18px;
+		transform: translate3d(70px, -60px, 10px);
+	}
+}
+
+song-tile {
+	display: flex;
+	align-items: center;
+	max-width: 350px;
+	width: fit-content;
+	cursor: pointer;
 }
 
 song-tile img {
@@ -19,7 +51,7 @@ song-tile img {
 	margin-right: 10px;
 }
 
-song-tile.large-image img{
+song-tile.large-image img {
 	width: 110px;
 }
 
@@ -46,7 +78,7 @@ song-tile span {
 
 /* Mobile View */
 @media (max-width: 991px) {
-	.song-list-table td:not(:has(song-tile)){
+	.song-list-table td:not(:has(song-tile)) {
 		display: none;
 	}
 
@@ -70,15 +102,14 @@ song-tile span {
 	border-bottom: 2px solid var(--regularText);
 }
 
-.song-list-table tr {
+.song-list-table tbody tr {
 	cursor: pointer;
 }
 
-.song-list-table tr:hover {
+.song-list-table tbody tr:hover {
 	background-color: var(--offWhite);
 }
 
 .song-list-table td {
 	max-width: 350px;
 }
-

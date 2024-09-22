@@ -1,23 +1,27 @@
 .autocomplete-container {
 	position: relative;
-	width: 300px;
 }
 
 .autocomplete-input {
 	width: 100%;
-	padding: 8px;
+	padding: 8px 12px;
 	box-sizing: border-box;
+	border: none !important;
+	outline: none !important;
+	border-radius: 30px;
 }
 
 .autocomplete-suggestions {
 	position: absolute;
-	border: 1px solid #ddd;
-	border-top: none;
-	max-height: 200px;
-	overflow-y: auto;
-	background-color: white;
-	width: 100%;
-	z-index: 99;
+    border: 3px solid var(--tunaPink);
+    border-top: none;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: var(--background);
+    z-index: 99;
+    left: -3px;
+    width: calc(100% + 6px);
+	font-weight: bold;
 }
 
 .autocomplete-suggestion {
@@ -26,5 +30,5 @@
 }
 
 .autocomplete-suggestion:hover {
-	background-color: #eee;
+	background-color: var(--offWhite);
 }

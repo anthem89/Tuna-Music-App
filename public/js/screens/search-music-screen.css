@@ -1,3 +1,21 @@
-.album-artwork {
-	height: 60px;
+#search-input-wrapper {
+	display: flex;
+	width: 100%;
+    max-width: 500px;
+}
+
+autocomplete-input {
+	border: 3px solid var(--tunaPink);
+    border-radius: 20px 0px 0px 0px;
+	width: 100%;
+}
+
+
+#search-button {
+	border: 3px solid var(--tunaPink);
+    background-color: var(--tunaPink);
+    border-radius: 0px 0px 20px 0px;
+    color: white;
+    padding-right: 10px;
+    font-weight: bold;
 }

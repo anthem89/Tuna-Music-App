@@ -12,7 +12,7 @@ export class AutocompleteInput extends HTMLElement {
 			<link href="./js/components/autocomplete-input.css" rel="stylesheet" type="text/css">
 
 			<div class="autocomplete-container">
-				<input type="text" class="autocomplete-input" placeholder="Search...">
+				<input type="text" class="autocomplete-input" placeholder="Search..." maxlength="50">
 				<div tabindex="-1" class="autocomplete-suggestions"></div>
 			</div>
 		`

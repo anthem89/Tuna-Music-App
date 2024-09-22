@@ -15,9 +15,9 @@ export class SearchMusicScreen extends HTMLElement {
 		this.shadowRoot.innerHTML = `
 			<link href="./js/screens/search-music-screen.css" rel="stylesheet" type="text/css">
 
-			<div class="d-flex">
+			<div id="search-input-wrapper">
 				<autocomplete-input></autocomplete-input>
-				<button id="search-button">Submit</button>
+				<button id="search-button"><i class="bi bi-search"></i></button>
 			</div>
 			
 			<div id="search-results-table-wrapper">
