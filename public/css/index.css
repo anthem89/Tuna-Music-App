@@ -38,6 +38,30 @@ body {
 	height: 100dvh;
 }
 
+.clampOneLine {
+	display: -webkit-box !important;
+	line-clamp: 1 !important;
+	-webkit-line-clamp: 1 !important;
+	-webkit-box-orient: vertical !important;
+	overflow: hidden !important;
+}
+
+.clampTwoLines {
+	display: -webkit-box !important;
+	line-clamp: 2 !important;
+	-webkit-line-clamp: 2 !important;
+	-webkit-box-orient: vertical !important;
+	overflow: hidden !important;
+}
+
+.clampThreeLines {
+	display: -webkit-box !important;
+	line-clamp: 3 !important;
+	-webkit-line-clamp: 3 !important;
+	-webkit-box-orient: vertical !important;
+	overflow: hidden !important;
+}
+
 #module-content-container {
 	transition: margin 0.3s ease;
 	background-color: var(--background);

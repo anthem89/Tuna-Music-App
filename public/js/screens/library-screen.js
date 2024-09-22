@@ -1,4 +1,4 @@
-import { InjectGlobalStylesheets, secondsToTimestamp, RemoveAllChildren } from "../utils.js"
+import { InjectGlobalStylesheets, secondsToTimestamp, RemoveAllChildren, CreateElementFromHTML } from "../utils.js"
 import { DataTable } from "../components/data-table.js"
 import { TrackData } from "../components/track-data.js"
 import { SongTile } from "../components/song-tile.js"
@@ -34,14 +34,15 @@ export class LibraryScreen extends HTMLElement {
 		const res = await fetch("/user-library", { method: "GET" })
 		const resJson = await res.json()
 
-		const columnHeaders = ["Song", "Album Name", "Duration"]
+		const columnHeaders = ["Song", "Actions", "Album Name", "Duration"]
 		const tableData = []
 		this.resultsData = []
 
 		if (Array.isArray(resJson)) {
 			resJson.forEach((result, index) => {
+				const actionsHtml = `<div class="action-link-container"><a class="link-underline btn-add">More</a></div>`
 				const trackData = new TrackData(result)
-				tableData.push([new SongTile(trackData), trackData.album, secondsToTimestamp(trackData.duration)])
+				tableData.push([new SongTile(trackData), CreateElementFromHTML(actionsHtml), trackData.album, secondsToTimestamp(trackData.duration)])
 			})
 		}
 

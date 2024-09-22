@@ -184,10 +184,12 @@ function Initialize() {
 		}
 	}
 
-	const appHeader = document.querySelector("#header")
+	// When screens scroll, collapse the screen title to the app header
 	document.querySelector("#module-content-container").addEventListener("scroll", (e) => {
 			e.target.classList.toggle("collapse-to-header", e.target.scrollTop > 20)
 	}, { passive: true })
+
+	SwitchToScreen("allSongs")
 }
 
 Initialize()
