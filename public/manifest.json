@@ -3,8 +3,8 @@
 	"short_name": "Tuna Music",
 	"start_url": "/",
 	"display": "standalone",
-	"background_color": "#d0ff06",
-	"theme_color": "#d0ff06",
+	"background_color": "#ff787e",
+	"theme_color": "#ff787e",
 	"icons": [
 		{
 			"src": "/assets/img/fish-bg-48.png",

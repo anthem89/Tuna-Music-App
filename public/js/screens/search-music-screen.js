@@ -55,7 +55,7 @@ export class SearchMusicScreen extends HTMLElement {
 				const res = await fetch("/search?query=" + query)
 				const resJson = await res.json()
 
-				const columnHeaders = ["", "", "Album Name", "Duration"]
+				const columnHeaders = ["Song", "", "Album Name", "Duration"]
 
 				const tableData = []
 				this.resultsData = []
@@ -83,7 +83,7 @@ export class SearchMusicScreen extends HTMLElement {
 				}
 
 				const searchResultsTable = new DataTable(columnHeaders, tableData)
-				searchResultsTable.classList.toggle("song-list-table", true)
+				searchResultsTable.classList.add("song-list-table")
 				RemoveAllChildren(this.dataTableWrapper)
 				this.dataTableWrapper.appendChild(searchResultsTable)
 

@@ -2,6 +2,7 @@ import { InjectGlobalStylesheets, secondsToTimestamp, RemoveAllChildren } from "
 import { DataTable } from "../components/data-table.js"
 import { TrackData } from "../components/track-data.js"
 import { SongTile } from "../components/song-tile.js"
+import { AudioPlayer } from "../components/audio-player.js"
 
 export class LibraryScreen extends HTMLElement {
 	constructor() {
@@ -33,42 +34,29 @@ export class LibraryScreen extends HTMLElement {
 		const res = await fetch("/user-library", { method: "GET" })
 		const resJson = await res.json()
 
-		const columnHeaders = ["", "Album Name", "Duration"]
-
+		const columnHeaders = ["Song", "Album Name", "Duration"]
 		const tableData = []
 		this.resultsData = []
 
 		if (Array.isArray(resJson)) {
 			resJson.forEach((result, index) => {
-				const albumArt = result["album_art"]
-				const artistName = result["artist"]
-				const songTitle = result["title"]
-				const albumName = result["album"]
-				const duration = result["duration"]
-
-				const trackData = new TrackData({
-					album_art: albumArt,
-					artist: artistName,
-					title: songTitle,
-					duration: duration,
-					album: albumName
-				})
-
-				tableData.push([ new SongTile(trackData) , albumName, secondsToTimestamp(duration)])
+				const trackData = new TrackData(result)
+				tableData.push([new SongTile(trackData), trackData.album, secondsToTimestamp(trackData.duration)])
 			})
 		}
 
 		const libraryTable = new DataTable(columnHeaders, tableData)
+		libraryTable.classList.add("song-list-table")
 		RemoveAllChildren(this.dataTableWrapper)
 		this.dataTableWrapper.appendChild(libraryTable)
 	}
 
 	async #rowAction(e) {
-		const target = e.target.closest("a")
-		const targetRow = target.parentElement
-		let libraryUuid
-		if (target != null && target.classList.contains("btn-play")) {
-			libraryUuid = targetRow.dataset["libraryUuid"]
+		/** @type {SongTile} */
+		const targetRow = e.target.closest("tr")
+		const songTile = targetRow?.querySelector("song-tile")
+		if (songTile != null) {
+			const libraryUuid = songTile.trackData.id
 			/** @type {AudioPlayer} */
 			const audioPlayer = this.shadowRoot.ownerDocument.querySelector("audio-player")
 			audioPlayer.SetSource(libraryUuid)

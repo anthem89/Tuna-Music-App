@@ -17,7 +17,7 @@ export class DataTable extends HTMLElement {
 
 		this.headers.forEach((header) => {
 			const th = document.createElement("th")
-			th.textContent = header.name
+			th.innerText = header
 			headerRow.appendChild(th)
 		})
 
