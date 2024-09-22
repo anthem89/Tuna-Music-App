@@ -1,4 +1,4 @@
-import { InjectGlobalStylesheets, secondsToTimestamp, RemoveAllChildren, CreateElementFromHTML } from "../utils.js"
+import { InjectGlobalStylesheets, secondsToTimestamp, RemoveAllChildren, CreateElementFromHTML, isNullOrWhiteSpace } from "../utils.js"
 import { AutocompleteInput } from "../components/autocomplete-input.js"
 import { DataTable } from "../components/data-table.js"
 import { AudioPlayer } from "../components/audio-player.js"
@@ -9,6 +9,7 @@ export class SearchMusicScreen extends HTMLElement {
 	constructor() {
 		super()
 		this.attachShadow({ mode: "open" })
+		this.temporarySongCache = {}
 	}
 
 	connectedCallback() {
@@ -46,23 +47,42 @@ export class SearchMusicScreen extends HTMLElement {
 			const resJson = await res.json()
 			return resJson
 		}
+		this.autocompleteInput.suggestionsElement.onclick = (e) => {
+			const clickedSuggestion = e.target.closest(".autocomplete-suggestion")
+			const query = clickedSuggestion?.textContent.trim()
+			this.autocompleteInput.closeSuggestionDropdown()
+			if (isNullOrWhiteSpace(query) == false) {
+				this.autocompleteInput.inputElement.value = query
+				this.#performSearch(query)
+			}
+		}
+		this.autocompleteInput.inputElement.onkeydown = (e) => {
+			if (e.key === "Enter") {
+				setTimeout(() => {
+					this.autocompleteInput.closeSuggestionDropdown()
+				}, 100)
+				this.#performSearch()
+			}
+		}
 	}
 
-	#performSearch() {
+	#performSearch(query) {
 		return new Promise(async (resolve, reject) => {
 			try {
-				const query = this.autocompleteInput.inputElement.value
+				if (query == null) {
+					query = this.autocompleteInput.inputElement.value.trim()
+				}
 				const res = await fetch("/search?query=" + query)
 				const resJson = await res.json()
 
-				const columnHeaders = ["Song", "", "Album Name", "Duration"]
+				const columnHeaders = ["Song", "Actions", "Album Name", "Duration"]
 
 				const tableData = []
 				this.resultsData = []
 
 				if (Array.isArray(resJson)) {
 					resJson.forEach((result, index) => {
-						const actionsHtml = `<div data-video-id="${result["videoId"]}" data-index="${index}"><a class="link-underline btn-play">Play</a><span> | </span><a class="link-underline btn-add">Add</a></div>`
+						const actionsHtml = `<div class="action-link-container" data-index="${index}"><a class="link-underline btn-add">Add</a><span> | </span><a class="link-underline btn-menu">Menu</a></div>`
 						let albumArtwork = result["thumbnails"]
 						albumArtwork = (Array.isArray(albumArtwork) ? (albumArtwork[albumArtwork.length - 1]?.["url"] || "") : "")
 						const artistName = result["artist"]["name"]
@@ -78,7 +98,9 @@ export class SearchMusicScreen extends HTMLElement {
 							duration: duration
 						})
 						this.resultsData.push(trackData)
-						tableData.push([ new SongTile(trackData),CreateElementFromHTML(actionsHtml), albumName, secondsToTimestamp(duration)])
+						const songTile = new SongTile(trackData)
+						songTile.setAttribute("data-video-id", result["videoId"])
+						tableData.push([songTile, CreateElementFromHTML(actionsHtml), albumName, secondsToTimestamp(duration)])
 					})
 				}
 
@@ -94,44 +116,55 @@ export class SearchMusicScreen extends HTMLElement {
 	}
 
 	async #rowAction(e) {
-		const target = e.target.closest("a")
-		const searchResultRow = target.parentElement
-		let libraryUuid
-		if (target != null) {
-			if (target.classList.contains("btn-add")) {
+		const actionLink = e.target.closest("a")
+		const searchResultRow = e.target.closest("tr")
+		const songTile = searchResultRow.querySelector("song-tile")
+		const videoId = songTile?.dataset?.["videoId"]
+		/** @type {AudioPlayer} */
+		const audioPlayer = this.shadowRoot.ownerDocument.querySelector("audio-player")
+		if (actionLink != null) {
+			if (actionLink.classList.contains("btn-add")) {
 				// Download the song
-				const videoId = searchResultRow.dataset["videoId"]
 				const res = await fetch("/download-song?videoId=" + videoId)
 				const resJson = await res.json()
-				libraryUuid = resJson["uuid"]
+				let libraryUuid = resJson["uuid"]
 				const fileSize = resJson["fileSize"]
 				const fileFormat = resJson["fileFormat"]
-				searchResultRow.setAttribute("data-library-uuid", libraryUuid)
 
 				// Save the song to the music library
 				/** @type {TrackData} */
-				const trackData = this.resultsData[searchResultRow.dataset["index"]]
+				const trackData = this.resultsData[actionLink.parentElement.dataset["index"]]
 				trackData.id = libraryUuid
 				trackData.video_id = videoId
 				trackData.file_size = fileSize
 				trackData.file_format = fileFormat
 				trackData.date_downloaded = Date.now()
-				const reqHeader = {"Content-Type": "application/json" }
+				const reqHeader = { "Content-Type": "application/json" }
 				fetch("/user-library/save-song", { method: "POST", body: JSON.stringify(trackData), headers: reqHeader })
 
-			} else if (target.classList.contains("btn-play")) {
-				libraryUuid = searchResultRow.dataset["libraryUuid"]
-				/** @type {AudioPlayer} */
-				const audioPlayer = this.shadowRoot.ownerDocument.querySelector("audio-player")
-				audioPlayer.SetSource(libraryUuid)
-				audioPlayer.audioElement.play()
+			} else if (actionLink.classList.contains("btn-menu")) {
+
 			}
+		} else if (searchResultRow != null) {
+			// User clicked on a row to play a song without downloading it to the library
+			let audioUrl
+			if (this.temporarySongCache[videoId] == null) {
+				const res = await fetch("/play-temporary-song?videoId=" + videoId)
+				audioUrl = URL.createObjectURL(await res.blob())
+				this.temporarySongCache[videoId] = audioUrl
+			} else {
+				audioUrl = this.temporarySongCache[videoId]
+			}
+			audioPlayer.audioElement.src = audioUrl
+			audioPlayer.audioElement.play()
 		}
 	}
 
 	disconnectedCallback() {
 		this.searchButton.onclick = null
 		this.dataTableWrapper.onclick = null
+		this.autocompleteInput.inputElement.onkeydown = null
+		this.temporarySongCache = {}
 	}
 }
 

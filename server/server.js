@@ -4,6 +4,7 @@ import { fileURLToPath } from "url"
 
 
 import playSongRoute from "../routes/play-song.js"
+import playTemporarySongRoute from "../routes/play-temporary-song.js"
 import searchAutocompleteRoute from "../routes/search-autocomplete.js"
 import searchRoute from "../routes/search.js"
 import downloadSongRoute from "../routes/download-song.js"
@@ -23,6 +24,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
 app.use("/play-song", playSongRoute)
+app.use("/play-temporary-song", playTemporarySongRoute)
 app.use("/search-autocomplete", searchAutocompleteRoute)
 app.use("/search", searchRoute)
 app.use("/download-song", downloadSongRoute)

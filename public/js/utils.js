@@ -44,3 +44,11 @@ export function RemoveAllChildren(parent) {
 		parent.removeChild(parent.firstChild)
 	}
 }
+
+export function isNullOrWhiteSpace(string) {
+	return string == null || string.trim() === ""
+}
+
+export function Sleep(milliseconds) {
+	return new Promise((resolve) => { setTimeout(resolve, milliseconds) })
+}

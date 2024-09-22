@@ -1,4 +1,4 @@
-import { InjectGlobalStylesheets } from "../utils.js"
+import { InjectGlobalStylesheets, RemoveAllChildren } from "../utils.js"
 import DOMPurify from "../../vendor/dompurify-v3.1.5.es.mjs"
 
 export class AutocompleteInput extends HTMLElement {
@@ -12,7 +12,7 @@ export class AutocompleteInput extends HTMLElement {
 			<link href="./js/components/autocomplete-input.css" rel="stylesheet" type="text/css">
 
 			<div class="autocomplete-container">
-				<input type="text" class="autocomplete-input" placeholder="Search..." maxlength="50">
+				<input type="text" class="autocomplete-input" placeholder="Search..." maxlength="50" spellcheck="false" autocomplete="off">
 				<div tabindex="-1" class="autocomplete-suggestions"></div>
 			</div>
 		`
@@ -21,7 +21,7 @@ export class AutocompleteInput extends HTMLElement {
 		this.inputElement = this.shadowRoot.querySelector(".autocomplete-input")
 		this.suggestionsElement = this.shadowRoot.querySelector(".autocomplete-suggestions")
 		this.inputElement.oninput = () => { this.handleInput() }
-		this.suggestionsElement.onclick = (e) => {	this.handleSuggestionClick(e)}
+		this.suggestionsElement.onclick = (e) => { this.handleSuggestionClick(e) }
 		this.InputCallback = null
 		this.inputElement.onblur = (e) => {
 			if (e.relatedTarget?.closest(".autocomplete-suggestions") == null) {
@@ -39,7 +39,7 @@ export class AutocompleteInput extends HTMLElement {
 	handleSuggestionClick(event) {
 		if (event.target.classList.contains("autocomplete-suggestion")) {
 			this.inputElement.value = event.target.innerText
-			this.suggestionsElement.innerHTML = ""
+			RemoveAllChildren(this.suggestionsElement)
 		}
 	}
 
@@ -48,7 +48,7 @@ export class AutocompleteInput extends HTMLElement {
 	}
 
 	closeSuggestionDropdown() {
-		this.suggestionsElement.innerHTML = ""
+		RemoveAllChildren(this.suggestionsElement)
 	}
 
 	disconnectedCallback() {

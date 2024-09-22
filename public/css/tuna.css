@@ -112,4 +112,5 @@ song-tile span {
 
 .song-list-table td {
 	max-width: 350px;
+	padding-right: 15px;
 }

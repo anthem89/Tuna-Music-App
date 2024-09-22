@@ -6,7 +6,7 @@ const router = express.Router()
 
 router.get("/", async (req, res) => {
 	try {
-		const filePath = path.join("./music-library", req.query["library-uuid"] + ".mp4")
+		const filePath = path.join("./music-library", req.query["library-uuid"] + ".mp3")
 		await fs.access(filePath)
 		res.download(filePath)
 	} catch (error) {

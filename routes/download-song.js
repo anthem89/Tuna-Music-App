@@ -17,7 +17,7 @@ router.get("/", async (req, res) => {
 		const videoUrl = "https://music.youtube.com/watch?v=" + videoId
 
 		const uuid = uuidv4()
-		const fileFormat = ".mp4"
+		const fileFormat = ".mp3"
 		const outputPath = path.join("./music-library/" + uuid + fileFormat)
 
 		// Download the audio from the video

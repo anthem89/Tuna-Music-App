@@ -2,6 +2,7 @@
 	display: flex;
 	width: 100%;
     max-width: 500px;
+	margin-bottom: 15px;
 }
 
 autocomplete-input {
@@ -18,4 +19,8 @@ autocomplete-input {
     color: white;
     padding-right: 10px;
     font-weight: bold;
+}
+
+.action-link-container {
+	white-space: nowrap;
 }
