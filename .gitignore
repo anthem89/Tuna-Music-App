@@ -1,4 +1,4 @@
 # Node.js dependencies
 node_modules/
 music-library/
-./music-database.db
+music-database.db
