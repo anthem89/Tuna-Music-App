@@ -1,9 +1,11 @@
 export class TrackData {
-	constructor({ id, title, artist, album, release_date, genre, duration, number_of_plays, album_art, composer, date_downloaded, date_last_played, lyrics, file_format, file_size, video_id }) {
+	constructor({ id, title, artist, artist_id, album, album_id, release_date, genre, duration, number_of_plays, album_art, composer, date_downloaded, date_last_played, lyrics, file_format, file_size, video_id }) {
 		this.id = id
 		this.title = title
 		this.artist = artist
+		this.artist_id = artist_id
 		this.album = album
+		this.album_id = album_id
 		this.release_date = release_date
 		this.genre = genre
 		this.duration = duration

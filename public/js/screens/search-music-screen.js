@@ -1,15 +1,16 @@
 import { InjectGlobalStylesheets, secondsToTimestamp, RemoveAllChildren, CreateElementFromHTML, isNullOrWhiteSpace } from "../utils.js"
 import { AutocompleteInput } from "../components/autocomplete-input.js"
 import { DataTable } from "../components/data-table.js"
-import { AudioPlayer } from "../components/audio-player.js"
 import { TrackData } from "../components/track-data.js"
 import { SongTile } from "../components/song-tile.js"
+import { PlaySongFromYouTube } from "../app-functions.js"
+import { AlertBanner } from "../index.js"
+import { SongActionsMenu } from "../components/song-actions-menu.js"
 
 export class SearchMusicScreen extends HTMLElement {
 	constructor() {
 		super()
 		this.attachShadow({ mode: "open" })
-		this.temporarySongCache = {}
 	}
 
 	connectedCallback() {
@@ -39,6 +40,8 @@ export class SearchMusicScreen extends HTMLElement {
 			this.#rowAction(e)
 		}
 		this.resultsData = null
+
+		this.songActionsMenu = new SongActionsMenu()
 	}
 
 	#initializeSearchAutoComplete() {
@@ -73,6 +76,7 @@ export class SearchMusicScreen extends HTMLElement {
 					query = this.autocompleteInput.inputElement.value.trim()
 				}
 				const res = await fetch("/search?query=" + query)
+				if (res.status >= 400) { throw new Error(res.statusText) }
 				const resJson = await res.json()
 
 				const columnHeaders = ["Song", "Actions", "Album Name", "Duration"]
@@ -82,19 +86,25 @@ export class SearchMusicScreen extends HTMLElement {
 
 				if (Array.isArray(resJson)) {
 					resJson.forEach((result, index) => {
-						const actionsHtml = `<div class="action-link-container" data-index="${index}"><a class="link-underline btn-add">Add</a><span> | </span><a class="link-underline btn-menu">Menu</a></div>`
+						const actionsHtml = `<div class="action-link-container"><a class="link-underline action-link" name="btn-actions">Actions</a></div>`
 						let albumArtwork = result["thumbnails"]
 						albumArtwork = (Array.isArray(albumArtwork) ? (albumArtwork[albumArtwork.length - 1]?.["url"] || "") : "")
+						const videoId = result["videoId"]
 						const artistName = result["artist"]["name"]
+						const artistId = result["artist"]["id"]
 						const songTitle = result["name"]
 						const albumName = result["album"]["name"]
+						const albumId = result["album"]["id"]
 						const duration = result["duration"]
 
 						const trackData = new TrackData({
+							video_id: videoId,
 							album_art: albumArtwork,
 							artist: artistName,
+							artist_id: artistId,
 							title: songTitle,
 							album: albumName,
+							album_id: albumId,
 							duration: duration
 						})
 						this.resultsData.push(trackData)
@@ -110,7 +120,7 @@ export class SearchMusicScreen extends HTMLElement {
 				this.dataTableWrapper.appendChild(searchResultsTable)
 
 			} catch (e) {
-
+				AlertBanner.Toggle(true, true, "Error performing search", 7000, AlertBanner.bannerColors.error)
 			}
 		})
 	}
@@ -118,45 +128,20 @@ export class SearchMusicScreen extends HTMLElement {
 	async #rowAction(e) {
 		const actionLink = e.target.closest("a")
 		const searchResultRow = e.target.closest("tr")
-		const songTile = searchResultRow.querySelector("song-tile")
-		const videoId = songTile?.dataset?.["videoId"]
-		/** @type {AudioPlayer} */
-		const audioPlayer = this.shadowRoot.ownerDocument.querySelector("audio-player")
+		/** @type {SongTile} */
+		const songTile = searchResultRow?.querySelector("song-tile")
 		if (actionLink != null) {
-			if (actionLink.classList.contains("btn-add")) {
-				// Download the song
-				const res = await fetch("/download-song?videoId=" + videoId)
-				const resJson = await res.json()
-				let libraryUuid = resJson["uuid"]
-				const fileSize = resJson["fileSize"]
-				const fileFormat = resJson["fileFormat"]
-
-				// Save the song to the music library
-				/** @type {TrackData} */
-				const trackData = this.resultsData[actionLink.parentElement.dataset["index"]]
-				trackData.id = libraryUuid
-				trackData.video_id = videoId
-				trackData.file_size = fileSize
-				trackData.file_format = fileFormat
-				trackData.date_downloaded = Date.now()
-				const reqHeader = { "Content-Type": "application/json" }
-				fetch("/user-library/save-song", { method: "POST", body: JSON.stringify(trackData), headers: reqHeader })
-
-			} else if (actionLink.classList.contains("btn-menu")) {
-
-			}
-		} else if (searchResultRow != null) {
-			// User clicked on a row to play a song without downloading it to the library
-			let audioUrl
-			if (this.temporarySongCache[videoId] == null) {
-				const res = await fetch("/play-temporary-song?videoId=" + videoId)
-				audioUrl = URL.createObjectURL(await res.blob())
-				this.temporarySongCache[videoId] = audioUrl
+			const pos = actionLink.getBoundingClientRect()
+			this.songActionsMenu.ForceShow(pos.x, pos.y + pos.height, pos.height, false, true, songTile)
+		} else if (songTile != null) {
+			if (e.target.closest(".btn-open-mobile-context-menu") != null) {
+				// User clicked on the "More options" button
+				this.songActionsMenu.ForceShow(0, 0, 0, false, false, songTile)
 			} else {
-				audioUrl = this.temporarySongCache[videoId]
+				// User clicked on a row to play a song without downloading it to the library
+				const videoId = songTile?.dataset?.["videoId"]
+				PlaySongFromYouTube(videoId)
 			}
-			audioPlayer.audioElement.src = audioUrl
-			audioPlayer.audioElement.play()
 		}
 	}
 
@@ -164,7 +149,6 @@ export class SearchMusicScreen extends HTMLElement {
 		this.searchButton.onclick = null
 		this.dataTableWrapper.onclick = null
 		this.autocompleteInput.inputElement.onkeydown = null
-		this.temporarySongCache = {}
 	}
 }
 

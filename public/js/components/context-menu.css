@@ -1,0 +1,163 @@
+:root {
+	--contextMenuBg: #ffffff;
+	--regularText: #4e4e4e;
+	--gray: rgb(163, 163, 163);
+	--pageMask: rgba(0, 0, 0, 0.20);
+}
+
+.contextmenu-container {
+	position: absolute;
+	top: 0;
+	user-select: none;
+	z-index: 9999;
+	background-color: var(--contextMenuBg);
+	margin: 0px;
+	padding: 10px 0px 10px 0px;
+	width: auto;
+	min-width: 250px;
+	box-shadow: 0px 3px 12px 5px rgb(0 0 0 / 25%);
+	font-size: 14px;
+	color: var(--regularText);
+	border-radius: 7px;
+	border: 1px solid var(--gray);
+	font-family: 'Open Sans', sans-serif, 'Noto Sans Symbols 2';
+	transform: scale3d(0.85, 0.85, 0.85);
+	opacity: 0;
+	transform-origin: top left;
+	outline: none;
+}
+
+.contextmenu-container.mobile-view {
+	height: 0px !important;
+	position: fixed !important;
+	top: unset !important;
+	bottom: 0px !important;
+	left: 0 !important;
+	right: 0 !important;
+	opacity: 1 !important;
+	transition: height 0.3s ease, padding 0.3s ease !important;
+	transform: unset !important;
+	margin-left: 0px !important;
+	padding: 0px !important;
+	border-radius: 20px 20px 0px 0px !important;
+	border: none;
+	font-size: 18px;
+	font-weight: bold;
+	gap: 10px;
+	display: flex;
+	flex-direction: column;
+	overflow-y: auto;
+	scrollbar-width: none;
+}
+
+.contextmenu-container.mobile-view.visible {
+	height: 300px !important;
+	padding: 30px 15px !important;
+}
+
+.contextmenu-container.mobile-view.visible::-webkit-scrollbar {
+	display: none;
+}
+
+.contextmenu-pageMask {
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	width: 100vw;
+	height: 100vh;
+	background-color: var(--pageMask);
+	backdrop-filter: blur(2px);
+	-webkit-backdrop-filter: blur(2px);
+	opacity: 0%;
+	transition: opacity 0.3s ease;
+	z-index: 9999;
+}
+
+.contextmenu-pageMask.visible {
+	opacity: 100%;
+}
+
+.contextmenu-container.visible {
+	transform: scale3d(1, 1, 1) !important;
+	opacity: 1;
+	transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.contextmenu-container.visible.no-animation {
+	transition: none !important;
+}
+
+.contextmenu-container.dropdownAnimation {
+	transform: scale3d(1, 0.85, 0.85);
+}
+
+.contextmenu-divider {
+	width: 100%;
+	margin: 3px 0px;
+	height: 0.5px;
+	border: none;
+	background: #bbbbbb;
+}
+
+.contextmenu-text {
+	margin: 0px 20px 0px 10px;
+	padding: 5px 10px;
+	pointer-events: none;
+	white-space: nowrap;
+}
+
+.contextmenu-icon {
+	margin-right: 10px;
+	color: var(--gray);
+	display: inline-block;
+	font-size: 16px;
+	min-width: 16px;
+}
+
+.contextmenu-container.mobile-view .contextmenu-icon {
+	margin-right: 15px;
+	font-size: 22px;
+	min-width: 22px;
+}
+
+.contextmenu-extraText {
+	margin: 0;
+	padding: 5px 30px 5px 10px;
+	color: var(--gray);
+	font-size: 14px;
+	pointer-events: none;
+}
+
+.contextmenu-item {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	justify-content: space-between;
+	cursor: default;
+	align-items: center;
+}
+
+.contextmenu-item.hidden {
+	display: none;
+}
+
+.contextmenu-item.disabled * {
+	color: silver;
+	font-style: italic;
+}
+
+.contextmenu-caret {
+	position: absolute;
+	right: 10px;
+	color: var(--regularText);
+	pointer-events: none;
+}
+
+.contextmenu-container:not(.mobile-view) .contextmenu-item.hover,
+.contextmenu-container:not(.mobile-view) .contextmenu-item-focus {
+	background-color: #DFDFDF;
+}
+
+.contextmenu-item.hover.disabled {
+	background-color: transparent;
+}

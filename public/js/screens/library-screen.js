@@ -2,7 +2,9 @@ import { InjectGlobalStylesheets, secondsToTimestamp, RemoveAllChildren, CreateE
 import { DataTable } from "../components/data-table.js"
 import { TrackData } from "../components/track-data.js"
 import { SongTile } from "../components/song-tile.js"
-import { AudioPlayer } from "../components/audio-player.js"
+import { PlaySongFromLibrary } from "../app-functions.js"
+import { AlertBanner } from "../index.js"
+import { SongActionsMenu } from "../components/song-actions-menu.js"
 
 export class LibraryScreen extends HTMLElement {
 	constructor() {
@@ -28,40 +30,56 @@ export class LibraryScreen extends HTMLElement {
 			this.#rowAction(e)
 		}
 
+		this.songActionsMenu = new SongActionsMenu()
 	}
 
 	async #loadLibraryData() {
-		const res = await fetch("/user-library", { method: "GET" })
-		const resJson = await res.json()
-
-		const columnHeaders = ["Song", "Actions", "Album Name", "Duration"]
-		const tableData = []
-		this.resultsData = []
-
-		if (Array.isArray(resJson)) {
-			resJson.forEach((result, index) => {
-				const actionsHtml = `<div class="action-link-container"><a class="link-underline btn-add">More</a></div>`
-				const trackData = new TrackData(result)
-				tableData.push([new SongTile(trackData), CreateElementFromHTML(actionsHtml), trackData.album, secondsToTimestamp(trackData.duration)])
-			})
+		try {
+			const res = await fetch("/user-library", { method: "GET" })
+			if (res.status >= 400) { throw new Error(res.statusText) }
+			const resJson = await res.json()
+	
+			const columnHeaders = ["Song", "Actions", "Album Name", "Duration"]
+			const tableData = []
+			this.resultsData = []
+	
+			if (Array.isArray(resJson)) {
+				resJson.forEach((result, index) => {
+					const actionsHtml = `<div class="action-link-container"><a class="link-underline action-link" name="btn-actions">Actions</a></div>`
+					const trackData = new TrackData(result)
+					tableData.push([new SongTile(trackData), CreateElementFromHTML(actionsHtml), trackData.album, secondsToTimestamp(trackData.duration)])
+				})
+			}
+	
+			const libraryTable = new DataTable(columnHeaders, tableData)
+			libraryTable.classList.add("song-list-table")
+			RemoveAllChildren(this.dataTableWrapper)
+			this.dataTableWrapper.appendChild(libraryTable)
+		} catch (e) {
+			AlertBanner.Toggle(true, true, "Error loading library", 7000, AlertBanner.bannerColors.error)
 		}
-
-		const libraryTable = new DataTable(columnHeaders, tableData)
-		libraryTable.classList.add("song-list-table")
-		RemoveAllChildren(this.dataTableWrapper)
-		this.dataTableWrapper.appendChild(libraryTable)
 	}
 
 	async #rowAction(e) {
-		/** @type {SongTile} */
 		const targetRow = e.target.closest("tr")
+		/** @type {SongTile} */
 		const songTile = targetRow?.querySelector("song-tile")
-		if (songTile != null) {
-			const libraryUuid = songTile.trackData.id
-			/** @type {AudioPlayer} */
-			const audioPlayer = this.shadowRoot.ownerDocument.querySelector("audio-player")
-			audioPlayer.SetSource(libraryUuid)
-			audioPlayer.audioElement.play()
+		/** @type {HTMLAnchorElement} */
+		const actionLink = e.target.closest(".action-link")
+		if (actionLink != null) {
+			if (actionLink.getAttribute("name") === "btn-actions") {
+				const pos = actionLink.getBoundingClientRect()
+				this.songActionsMenu.ForceShow(pos.x, pos.y + pos.height, pos.height, false, true, songTile)
+			}
+		} else if (songTile != null) {
+			if (e.target.closest(".btn-open-mobile-context-menu") != null) {
+				// User clicked on the "More options" button
+				this.songActionsMenu.ForceShow(0, 0, 0, false, false, songTile)
+			} else {
+				// User clicked on a song tile to play the song
+				PlaySongFromLibrary(songTile.trackData.id)
+			}
+
 		}
 	}
 

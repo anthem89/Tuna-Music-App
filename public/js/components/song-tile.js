@@ -16,9 +16,7 @@ export class SongTile extends HTMLElement {
 				<span class="song-title">${this.trackData.title}</span>
 				<span class="artist-name">${this.trackData.artist}</span>
 			</div>
-			<div>
-				<i class="btn-open-mobile-context-menu bi bi-three-dots-vertical"></i>
-			</div>
+			<i class="btn-open-mobile-context-menu bi bi-three-dots-vertical"></i>
 		`
 		this.albumImage = this.querySelector("img")
 		this.albumImage.onerror = () => {

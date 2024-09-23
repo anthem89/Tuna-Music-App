@@ -8,7 +8,7 @@ router.get("/", async (req, res) => {
 		const searchResults = await ytMusic.searchSongs(req.query["query"])
 		res.send(searchResults)
 	} catch (error) {
-		res.status(404).send(error.toString())
+		res.status(404).send({ error: e.toString() })
 	}
 })
 

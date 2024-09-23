@@ -20,9 +20,13 @@ body.header-collapse #module-content-container {
 	}
 
 	song-tile .btn-open-mobile-context-menu {
-		display: block !important;
+		display: flex !important;
+		align-items: center;
+		justify-content: flex-end;
 		font-size: 24px;
 		color: var(--tunaPink);
+		height: 100%;
+		width: 40px;
 	}
 
 	/* When scrolling in mobile view, collapse the module title to the app header to save vertical space */
@@ -50,6 +54,7 @@ song-tile {
 	max-width: 350px;
 	width: 100%;
 	cursor: pointer;
+	height: 60px;
 }
 
 song-tile .btn-open-mobile-context-menu {
@@ -61,6 +66,10 @@ song-tile img {
 	height: 60px;
 	border-radius: 5px;
 	object-fit: cover;
+}
+
+.song-tile.large-image {
+	height: 110px;
 }
 
 song-tile.large-image img {

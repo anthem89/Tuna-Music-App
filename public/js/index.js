@@ -1,4 +1,8 @@
 import { RemoveAllChildren } from "./utils.js"
+import * as banners  from "./components/alert-banner.js"
+
+/** @type {banners.AlertBanner} */
+export const AlertBanner = document.querySelector("alert-banner")
 
 export const NavMenuStructure = {
 	homeSection: { title: null, parent: null },
@@ -186,7 +190,7 @@ function Initialize() {
 
 	// When screens scroll, collapse the screen title to the app header
 	document.querySelector("#module-content-container").addEventListener("scroll", (e) => {
-			e.target.classList.toggle("collapse-to-header", e.target.scrollTop > 20)
+		e.target.classList.toggle("collapse-to-header", e.target.scrollTop > 20)
 	}, { passive: true })
 
 	SwitchToScreen("allSongs")
