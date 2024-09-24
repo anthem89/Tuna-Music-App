@@ -3,7 +3,7 @@ import { DataTable } from "../components/data-table.js"
 import { TrackData } from "../components/track-data.js"
 import { SongTile } from "../components/song-tile.js"
 import { PlaySongFromLibrary } from "../app-functions.js"
-import { AlertBanner } from "../index.js"
+import { AlertBanner, SessionExpired } from "../index.js"
 import { SongActionsMenu } from "../components/song-actions-menu.js"
 
 export class LibraryScreen extends HTMLElement {
@@ -31,18 +31,23 @@ export class LibraryScreen extends HTMLElement {
 		}
 
 		this.songActionsMenu = new SongActionsMenu()
+		this.songActionsMenu.SetVisibleOptions({ removeFromPlaylist: false, downloadToLibrary: false })
 	}
 
 	async #loadLibraryData() {
 		try {
 			const res = await fetch("/user-library", { method: "GET" })
-			if (res.status >= 400) { throw new Error(res.statusText) }
+			if (res.redirected) {
+				SessionExpired()
+			} else if (res.status >= 400) {
+				throw new Error(res.statusText)
+			}
 			const resJson = await res.json()
-	
+
 			const columnHeaders = ["Song", "Actions", "Album Name", "Duration"]
 			const tableData = []
 			this.resultsData = []
-	
+
 			if (Array.isArray(resJson)) {
 				resJson.forEach((result, index) => {
 					const actionsHtml = `<div class="action-link-container"><a class="link-underline action-link" name="btn-actions">Actions</a></div>`
@@ -50,7 +55,7 @@ export class LibraryScreen extends HTMLElement {
 					tableData.push([new SongTile(trackData), CreateElementFromHTML(actionsHtml), trackData.album, secondsToTimestamp(trackData.duration)])
 				})
 			}
-	
+
 			const libraryTable = new DataTable(columnHeaders, tableData)
 			libraryTable.classList.add("song-list-table")
 			RemoveAllChildren(this.dataTableWrapper)

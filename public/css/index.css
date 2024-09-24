@@ -313,7 +313,7 @@ body {
 .toggle-sidebar #sidebar-nav-page-mask {
 	display: block;
 	opacity: 1;
-	backdrop-filter: blur(3px);
+	backdrop-filter: blur(2px);
 	background-color: var(--pageMask);
 	position: fixed;
 	top: 0;

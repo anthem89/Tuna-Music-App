@@ -36,22 +36,5 @@
 			"sizes": "512x512",
 			"type": "image/png"
 		}
-	],
-	"splash_screens": [
-		{
-			"src": "/assets/img/splash-screen-750x1334.png",
-			"sizes": "750x1334",
-			"type": "image/png"
-		},
-		{
-			"src": "/assets/img/splash-screen-828x1792.png",
-			"sizes": "828x1792",
-			"type": "image/png"
-		},
-		{
-			"src": "/assets/img/splash-screen-1125x2436.png",
-			"sizes": "1125x2436",
-			"type": "image/png"
-		}
 	]
 }

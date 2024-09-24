@@ -25,8 +25,6 @@ export class ContextMenu {
 		this.allowMobileView = allowMobileView || false
 		// The window width in px where the menu will convert to a mobile view
 		this.mobileViewBreakpoint = 992
-		// The height of the mobile view menu
-		this.mobileViewMenuHeight = 300
 		this.mobileViewHasPageMask = true
 		// An example of when you might want to prevent the menu from stealing focus is an auto-complete dropdown menu for a text input
 		this.menuCanStealFocus = true
@@ -67,13 +65,13 @@ export class ContextMenu {
 		if (this._clickListener != null) {
 			document.removeEventListener("contextmenu", this._clickListener)
 		}
-		this.CloseAllContextMenus()
+		this.CloseAllContextMenus(true)
 	}
 
 	/** Programmatically force the menu and its children to close */
 	ForceClose() {
 		this.topLevelMenu = null
-		this.CloseAllContextMenus()
+		this.CloseAllContextMenus(true)
 	}
 
 	/** Programmatically force the sub-menus of a given menu to close */
@@ -132,7 +130,7 @@ export class ContextMenu {
 				const pageMask = document.createElement("div")
 				pageMask.className = "contextmenu-pageMask"
 				document.body.appendChild(pageMask)
-				requestAnimationFrame(()=>{ pageMask.classList.toggle("visible") })
+				requestAnimationFrame(() => { pageMask.classList.toggle("visible") })
 			}
 
 			// Adjust the menu open animation to only animate on the Y axis if the menu is a dropdown
@@ -142,7 +140,7 @@ export class ContextMenu {
 			if (menuParent === document.body) {
 				this.topLevelMenu = menuBody
 				// Delete all elements with className contextmenu-container
-				this.CloseAllContextMenus()
+				this.CloseAllContextMenus(false)
 				// Register events that will trigger the context menu to close (like clicking outside the menu or scrolling, etc). Function automatically prevents duplicate event registrations
 				this.#toggleContextMenuLock(true)
 
@@ -172,7 +170,7 @@ export class ContextMenu {
 					item.appendChild(hoverArea)
 
 					if (menuItem.hasOwnProperty('hidden')) {
-						hoverArea.classList.toggle("hidden", menuItem.hidden)
+						item.classList.toggle("hidden", menuItem.hidden)
 						hoverArea.classList.toggle("disabled", menuItem.hidden)
 					}
 
@@ -418,7 +416,9 @@ export class ContextMenu {
 			}
 
 			if (menuAnimation === true) {
-				menuBody.style.transformOrigin = (this.forceOpenAnimationDirection.vertical || animationDirection.vertical) + " " + (this.forceOpenAnimationDirection.horizontal || animationDirection.horizontal)
+				if (isMobileView === false) {
+					menuBody.style.transformOrigin = (this.forceOpenAnimationDirection.vertical || animationDirection.vertical) + " " + (this.forceOpenAnimationDirection.horizontal || animationDirection.horizontal)
+				}
 				requestAnimationFrame(() => { menuBody.classList.toggle("visible", true) })
 			} else {
 				menuBody.classList.toggle("no-animation", true)
@@ -431,9 +431,11 @@ export class ContextMenu {
 	}
 
 	// Global function to force close all context menus
-	CloseAllContextMenus() {
-		for (let callback of Object.values(this.menuCloseCallbacks)) {
-			callback()
+	CloseAllContextMenus(runCallbacks) {
+		if (runCallbacks === true) {
+			for (let callback of Object.values(this.menuCloseCallbacks)) {
+				callback()
+			}
 		}
 
 		const isMobileView = this.allowMobileView === true && window.innerWidth < this.mobileViewBreakpoint
@@ -441,10 +443,10 @@ export class ContextMenu {
 		document.querySelectorAll(".contextmenu-container").forEach((menuContainer) => {
 			this.#disposeMenuItemEvents(menuContainer)
 			if (isMobileView === true) {
-				menuContainer.addEventListener("transitionend", ()=>{ menuContainer.remove() }, {once: true})
+				menuContainer.addEventListener("transitionend", () => { menuContainer.remove() }, { once: true })
 				menuContainer.classList.toggle("visible", false)
 				document.querySelectorAll(".contextmenu-pageMask").forEach((pageMask) => {
-					pageMask.addEventListener("transitionend", (e)=>{ pageMask.remove() }, {once: true})
+					pageMask.addEventListener("transitionend", (e) => { pageMask.remove() }, { once: true })
 					pageMask.classList.toggle("visible", false)
 				})
 			} else {
@@ -476,27 +478,27 @@ export class ContextMenu {
 					if (this.ignoreCloseMenuEvents == null) { this.ignoreCloseMenuEvents = [] }
 					// Close all context menus if mouse click isn't inside .contextmenu-container
 					if (this.ignoreCloseMenuEvents.includes("mousedown") === false) {
-						this.eventListenerReferences.mousedown = (e) => { if (!e.target.closest('.contextmenu-container')) { this.CloseAllContextMenus() } }
+						this.eventListenerReferences.mousedown = (e) => { if (!e.target.closest('.contextmenu-container')) { this.CloseAllContextMenus(true) } }
 						document.addEventListener("mousedown", this.eventListenerReferences.mousedown)
 					}
 					if (this.ignoreCloseMenuEvents.includes("keydown") === false) {
 						// Close all context menus if escape key is pressed
-						this.eventListenerReferences.keydown = (e) => { if (["Escape", "Cancel", "Clear"].includes(e.key)) { this.CloseAllContextMenus(); e.preventDefault(); e.stopPropagation() } }
+						this.eventListenerReferences.keydown = (e) => { if (["Escape", "Cancel", "Clear"].includes(e.key)) { this.CloseAllContextMenus(true); e.preventDefault(); e.stopPropagation() } }
 						document.addEventListener("keydown", this.eventListenerReferences.keydown)
 					}
 					if (this.ignoreCloseMenuEvents.includes("wheel") === false) {
 						// Close all context menus if the scroll wheel is triggered
-						this.eventListenerReferences.wheel = () => { this.CloseAllContextMenus() }
+						this.eventListenerReferences.wheel = () => { this.CloseAllContextMenus(true) }
 						document.addEventListener("wheel", this.eventListenerReferences.wheel)
 					}
 					if (this.ignoreCloseMenuEvents.includes("blur") === false) {
 						// Close all context menus if the window loses focus
-						this.eventListenerReferences.blur = () => { this.CloseAllContextMenus() }
+						this.eventListenerReferences.blur = () => { this.CloseAllContextMenus(true) }
 						window.addEventListener("blur", this.eventListenerReferences.blur)
 					}
 					if (this.ignoreCloseMenuEvents.includes("resize") === false) {
 						// Close all context menus if user resizes the window
-						this.eventListenerReferences.resize = () => { this.CloseAllContextMenus() }
+						this.eventListenerReferences.resize = () => { this.CloseAllContextMenus(true) }
 						window.addEventListener("resize", this.eventListenerReferences.resize)
 					}
 				}
@@ -593,7 +595,7 @@ export class ContextMenu {
 				case "Cancel":
 				case "Clear":
 					if (this.ignoreCloseMenuEvents.includes("keydown") === false) {
-						this.CloseAllContextMenus()
+						this.CloseAllContextMenus(true)
 					}
 					break
 			}

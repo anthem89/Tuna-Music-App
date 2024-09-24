@@ -4,7 +4,7 @@ import { DataTable } from "../components/data-table.js"
 import { TrackData } from "../components/track-data.js"
 import { SongTile } from "../components/song-tile.js"
 import { PlaySongFromYouTube } from "../app-functions.js"
-import { AlertBanner } from "../index.js"
+import { AlertBanner, SessionExpired } from "../index.js"
 import { SongActionsMenu } from "../components/song-actions-menu.js"
 
 export class SearchMusicScreen extends HTMLElement {
@@ -42,11 +42,13 @@ export class SearchMusicScreen extends HTMLElement {
 		this.resultsData = null
 
 		this.songActionsMenu = new SongActionsMenu()
+		this.songActionsMenu.SetVisibleOptions({ removeFromPlaylist: false, removeFromLibrary: false, downloadToDevice: false, editSongAttributes: false })
 	}
 
 	#initializeSearchAutoComplete() {
 		this.autocompleteInput.InputCallback = async (query) => {
 			const res = await fetch("./search-autocomplete?query=" + query)
+			if (res.redirected) { SessionExpired() }
 			const resJson = await res.json()
 			return resJson
 		}
@@ -76,7 +78,11 @@ export class SearchMusicScreen extends HTMLElement {
 					query = this.autocompleteInput.inputElement.value.trim()
 				}
 				const res = await fetch("/search?query=" + query)
-				if (res.status >= 400) { throw new Error(res.statusText) }
+				if (res.redirected) {
+					SessionExpired()
+				} else if (res.status >= 400) {
+					throw new Error(res.statusText)
+				}
 				const resJson = await res.json()
 
 				const columnHeaders = ["Song", "Actions", "Album Name", "Duration"]
@@ -91,10 +97,10 @@ export class SearchMusicScreen extends HTMLElement {
 						albumArtwork = (Array.isArray(albumArtwork) ? (albumArtwork[albumArtwork.length - 1]?.["url"] || "") : "")
 						const videoId = result["videoId"]
 						const artistName = result["artist"]["name"]
-						const artistId = result["artist"]["id"]
+						const artistId = result["artist"]["artistId"]
 						const songTitle = result["name"]
 						const albumName = result["album"]["name"]
-						const albumId = result["album"]["id"]
+						const albumId = result["album"]["albumId"]
 						const duration = result["duration"]
 
 						const trackData = new TrackData({
@@ -118,8 +124,9 @@ export class SearchMusicScreen extends HTMLElement {
 				searchResultsTable.classList.add("song-list-table")
 				RemoveAllChildren(this.dataTableWrapper)
 				this.dataTableWrapper.appendChild(searchResultsTable)
-
+				resolve()
 			} catch (e) {
+				reject(e)
 				AlertBanner.Toggle(true, true, "Error performing search", 7000, AlertBanner.bannerColors.error)
 			}
 		})

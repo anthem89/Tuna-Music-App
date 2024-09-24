@@ -1,5 +1,5 @@
 import { ContextMenu } from "./context-menu.js"
-import { PlaySongFromLibrary, PlaySongFromYouTube } from "../app-functions.js"
+import { PlaySongFromLibrary, PlaySongFromYouTube, DownloadSongToLibrary, RemoveSongsFromLibrary } from "../app-functions.js"
 import { SongTile } from "./song-tile.js"
 import { isNullOrWhiteSpace } from "../utils.js"
 import { AlertBanner } from "../index.js"
@@ -11,28 +11,90 @@ export class SongActionsMenu extends ContextMenu {
 
 		this._menuOptions = [
 			{
-				iconClass: "bi bi-plus-circle",
-				text: "Add to playlist"
-			},
-			{
-				iconClass: "bi bi-download",
-				text: "Add to Library",
-				clickEvent: () => { this.#downloadSong() }
-			},
-			{
-				text: "Remove from library",
-				iconClass: "bi bi-trash"
-			},
-			{
 				text: "Play song",
 				iconClass: "bi bi-play-circle",
 				clickEvent: () => { this.#playSong() }
-			}
+			},
+			{
+				text: "Add to playlist",
+				iconClass: "bi bi-music-note-list",
+				clickEvent: () => { }
+			},
+			{
+				text: "Remove from playlist",
+				iconClass: "bi bi-dash-circle",
+				clickEvent: () => { }
+			},
+			"divider",
+			{
+				text: "Download to library",
+				iconClass: "bi bi-collection",
+				clickEvent: () => { this.#downloadToLibrary() }
+			},
+			{
+				text: "Remove from library",
+				iconClass: "bi bi-trash",
+				clickEvent: () => { this.#removeFromLibrary() }
+			},
+			{
+				text: "Download to device",
+				iconClass: "bi bi-download",
+				clickEvent: () => { }
+			},
+			"divider",
+			{
+				text: "Play next",
+				iconClass: "bi bi-arrow-return-right",
+				clickEvent: () => { }
+			},
+			{
+				text: "Add to queue",
+				iconClass: "bi bi-list-task",
+				clickEvent: () => { }
+			},
+			"divider",
+			{
+				text: "View artist",
+				iconClass: "bi bi-person",
+				clickEvent: () => { }
+			},
+			{
+				text: "View album",
+				iconClass: "bi bi-disc",
+				clickEvent: () => { }
+			},
+			"divider",
+			{
+				text: "Edit song attributes",
+				iconClass: "bi bi-pencil-square",
+				clickEvent: () => { }
+			},
 		]
+
 	}
 
-	SetVisibleOptions({ addToPlaylist, removeFromPlaylist, viewAlbum, viewArtist, playSong, editSongAttributes, removeFromLibrary, addToLibrary } = {}) {
+	SetVisibleOptions({ playSong, addToPlaylist, removeFromPlaylist, downloadToLibrary, removeFromLibrary, downloadToDevice, playNext, addToQueue, viewArtist, viewAlbum, editSongAttributes } = {}) {
+		for (let option of this._menuOptions) {
+			if (option === "divider") { continue }
+			if (option.text === "Play song" && playSong === false) { option.hidden = true }
+			if (option.text === "Add to playlist" && addToPlaylist === false) { option.hidden = true }
+			if (option.text === "Remove from playlist" && removeFromPlaylist === false) { option.hidden = true }
+			if (option.text === "Download to library" && downloadToLibrary === false) { option.hidden = true }
+			if (option.text === "Remove from library" && removeFromLibrary === false) { option.hidden = true }
+			if (option.text === "Download to device" && downloadToDevice === false) { option.hidden = true }
+			if (option.text === "Play next" && playNext === false) { option.hidden = true }
+			if (option.text === "Add to queue" && addToQueue === false) { option.hidden = true }
+			if (option.text === "View artist" && viewArtist === false) { option.hidden = true }
+			if (option.text === "View album" && viewAlbum === false) { option.hidden = true }
+			if (option.text === "Edit song attributes" && editSongAttributes === false) { option.hidden = true }
+		}
+	}
 
+	ResetVisibleOptions() {
+		for (let option of this._menuOptions) {
+			if (option === "divider") { continue }
+			option.hidden = false
+		}
 	}
 
 	#playSong() {
@@ -45,20 +107,31 @@ export class SongActionsMenu extends ContextMenu {
 		}
 	}
 
-	async #downloadSong() {
-		/** @type {SongTile} */
-		const targetSongTile = this.targetElement
-		const trackData = targetSongTile.trackData
-		if (trackData.id != null) {
-			AlertBanner.Toggle(true, true, "Song already exists in library", 7000, AlertBanner.bannerColors.info)
-			return
-		}
-		// Download the song
-		const reqHeader = { "Content-Type": "application/json" }
-		const res = await fetch("/download-song", { method: "POST", body: JSON.stringify(trackData), headers: reqHeader })
-		const resJson = await res.json()
-		if (resJson["libraryUuid"] == null) {
+	async #downloadToLibrary() {
+		try {
+			/** @type {SongTile} */
+			const targetSongTile = this.targetElement
+			const trackData = targetSongTile.trackData
+			if (trackData.id != null) {
+				AlertBanner.Toggle(true, true, "Song already exists in library", 7000, AlertBanner.bannerColors.info)
+				return
+			}
+			// Download the song
+			await DownloadSongToLibrary(trackData)
+		} catch (e) {
 			AlertBanner.Toggle(true, true, "Error downloading song", 7000, AlertBanner.bannerColors.error)
+		}
+
+	}
+
+	async #removeFromLibrary() {
+		try {
+			/** @type {SongTile} */
+			const targetSongTile = this.targetElement
+			RemoveSongsFromLibrary([targetSongTile.trackData.id])
+			targetSongTile.closest("tr").remove()
+		} catch (e) {
+			AlertBanner.Toggle(true, true, "Error removing song(s) from library", 7000, AlertBanner.bannerColors.error)
 		}
 	}
 

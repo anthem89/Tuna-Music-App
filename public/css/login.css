@@ -1,0 +1,108 @@
+:root {
+	--regularText: #4e4e4e;
+	--tunaPink: #ff787e;
+	--background: #f4f4f4;
+	--shadow: rgba(0, 0, 0, 0.2);
+	--white: #FFFFFF;
+	--lightGray: rgb(226, 226, 226);
+}
+
+body {
+	font-family: sans-serif;
+	background-color: var(--background);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+	margin: 0;
+	flex-direction: column;
+	color: var(--regularText);
+}
+
+.logo-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.logo-img {
+	width: 150px;
+}
+
+.logo {
+	color: var(--darkText);
+	font-family: "Anton", sans-serif;
+	font-weight: bold;
+	font-size: 36px;
+	font-style: italic;
+	padding: 0px 10px;
+	margin: 0px 0px 10px 0px;
+}
+
+h3 {
+	margin: 0px 0px 10px 0px;
+    color: silver;
+    font-weight: normal;
+}
+
+.login-container {
+	background-color: var(--white);
+	padding: 20px;
+	border-radius: 15px;
+	box-shadow: 3px 3px 7px var(--shadow);
+	width: 300px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+@media (max-width: 768px) {
+	.login-container {
+		width: 100%;
+		height: 100dvh;
+		border-radius: 0px;
+	}
+
+	form {
+		padding: 0px 30px !important;
+	}
+}
+
+
+form {
+	padding: 0px 10px;
+}
+
+input[type="text"],
+input[type="password"] {
+	width: calc(100% - 20px);
+	padding: 10px;
+	margin: 10px 0px;
+	border: 1px solid var(--lightGray);
+	border-radius: 5px;
+	outline: none;
+}
+
+button {
+	width: 100%;
+	padding: 10px;
+	background-color: var(--tunaPink);
+	border: none;
+	border-radius: 5px;
+	color: white;
+	font-size: 16px;
+	cursor: pointer;
+	margin-top: 15px;
+	transition: background-color 0.3s ease;
+}
+
+button:hover {
+	background-color: #e5676e;
+}
+
+.error {
+	font-weight: bold;
+	color: crimson;
+	text-align: center;
+}

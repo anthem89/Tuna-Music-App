@@ -26,6 +26,10 @@ export const NavMenuStructure = {
 
 export let currentScreenKey
 
+export function SessionExpired() {
+	window.location.href = "/login?session-expired"
+}
+
 export function SwitchToScreen(screenKey) {
 	const targetScreen = NavMenuStructure[screenKey]
 

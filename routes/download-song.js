@@ -37,24 +37,26 @@ router.post("/", async (req, res) => {
 						trackData.id = uuid
 						trackData.file_format = fileFormat
 						trackData.file_size = statsError ? 0 : stats.size
+						trackData.date_downloaded = new Date().toISOString().slice(0, 19).replace("T", " ")
+						trackData.user_id = req.user?.id
 
 						await SaveSongToLibrary(trackData)
 
 						res.send({ libraryUuid: uuid })
 					} catch (e) {
 						res.status(404).send({ error: e.toString() })
-						DeleteSongFromLibrary(uuid)
+						DeleteSongFromLibrary([uuid], req.user?.id)
 					}
 				})
 			})
 			.on('error', (e) => {
 				res.status(404).send({ error: e.toString() })
-				DeleteSongFromLibrary(uuid)
+				DeleteSongFromLibrary([uuid], req.user?.id)
 			})
 
 	} catch (e) {
 		res.status(404).send({ error: e.toString() })
-		DeleteSongFromLibrary(uuid)
+		DeleteSongFromLibrary([uuid], req.user?.id)
 	}
 })
 

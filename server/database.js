@@ -19,10 +19,10 @@ export function connectToDatabase() {
 	})
 }
 
-export const readQuery = (query) => {
+export const readQuery = (query, params) => {
 	return new Promise((resolve, reject) => {
 		connectToDatabase().then((db) => {
-			db.all(query, (err, rows) => {
+			db.all(query, params, (err, rows) => {
 				if (err) {
 					return reject(err)
 				}
