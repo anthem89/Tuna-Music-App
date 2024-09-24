@@ -24,7 +24,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
 app.get("/login", (req, res) => { res.sendFile(path.join(__dirname, "../public", "login.html")) })
-app.get("/assets/img/fish-192.png", (req, res) => { res.sendFile(path.join(__dirname, "../public", "assets", "img","fish-192.png")) })
+app.get("/assets/img/fish-512.png", (req, res) => { res.sendFile(path.join(__dirname, "../public", "assets", "img","fish-512.png")) })
 app.get("/css/login.css", (req, res) => { res.sendFile(path.join(__dirname, "../public", "css", "login.css")) })
 app.get("/js/login.js", (req, res) => { res.sendFile(path.join(__dirname, "../public", "js", "login.js")) })
 
