@@ -234,9 +234,9 @@ function Initialize() {
 
 	SwitchToScreen("allSongs")
 
-	document.querySelector("#module-content-container").style.height = "0px"
+	document.body.style.height = "0px"
 	setTimeout(() => {
-		document.querySelector("#module-content-container").style.height = null
+		document.body.style.height = null
 	}, 1000)
 }
 
