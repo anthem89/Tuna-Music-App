@@ -37,8 +37,8 @@ a:hover {
 body {
 	display: flex;
 	flex-direction: column;
-	height: 100vh;
-	height: 100dvh;
+	/* height calculation used in conjunction with javascript in index.js to accomodate PWA mode */
+	height: calc(var(--vh, 1vh) * 100);
 	overflow: hidden;
 	overscroll-behavior: contain;
 }

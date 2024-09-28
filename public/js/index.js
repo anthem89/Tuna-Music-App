@@ -233,14 +233,16 @@ function Initialize() {
 	}, { passive: true })
 
 	SwitchToScreen("allSongs")
+}
 
-	// Hack to force PWA app to calculate screen height correctly
-	document.body.style.height = "0px"
-	document.body.style.height = null
-	setTimeout(() => {
-		const viewportHeight = window.innerHeight;
-		document.documentElement.style.height = viewportHeight + "px"
-	}, 1000)
+// Hack to force PWA app to calculate screen height correctly after a page redirect
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+	const updateViewportHeight = () => {
+		const viewportHeight = window.innerHeight
+		document.documentElement.style.setProperty('--vh', `${viewportHeight * 0.01}px`)
+	}
+	window.addEventListener("load", updateViewportHeight, { once: true })
+	// window.addEventListener("resize", updateViewportHeight)
 }
 
 Initialize()
