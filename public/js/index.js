@@ -234,6 +234,7 @@ function Initialize() {
 
 	SwitchToScreen("allSongs")
 
+	// Hack to force PWA app to calculate screen height correctly
 	document.body.style.height = "0px"
 	document.body.style.height = null
 }
