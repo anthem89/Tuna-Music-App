@@ -234,7 +234,6 @@ function Initialize() {
 
 	SwitchToScreen("allSongs")
 
-	document.documentElement.requestFullscreen()
 }
 
 Initialize()
