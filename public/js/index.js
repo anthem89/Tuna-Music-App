@@ -232,17 +232,17 @@ function Initialize() {
 		e.target.classList.toggle("collapse-to-header", e.target.scrollTop > 20)
 	}, { passive: true })
 
-	SwitchToScreen("allSongs")
+	SwitchToScreen("home")
 }
 
 // Hack to force PWA app to calculate screen height correctly after a page redirect
-if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true) {
 	const updateViewportHeight = () => {
 		const viewportHeight = window.innerHeight
 		document.documentElement.style.setProperty('--vh', `${viewportHeight * 0.01}px`)
 	}
 	window.addEventListener("load", updateViewportHeight, { once: true })
-	// window.addEventListener("resize", updateViewportHeight)
+	window.addEventListener("resize", updateViewportHeight)
 }
 
 Initialize()

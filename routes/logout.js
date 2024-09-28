@@ -4,6 +4,7 @@ const router = express.Router()
 
 router.get("/", (req, res) => {
 	try {
+		res.clearCookie("currentUser")
 		res.clearCookie("authToken")
 		res.redirect("/")
 	} catch (e) {

@@ -5,6 +5,85 @@ import { unlink, access } from "fs/promises"
 import { constants } from "fs"
 import path from "path"
 
+const router = express.Router()
+
+/** Fetch the user's library songs
+ * Query Parameters:
+ * skip, top, sortField, sortOrder, filterField, filterValue 
+ */
+router.get("/", async (req, res) => {
+	try {
+		const userId = req.user?.id
+		if (userId == null) {
+			throw new Error("A valid user id is required")
+		}
+		// Get pagination parameters from query string
+		const skip = parseInt(req.query.skip) || 0 // Default to 0 if not specified
+		const top = parseInt(req.query.top) || 10 // Default to 10 if not specified
+
+		const allowedFields = ["title", "artist", "artist_id", "album", "album_id", "release_date", "genre", "number_of_plays", "composer", "date_downloaded", "date_last_played", "lyrics"]
+
+		// Get sorting and filtering parameters
+		const sortField = allowedFields.includes(req.query.sort) ? req.query.sort : "date_downloaded"
+		const sortOrder = req.query.order?.toLowerCase() === "desc" ? "DESC" : "ASC"
+		const filterField = allowedFields.includes(req.query.filterField) ? req.query.filterField : null
+		const filterValue = req.query.filterValue
+
+		// Base query
+		let query = "SELECT * FROM songs WHERE user_id = ?"
+		const params = [userId]
+
+		// Add filtering if specified
+		if (filterField && filterValue) {
+			query += " AND " + filterField + " LIKE ?" // Use LIKE for partial matches
+			params.push("%" + filterValue + "%")
+		}
+
+		// Add sorting
+		query += " ORDER BY " + sortField + " " + sortOrder
+
+		// Add pagination
+		query += " LIMIT ? OFFSET ?"
+		params.push(top, skip)
+
+		const data = await Database.readQuery(query, params)
+
+		res.json(data)
+	} catch (error) {
+		res.status(404).send({ error: error.toString() })
+	}
+})
+
+router.delete("/delete-song", async (req, res) => {
+	try {
+		const idArray = req.body?.idArray
+		const userId = req.user?.id
+		let deletionCount = 0
+		deletionCount = await DeleteSongFromLibrary(idArray, userId)
+		res.send({
+			status: "success",
+			deletionCount: deletionCount
+		})
+	} catch (e) {
+		res.status(404).send({ error: e.toString() })
+	}
+})
+
+router.post("/edit-song-data", async (req, res) => {
+	try {
+		const libraryUuid = req.body?.libraryUuid
+		const userId = req.user?.id
+
+
+		res.send()
+	} catch (e) {
+		res.status(404).send({ error: e.toString() })
+	}
+})
+
+export default router
+
+
 /** @param {TrackData} trackData */
 export function SaveSongToLibrary(trackData) {
 	return new Promise(async (resolve, reject) => {
@@ -62,57 +141,3 @@ export function DeleteSongFromLibrary(libraryUuidArray, userId) {
 		}
 	})
 }
-
-
-const router = express.Router()
-
-router.get("/", async (req, res) => {
-	try {
-		const userId = req.user?.id
-		if (userId == null) { throw new Error("A valid user id is required") }
-
-		// Get pagination parameters from query string
-		const skip = parseInt(req.query.skip) || 0 // Default to 0 if not specified
-		const top = parseInt(req.query.top) || 10 // Default to 10 if not specified
-
-		// Adjust the query to use LIMIT and OFFSET
-		const query = "SELECT * FROM songs WHERE user_id = ? LIMIT ? OFFSET ?"
-		const params = [userId, top, skip]
-		const data = await Database.readQuery(query, params)
-
-		res.json(data)
-
-	} catch (error) {
-		res.status(404).send({ error: error.toString() }) // Fixed the error variable name
-	}
-})
-
-
-router.delete("/delete-song", async (req, res) => {
-	try {
-		const idArray = req.body?.idArray
-		const userId = req.user?.id
-		let deletionCount = 0
-		deletionCount = await DeleteSongFromLibrary(idArray, userId)
-		res.send({
-			status: "success",
-			deletionCount: deletionCount
-		})
-	} catch (e) {
-		res.status(404).send({ error: e.toString() })
-	}
-})
-
-router.post("/edit-song-data", async (req, res) => {
-	try {
-		const libraryUuid = req.body?.libraryUuid
-		const userId = req.user?.id
-
-
-		res.send()
-	} catch (e) {
-		res.status(404).send({ error: e.toString() })
-	}
-})
-
-export default router

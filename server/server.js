@@ -10,7 +10,6 @@ import dotenv from "dotenv"
 dotenv.config()
 
 
-
 import logoutRoute from "../routes/logout.js"
 import playSongRoute from "../routes/play-song.js"
 import playTemporarySongRoute from "../routes/play-temporary-song.js"
@@ -68,7 +67,6 @@ if (process.env.NODE_ENV !== "development") {
 // Use cors middleware to allow cross-origin requests to the specified origins
 app.use(cors({
 	origin: ["https://*.ngrok-free.app"],
-	// credentials: true,
 }))
 
 app.use(cookieParser())

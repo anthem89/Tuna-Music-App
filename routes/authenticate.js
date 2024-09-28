@@ -49,11 +49,14 @@ router.post("/", async (req, res) => {
 		// Generate a token
 		const authToken = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: "90d" })
 
-
+		const expiry = 90 * 24 * 60 * 60 * 1000 // 90 days in milliseconds
+		res.cookie("currentUser", user.display_name, {
+			maxAge: expiry
+		})
 		res.cookie("authToken", authToken, {
 			httpOnly: true,
 			secure: true,
-			maxAge: 90 * 24 * 60 * 60 * 1000 // 90 days in milliseconds
+			maxAge: expiry
 		})
 
 		// Redirect to the app home page
