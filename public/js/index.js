@@ -233,12 +233,6 @@ function Initialize() {
 	}, { passive: true })
 
 	SwitchToScreen("allSongs")
-
-	// Hack to force PWA app to properly calculate the height of the document body
-	document.body.style.height = "calc(100vh - 100px)"
-	setTimeout(() => {
-		document.body.style.height = null
-	}, 100)
 }
 
 Initialize()
