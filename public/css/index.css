@@ -127,9 +127,15 @@ body {
 .logo img {
 	height: 40px;
 	margin: 0px 10px;
-	background-color: var(--background);
 	border-radius: 30px;
-	box-shadow: 3px 3px 5px #0000005e;
+}
+
+@media (max-width: 991px) {
+	.logo img {
+		box-shadow: 3px 3px 5px #0000005e;
+		background-color: var(--background);
+		border: 1px solid var(--regularText);
+	}
 }
 
 .logo span {
