@@ -45,22 +45,22 @@ if (process.env.NODE_ENV !== "development") {
 		}
 	})
 
-	// Content Security Policy
-	app.use(helmet({
-		contentSecurityPolicy: {
-			useDefaults: true,
-			directives: {
-				"default-src": ["'self'", "https://*.ngrok-free.app"], // Restricts all content by default to the same origin
-				"script-src": ["'self'", "https://*.ngrok-free.app", "https://cdnjs.cloudflare.com/ajax/libs/"],  // Only allow inline or self-hosted scripts
-				"style-src": ["'self'", "https://*.ngrok-free.app", "https://fonts.googleapis.com", "'unsafe-inline'", "https://cdnjs.cloudflare.com/ajax/libs/"],
-				"font-src": ["'self'", "https://*.ngrok-free.app", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
-				"connect-src": ["'self'", "https://*.ngrok-free.app"], // Controls AJAX, WebSocket, etc.
-				"img-src": ["*"], // Allows images from same origin and inline base64 images
-				"object-src": ["'none'"], // Blocks object, embed, and applet elements
-				"media-src": ["'self'", "https://*.ngrok-free.app", "blob:"], // Allow media from blob URLs
-			},
-		},
-	}))
+	// // Content Security Policy
+	// app.use(helmet({
+	// 	contentSecurityPolicy: {
+	// 		useDefaults: true,
+	// 		directives: {
+	// 			"default-src": ["'self'"], // Restricts all content by default to the same origin
+	// 			"script-src": ["'self'", "https://cdnjs.cloudflare.com/ajax/libs/"],  // Only allow inline or self-hosted scripts
+	// 			"style-src": ["'self'", "https://fonts.googleapis.com", "'unsafe-inline'", "https://cdnjs.cloudflare.com/ajax/libs/"],
+	// 			"font-src": ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+	// 			"connect-src": ["'self'"], // Controls AJAX, WebSocket, etc.
+	// 			"img-src": ["*"], // Allows images from same origin and inline base64 images
+	// 			"object-src": ["'none'"], // Blocks object, embed, and applet elements
+	// 			"media-src": ["'self'", "blob:"], // Allow media from blob URLs
+	// 		},
+	// 	},
+	// }))
 }
 
 // Use cors middleware to allow cross-origin requests to the specified origins
