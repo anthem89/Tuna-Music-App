@@ -234,10 +234,8 @@ function Initialize() {
 
 	SwitchToScreen("allSongs")
 
-	document.body.classList.toggle("toggle-sidebar")
-	requestAnimationFrame(() => {
-		document.body.classList.toggle("toggle-sidebar")
-	})
+	document.body.style.height = "0px"
+	document.body.style.height = null
 }
 
 Initialize()
