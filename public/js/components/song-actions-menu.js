@@ -1,7 +1,6 @@
 import { ContextMenu } from "./context-menu.js"
-import { PlaySongFromLibrary, PlaySongFromYouTube, DownloadSongToLibrary, RemoveSongsFromLibrary } from "../app-functions.js"
+import { DownloadSongToLibrary, RemoveSongsFromLibrary } from "../app-functions.js"
 import { SongTile } from "./song-tile.js"
-import { isNullOrWhiteSpace } from "../utils.js"
 import { AlertBanner } from "../index.js"
 
 export class SongActionsMenu extends ContextMenu {
@@ -97,31 +96,28 @@ export class SongActionsMenu extends ContextMenu {
 		}
 	}
 
-	#playSong() {
+	async #playSong() {
 		/** @type {SongTile} */
 		const targetSongTile = this.targetElement
-		if (isNullOrWhiteSpace(targetSongTile.trackData.id)) {
-			PlaySongFromYouTube(targetSongTile.trackData.video_id)
-		} else {
-			PlaySongFromLibrary(targetSongTile.trackData.id)
-		}
+		targetSongTile.PlaySong()
 	}
 
 	async #downloadToLibrary() {
+		/** @type {SongTile} */
+		const targetSongTile = this.targetElement
 		try {
-			/** @type {SongTile} */
-			const targetSongTile = this.targetElement
 			const trackData = targetSongTile.trackData
 			if (trackData.id != null) {
 				AlertBanner.Toggle(true, true, "Song already exists in library", 7000, AlertBanner.bannerColors.info)
 				return
 			}
+			targetSongTile.ToggleLoadingMask(true)
 			// Download the song
 			await DownloadSongToLibrary(trackData)
 		} catch (e) {
 			AlertBanner.Toggle(true, true, "Error downloading song", 7000, AlertBanner.bannerColors.error)
 		}
-
+		targetSongTile.ToggleLoadingMask(false)
 	}
 
 	async #removeFromLibrary() {

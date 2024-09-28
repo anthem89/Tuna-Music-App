@@ -9,7 +9,7 @@ export const NavMenuStructure = {
 	home: { title: "Home", tagName: "home-screen", icon: "bi bi-house-door", parent: "homeSection" },
 
 	musicSection: { title: "Music", parent: null },
-	searchMusic: { title: "Discover", tagName: "search-music-screen", icon: "bi bi-search", parent: "musicSection" },
+	searchMusic: { title: "Search Music", tagName: "search-music-screen", icon: "bi bi-search", parent: "musicSection" },
 
 	library: { title: "My Library", icon: "bi bi-collection", parent: "musicSection" },
 	allSongs: { title: "All Songs", tagName: "library-screen", icon: null, parent: "library" },

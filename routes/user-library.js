@@ -70,15 +70,23 @@ router.get("/", async (req, res) => {
 	try {
 		const userId = req.user?.id
 		if (userId == null) { throw new Error("A valid user id is required") }
-		const query = "SELECT * FROM songs WHERE user_id = ?"
-		const params = [userId]
+
+		// Get pagination parameters from query string
+		const skip = parseInt(req.query.skip) || 0 // Default to 0 if not specified
+		const top = parseInt(req.query.top) || 10 // Default to 10 if not specified
+
+		// Adjust the query to use LIMIT and OFFSET
+		const query = "SELECT * FROM songs WHERE user_id = ? LIMIT ? OFFSET ?"
+		const params = [userId, top, skip]
 		const data = await Database.readQuery(query, params)
+
 		res.json(data)
 
 	} catch (error) {
-		res.status(404).send({ error: e.toString() })
+		res.status(404).send({ error: error.toString() }) // Fixed the error variable name
 	}
 })
+
 
 router.delete("/delete-song", async (req, res) => {
 	try {

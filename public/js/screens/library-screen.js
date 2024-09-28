@@ -52,7 +52,8 @@ export class LibraryScreen extends HTMLElement {
 				resJson.forEach((result, index) => {
 					const actionsHtml = `<div class="action-link-container"><a class="link-underline action-link" name="btn-actions">Actions</a></div>`
 					const trackData = new TrackData(result)
-					tableData.push([new SongTile(trackData), CreateElementFromHTML(actionsHtml), trackData.album, secondsToTimestamp(trackData.duration)])
+					const albumNameHtml = `<span class="clampTwoLines">${trackData.album}</span>`
+					tableData.push([new SongTile(trackData), CreateElementFromHTML(actionsHtml), CreateElementFromHTML(albumNameHtml), secondsToTimestamp(trackData.duration)])
 				})
 			}
 
@@ -81,8 +82,7 @@ export class LibraryScreen extends HTMLElement {
 				// User clicked on the "More options" button
 				this.songActionsMenu.ForceShow(0, 0, 0, false, false, songTile)
 			} else {
-				// User clicked on a song tile to play the song
-				PlaySongFromLibrary(songTile.trackData.id)
+				songTile.PlaySong()
 			}
 
 		}

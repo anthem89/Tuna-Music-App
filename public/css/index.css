@@ -40,6 +40,10 @@ body {
 	height: 100dvh;
 }
 
+.hidden {
+	display: none !important;
+}
+
 .clampOneLine {
 	display: -webkit-box !important;
 	line-clamp: 1 !important;

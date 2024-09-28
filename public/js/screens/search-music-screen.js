@@ -3,7 +3,6 @@ import { AutocompleteInput } from "../components/autocomplete-input.js"
 import { DataTable } from "../components/data-table.js"
 import { TrackData } from "../components/track-data.js"
 import { SongTile } from "../components/song-tile.js"
-import { PlaySongFromYouTube } from "../app-functions.js"
 import { AlertBanner, SessionExpired } from "../index.js"
 import { SongActionsMenu } from "../components/song-actions-menu.js"
 
@@ -96,12 +95,13 @@ export class SearchMusicScreen extends HTMLElement {
 						let albumArtwork = result["thumbnails"]
 						albumArtwork = (Array.isArray(albumArtwork) ? (albumArtwork[albumArtwork.length - 1]?.["url"] || "") : "")
 						const videoId = result["videoId"]
-						const artistName = result["artist"]["name"]
-						const artistId = result["artist"]["artistId"]
-						const songTitle = result["name"]
-						const albumName = result["album"]["name"]
-						const albumId = result["album"]["albumId"]
+						const artistName = result["artist"]?.["name"] || "Unknown"
+						const artistId = result["artist"]?.["artistId"]
+						const songTitle = result["name"] || "Unknown"
+						const albumName = result["album"]?.["name"] || "Unknown"
+						const albumId = result["album"]?.["albumId"]
 						const duration = result["duration"]
+						if(videoId == null){ return }
 
 						const trackData = new TrackData({
 							video_id: videoId,
@@ -116,7 +116,8 @@ export class SearchMusicScreen extends HTMLElement {
 						this.resultsData.push(trackData)
 						const songTile = new SongTile(trackData)
 						songTile.setAttribute("data-video-id", result["videoId"])
-						tableData.push([songTile, CreateElementFromHTML(actionsHtml), albumName, secondsToTimestamp(duration)])
+						const albumNameHtml = `<span class="clampTwoLines">${albumName}</span>`
+						tableData.push([songTile, CreateElementFromHTML(actionsHtml), CreateElementFromHTML(albumNameHtml), secondsToTimestamp(duration)])
 					})
 				}
 
@@ -146,8 +147,7 @@ export class SearchMusicScreen extends HTMLElement {
 				this.songActionsMenu.ForceShow(0, 0, 0, false, false, songTile)
 			} else {
 				// User clicked on a row to play a song without downloading it to the library
-				const videoId = songTile?.dataset?.["videoId"]
-				PlaySongFromYouTube(videoId)
+				songTile.PlaySong()
 			}
 		}
 	}
