@@ -317,7 +317,6 @@ body {
 #sidebar-nav-page-mask {
 	opacity: 0;
 	transition: opacity 0.3s ease, backdrop-filter 0.3s ease;
-	height: 0px;
 }
 
 .toggle-sidebar #sidebar-nav-page-mask {
@@ -329,8 +328,6 @@ body {
 	top: 0;
 	left: 0;
 	width: 100vw;
-	height: 100vh;
-	height: 100dvh;
 	z-index: 997;
 }
 

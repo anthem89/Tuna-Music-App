@@ -233,6 +233,8 @@ function Initialize() {
 	}, { passive: true })
 
 	SwitchToScreen("allSongs")
+
+	document.body.classList.toggle("toggle-sidebar")
 }
 
 Initialize()
