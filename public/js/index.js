@@ -237,18 +237,10 @@ function Initialize() {
 	// Hack to force PWA app to calculate screen height correctly
 	document.body.style.height = "0px"
 	document.body.style.height = null
+	setTimeout(() => {
+		const viewportHeight = window.innerHeight;
+		document.documentElement.style.height = viewportHeight + "px"
+	}, 1000)
 }
 
 Initialize()
-
-
-function updateViewportHeight() {
-	const viewportHeight = window.innerHeight;
-	document.documentElement.style.setProperty('--vh', `${viewportHeight * 0.01}px`);
-}
-
-// Initial call when the page loads
-window.addEventListener('load', updateViewportHeight);
-
-// Recalculate on resize, including orientation changes on mobile
-window.addEventListener('resize', updateViewportHeight);
