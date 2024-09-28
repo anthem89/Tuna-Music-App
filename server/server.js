@@ -56,6 +56,7 @@ app.use(helmet({
 			"connect-src": ["'self'"], // Controls AJAX, WebSocket, etc.
 			"img-src": ["*"], // Allows images from same origin and inline base64 images
 			"object-src": ["'none'"], // Blocks object, embed, and applet elements
+			"media-src": ["'self'", "blob:"], // Allow media from blob URLs
 		},
 	},
 }))
