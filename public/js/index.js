@@ -232,10 +232,11 @@ function Initialize() {
 		e.target.classList.toggle("collapse-to-header", e.target.scrollTop > 20)
 	}, { passive: true })
 
-	setTimeout(() => {
-		SwitchToScreen("allSongs")
-	}, 2000)
-	
+	SwitchToScreen("allSongs")
+
+	document.addEventListener("scroll", () => {
+		document.documentElement.requestFullscreen()
+	}, {once: true})
 }
 
 Initialize()
