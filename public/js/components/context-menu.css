@@ -60,7 +60,9 @@
 	top: 0px;
 	left: 0px;
 	width: 100vw;
+	width: 100dvw;
 	height: 100vh;
+	height: 100dvh;
 	background-color: var(--pageMask);
 	backdrop-filter: blur(2px);
 	-webkit-backdrop-filter: blur(2px);
