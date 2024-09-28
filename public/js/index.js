@@ -240,3 +240,15 @@ function Initialize() {
 }
 
 Initialize()
+
+
+function updateViewportHeight() {
+	const viewportHeight = window.innerHeight;
+	document.documentElement.style.setProperty('--vh', `${viewportHeight * 0.01}px`);
+}
+
+// Initial call when the page loads
+window.addEventListener('load', updateViewportHeight);
+
+// Recalculate on resize, including orientation changes on mobile
+window.addEventListener('resize', updateViewportHeight);
