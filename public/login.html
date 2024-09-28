@@ -3,9 +3,13 @@
 
 <head>
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="viewport" content="width=device-width; initial-scale=1; viewport-fit=cover">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> <!-- possible content values: default, black or black-translucent -->
+
 	<link rel="manifest" href="./manifest.json">
-	
+
 	<title>Tuna Music Login</title>
 	<link href="./assets/img/tuna-logo.ico" rel="icon">
 
@@ -18,14 +22,14 @@
 </head>
 
 <body>
-	
+
 	<div class="login-container">
 		<div class="logo-container">
 			<img class="logo-img" src="./assets/img/fish-512.png">
 			<h1 class="logo">Tuna Music</h1>
 			<h3>Log in to your account</h3>
 		</div>
-		
+
 		<div class="error" id="error-message"></div>
 		<form id="loginForm">
 			<input type="text" id="username" placeholder="Username" required spellcheck="false" autocomplete="off">
@@ -33,7 +37,7 @@
 			<button type="submit">Login</button>
 		</form>
 	</div>
-	
+
 	<script src="./js/login.js" type="module"></script>
 
 </body>
