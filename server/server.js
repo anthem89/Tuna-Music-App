@@ -80,8 +80,8 @@ app.get("/login", (req, res) => { res.sendFile(path.join(__dirname, "../public",
 app.get("/assets/img/fish-512.png", (req, res) => { res.sendFile(path.join(__dirname, "../public", "assets", "img", "fish-512.png")) })
 app.get("/css/login.css", (req, res) => { res.sendFile(path.join(__dirname, "../public", "css", "login.css")) })
 app.get("/js/login.js", (req, res) => { res.sendFile(path.join(__dirname, "../public", "js", "login.js")) })
+app.use("/manifest.json", (req, res) => { res.sendFile(path.join(__dirname, "../public", "manifest.json")) })
 
-app.use("/manifest.json", (req, res) => {res.sendFile(path.join(__dirname, "../public", "manifest.json")) })
 app.use("/authenticate", authenticateRoute)
 app.use("/logout", logoutRoute)
 
