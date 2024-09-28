@@ -164,6 +164,8 @@ body {
 	left: 0;
 	bottom: 0;
 	width: var(--sidebarWidth);
+	height: 100vh;
+	height: 100dvh;
 	z-index: 998;
 	transition: all 0.3s;
 	padding: 20px;

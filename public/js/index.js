@@ -233,10 +233,6 @@ function Initialize() {
 	}, { passive: true })
 
 	SwitchToScreen("allSongs")
-
-	document.addEventListener("scroll", () => {
-		document.documentElement.requestFullscreen()
-	}, {once: true})
 }
 
 Initialize()
