@@ -233,6 +233,11 @@ function Initialize() {
 	}, { passive: true })
 
 	SwitchToScreen("allSongs")
+
+	document.querySelector("#module-content-container").style.height = "0px"
+	setTimeout(() => {
+		document.querySelector("#module-content-container").style.height = null
+	}, 1000)
 }
 
 Initialize()
