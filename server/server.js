@@ -54,7 +54,7 @@ if (process.env.NODE_ENV !== "development") {
 				"script-src": ["'self'", "https://cdnjs.cloudflare.com/ajax/libs/"],  // Only allow inline or self-hosted scripts
 				"style-src": ["'self'", "https://fonts.googleapis.com", "'unsafe-inline'", "https://cdnjs.cloudflare.com/ajax/libs/"],
 				"font-src": ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
-				"connect-src": ["'self'"], // Controls AJAX, WebSocket, etc.
+				"connect-src": ["'self'", "https://*.ngrok-free.app"], // Controls AJAX, WebSocket, etc.
 				"img-src": ["*"], // Allows images from same origin and inline base64 images
 				"object-src": ["'none'"], // Blocks object, embed, and applet elements
 				"media-src": ["'self'", "blob:"], // Allow media from blob URLs
