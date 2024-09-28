@@ -58,6 +58,8 @@ if (process.env.NODE_ENV !== "development") {
 				"img-src": ["*"], // Allows images from same origin and inline base64 images
 				"object-src": ["'none'"], // Blocks object, embed, and applet elements
 				"media-src": ["'self'", "blob:"], // Allow media from blob URLs
+				"manifestSrc": ["'self'"], // Ensure the manifest can be fetched
+				"workerSrc": ["'self'"], // Allow service workers
 			},
 		},
 	}))
