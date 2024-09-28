@@ -12,6 +12,10 @@ body.header-collapse #module-content-container {
 	margin-top: 0px;
 }
 
+#app-header-logo img {
+	cursor: pointer;
+}
+
 /* Mobile View */
 @media (max-width: 991px) {
 	song-tile {

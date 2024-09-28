@@ -1,5 +1,6 @@
 import { RemoveAllChildren } from "./utils.js"
-import * as banners  from "./components/alert-banner.js"
+import * as banners from "./components/alert-banner.js"
+import { ContextMenu } from "./components/context-menu.js"
 
 /** @type {banners.AlertBanner} */
 export const AlertBanner = document.querySelector("alert-banner")
@@ -28,6 +29,15 @@ export let currentScreenKey
 
 export function SessionExpired() {
 	window.location.href = "/login?session-expired"
+}
+
+export async function LogOut() {
+	const res = await fetch("/logout")
+	if (res.redirected) {
+		window.location.href = res.url
+	} else {
+		AlertBanner.Toggle(true, true, "Error logging out", 7000, AlertBanner.bannerColors.error)
+	}
 }
 
 export function SwitchToScreen(screenKey) {
@@ -180,6 +190,30 @@ function Initialize() {
 	// Page Mask Click
 	document.querySelector("#sidebar-nav-page-mask").onclick = () => {
 		document.body.classList.toggle("toggle-sidebar", false)
+	}
+
+	const appHeaderMenu = new ContextMenu(null, [
+		{
+			text: NavMenuStructure.home.title,
+			iconClass: NavMenuStructure.home.icon,
+			clickEvent: () => { SwitchToScreen("home") }
+		},
+		"divider",
+		{
+			text: NavMenuStructure.settings.title,
+			iconClass: NavMenuStructure.settings.icon,
+			clickEvent: () => { SwitchToScreen("settings") }
+		},
+		"divider",
+		{
+			text: "Log Out",
+			iconClass: "bi bi-box-arrow-right",
+			clickEvent: () => { LogOut() }
+		},
+	], "dropdown", true)
+	document.querySelector("#app-header-logo img").onclick = (e) => {
+		const pos = e.target.getBoundingClientRect()
+		appHeaderMenu.ForceShow(pos.x + pos.width, pos.y + pos.height, pos.height, false, true, e.target)
 	}
 
 	BuildNavMenu()

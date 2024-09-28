@@ -1,7 +1,8 @@
 /**
  * @param {String} selector The menu will only be enabled on elements matching this queryselector string
- * @param {String} menuOptions An array of JavaScript Objects describing the menu structure. Options are: "text", "extraText", "customHTML", "clickEvent", "disabled", "hidden", "subMenu", "divider". Example: [{'text': 'item 1'}, 'divider', {'text': 'item 2', 'subMenu': [{'text': 'item 3'}]}]
+ * @param {String} menuOptions An array of JavaScript Objects describing the menu structure. Options are: "text", "iconClass", "extraText", "customHTML", "clickEvent", "disabled", "hidden", "subMenu", "divider". Example: [{'text': 'item 1'}, 'divider', {'text': 'item 2', 'subMenu': [{'text': 'item 3'}]}]
  * @param {String} animationType Options are "context", "dropdown", or "none". "Context" will animate on both X and Y axis, whereas "dropdown" will animate only on the Y axis
+ * @param {Boolean} allowMobileView Whether or not the context menu automatically converts to an action sheet in mobile view
  */
 export class ContextMenu {
 	constructor(selector, menuOptions, animationType, allowMobileView) {
@@ -94,7 +95,7 @@ export class ContextMenu {
 	 * @param {Boolean} defaultSelection Boolean whether or not the first item in the menu starts off highlighted by default
 	 * @param {Boolean} autoPosition Should the top level menu body attempt to re-position itself vertically to avoid opening off screen (even if it means overlapping the target element)
 	 */
-	ForceShow(posX, posY, targetElementHeight = null, defaultSelection, autoPosition = true, targetElement) {
+	ForceShow(posX, posY, targetElementHeight = null, defaultSelection, autoPosition, targetElement) {
 		if (targetElement != null) {
 			this.targetElement = targetElement
 			this.targetElement.classList.toggle("contextMenuFocus", true)
@@ -114,9 +115,10 @@ export class ContextMenu {
 	 * @param {Number} targetElementHeight This is used to calculate the vertical offset that the menu will open at to avoid covering the target element if forced to open upwards
 	 * @param {Boolean} autoPosition Should the top level menu body attempt to re-position itself vertically to avoid opening off screen (even if it means overlapping the target element)
 	 */
-	_render(menuOptions, posX, posY, menuParent, menuAnimation, defaultSelection, targetElementHeight, autoPosition = true) {
+	_render(menuOptions, posX, posY, menuParent, menuAnimation, defaultSelection, targetElementHeight, autoPosition ) {
 		try {
 			if (menuParent == null) { menuParent = document.body }
+			if(autoPosition === undefined){ autoPosition = true }
 
 			let menuBody = document.createElement('div')
 			menuBody.classList.add("contextmenu-container")
@@ -345,13 +347,14 @@ export class ContextMenu {
 			const animationDirection = { vertical: "top", horizontal: "left" }
 			// If menuParent !== document.body, it is a submenu
 			if (menuParent === document.body) {
-				if (posX + menuBody.offsetWidth > docWidth) {
-					// Test if sub-contextmenu overflows window width
-					menuBody.style.left = String(Math.max(5, posX - menuBody.offsetWidth)) + 'px'
-					animationDirection.horizontal = "right"
-				}
 				// autoPosition boolean determines if the top level menu body should attempt to re-position itself vertically to avoid opening off screen (even it if means oerlapping the target element)
 				if (autoPosition === true) {
+					if (posX + menuBody.offsetWidth > docWidth) {
+						// Test if sub-contextmenu overflows window width
+						menuBody.style.left = String(Math.max(5, posX - menuBody.offsetWidth)) + 'px'
+						animationDirection.horizontal = "right"
+					}
+
 					if (menuBody.offsetHeight > docHeight) {
 						// Test if contextmenu height larger than the window height
 						menuBody.style.top = 0

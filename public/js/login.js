@@ -17,6 +17,7 @@ document.querySelector("#loginForm").addEventListener("submit", async (event) =>
 			document.querySelector("#error-message").innerText = resJson.error || "Login failed"
 		}
 	} catch (e) {
+		document.querySelector("#error-message").innerText = "Login failed"
 		console.error("Error:", e.toString())
 	}
 })

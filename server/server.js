@@ -10,6 +10,8 @@ import dotenv from "dotenv"
 dotenv.config()
 
 
+
+import logoutRoute from "../routes/logout.js"
 import playSongRoute from "../routes/play-song.js"
 import playTemporarySongRoute from "../routes/play-temporary-song.js"
 import searchAutocompleteRoute from "../routes/search-autocomplete.js"
@@ -42,28 +44,29 @@ if (process.env.NODE_ENV !== "development") {
 			next()
 		}
 	})
-}
 
-// Content Security Policy
-app.use(helmet({
-	contentSecurityPolicy: {
-		useDefaults: true,
-		directives: {
-			"default-src": ["'self'"], // Restricts all content by default to the same origin
-			"script-src": ["'self'", "https://cdnjs.cloudflare.com/ajax/libs/"],  // Only allow inline or self-hosted scripts
-			"style-src": ["'self'", "https://fonts.googleapis.com", "'unsafe-inline'", "https://cdnjs.cloudflare.com/ajax/libs/"],
-			"font-src": ["'self'", "https://fonts.gstatic.com","https://cdnjs.cloudflare.com"],
-			"connect-src": ["'self'"], // Controls AJAX, WebSocket, etc.
-			"img-src": ["*"], // Allows images from same origin and inline base64 images
-			"object-src": ["'none'"], // Blocks object, embed, and applet elements
-			"media-src": ["'self'", "blob:"], // Allow media from blob URLs
+	// Content Security Policy
+	app.use(helmet({
+		contentSecurityPolicy: {
+			useDefaults: true,
+			directives: {
+				"default-src": ["'self'"], // Restricts all content by default to the same origin
+				"script-src": ["'self'", "https://cdnjs.cloudflare.com/ajax/libs/"],  // Only allow inline or self-hosted scripts
+				"style-src": ["'self'", "https://fonts.googleapis.com", "'unsafe-inline'", "https://cdnjs.cloudflare.com/ajax/libs/"],
+				"font-src": ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+				"connect-src": ["'self'"], // Controls AJAX, WebSocket, etc.
+				"img-src": ["*"], // Allows images from same origin and inline base64 images
+				"object-src": ["'none'"], // Blocks object, embed, and applet elements
+				"media-src": ["'self'", "blob:"], // Allow media from blob URLs
+			},
 		},
-	},
-}))
+	}))
+}
 
 // Use cors middleware to allow cross-origin requests to the specified origins
 app.use(cors({
-	origin: ["https://*.ngrok-free.app"]
+	origin: ["https://*.ngrok-free.app"],
+	credentials: true,
 }))
 
 app.use(cookieParser())
@@ -77,6 +80,7 @@ app.get("/css/login.css", (req, res) => { res.sendFile(path.join(__dirname, "../
 app.get("/js/login.js", (req, res) => { res.sendFile(path.join(__dirname, "../public", "js", "login.js")) })
 
 app.use("/authenticate", authenticateRoute)
+app.use("/logout", logoutRoute)
 
 // Apply authentication middleware to all routes after this line
 app.use(authenticationMiddleware)
