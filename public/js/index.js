@@ -211,6 +211,7 @@ function Initialize() {
 			clickEvent: () => { LogOut() }
 		},
 	], "dropdown", true)
+
 	document.querySelector("#app-header-logo img").onclick = (e) => {
 		const pos = e.target.getBoundingClientRect()
 		appHeaderMenu.ForceShow(pos.x + pos.width, pos.y + pos.height, pos.height, false, true, e.target)
@@ -232,6 +233,11 @@ function Initialize() {
 	}, { passive: true })
 
 	SwitchToScreen("allSongs")
+
+	document.body.style.height = "calc(100vh - 60px)"
+	requestAnimationFrame(() => {
+		document.body.style.height = null
+	})
 }
 
 Initialize()
