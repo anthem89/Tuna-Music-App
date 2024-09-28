@@ -101,7 +101,7 @@ export class SearchMusicScreen extends HTMLElement {
 						const albumName = result["album"]?.["name"] || "Unknown"
 						const albumId = result["album"]?.["albumId"]
 						const duration = result["duration"]
-						if(videoId == null){ return }
+						if(isNullOrWhiteSpace(videoId)){ return }
 
 						const trackData = new TrackData({
 							video_id: videoId,
