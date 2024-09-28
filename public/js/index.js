@@ -234,10 +234,6 @@ function Initialize() {
 
 	SwitchToScreen("allSongs")
 
-	document.body.style.height = "0px"
-	setTimeout(() => {
-		document.body.style.height = null
-	}, 1000)
 }
 
 Initialize()
