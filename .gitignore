@@ -2,3 +2,4 @@
 node_modules/
 music-library/
 music-database.db
+.env
