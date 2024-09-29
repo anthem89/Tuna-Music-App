@@ -15,7 +15,7 @@ export class SongTile extends HTMLElement {
 	connectedCallback() {
 		this.innerHTML = `
 			<div class="song-tile-image">
-				<img src="${this.trackData.album_art}">
+				<img src="${this.trackData.album_art}" loading="lazy">
 				<div class="loading-spinner">
 					<div class="spinner-border" role="status"></div>
 				</div>

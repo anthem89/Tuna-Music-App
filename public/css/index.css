@@ -39,6 +39,7 @@ body {
 	flex-direction: column;
 	/* height calculation used in conjunction with javascript in index.js to accomodate PWA mode */
 	height: calc(var(--vh, 1vh) * 100);
+	height: calc(var(--vh, 1dvh) * 100);
 	overflow: hidden;
 	overscroll-behavior: contain;
 }

@@ -25,7 +25,7 @@ router.get("/", async (req, res) => {
 
 		// Get sorting and filtering parameters
 		const sortField = allowedFields.includes(req.query.sort) ? req.query.sort : "date_downloaded"
-		const sortOrder = req.query.order?.toLowerCase() === "desc" ? "DESC" : "ASC"
+		const sortOrder = req.query.order?.toLowerCase() === "asc" ? "ASC" : "DESC"
 		const filterField = allowedFields.includes(req.query.filterField) ? req.query.filterField : null
 		const filterValue = req.query.filterValue
 

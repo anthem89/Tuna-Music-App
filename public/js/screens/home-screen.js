@@ -15,8 +15,10 @@ export class HomeScreen extends HTMLElement {
 			<link href="./js/screens/home-screen.css" rel="stylesheet" type="text/css">
 
 			<h2 id="greeting">${this.#greetUser(userDisplayName)}</h2>
+
 		`
 		InjectGlobalStylesheets(this)
+
 	}
 
 	#greetUser(username) {
@@ -38,12 +40,3 @@ export class HomeScreen extends HTMLElement {
 }
 
 customElements.define("home-screen", HomeScreen)
-
-
-
-
-
-
-
-
-

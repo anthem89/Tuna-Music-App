@@ -1,4 +1,3 @@
-import DOMPurify from "../vendor/dompurify-v3.1.5.es.mjs"
 
 /** @param {HTMLElement} customElement */
 export function InjectGlobalStylesheets(customElement) {

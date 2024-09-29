@@ -2,7 +2,6 @@ import { InjectGlobalStylesheets, secondsToTimestamp, RemoveAllChildren, CreateE
 import { DataTable } from "../components/data-table.js"
 import { TrackData } from "../components/track-data.js"
 import { SongTile } from "../components/song-tile.js"
-import { PlaySongFromLibrary } from "../app-functions.js"
 import { AlertBanner, SessionExpired } from "../index.js"
 import { SongActionsMenu } from "../components/song-actions-menu.js"
 
@@ -10,15 +9,18 @@ export class LibraryScreen extends HTMLElement {
 	constructor() {
 		super()
 		this.attachShadow({ mode: "open" })
+
+		this.graphQlParams = {
+			top: 25,
+			skip: 0
+		}
 	}
 
 	async connectedCallback() {
 		this.shadowRoot.innerHTML = `
 			<link href="./js/screens/library-screen.css" rel="stylesheet" type="text/css">
 
-			<div id="library-table-wrapper">
-
-			</div>
+			<div id="library-table-wrapper"></div>
 		`
 		InjectGlobalStylesheets(this)
 
@@ -36,7 +38,7 @@ export class LibraryScreen extends HTMLElement {
 
 	async #loadLibraryData() {
 		try {
-			const res = await fetch("/user-library", { method: "GET" })
+			const res = await fetch("/user-library?top=" + this.graphQlParams.top + "&skip=" + this.graphQlParams.skip, { method: "GET" })
 			if (res.redirected) {
 				SessionExpired()
 			} else if (res.status >= 400) {
@@ -46,7 +48,6 @@ export class LibraryScreen extends HTMLElement {
 
 			const columnHeaders = ["Song", "Actions", "Album Name", "Duration"]
 			const tableData = []
-			this.resultsData = []
 
 			if (Array.isArray(resJson)) {
 				resJson.forEach((result, index) => {

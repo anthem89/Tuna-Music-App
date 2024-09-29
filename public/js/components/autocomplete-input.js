@@ -1,5 +1,4 @@
 import { InjectGlobalStylesheets, RemoveAllChildren } from "../utils.js"
-import DOMPurify from "../../vendor/dompurify-v3.1.5.es.mjs"
 
 export class AutocompleteInput extends HTMLElement {
 	constructor() {

@@ -6,8 +6,8 @@ export class DataTable extends HTMLElement {
 	constructor(headers, dataArray) {
 		super()
 
-		this.headers = headers
-		this.dataArray = dataArray
+		this.headers = headers || []
+		this.dataArray = dataArray || []
 	}
 
 	connectedCallback() {
