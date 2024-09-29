@@ -79,7 +79,7 @@ export function SwitchToScreen(screenKey) {
 			if (targetLink != null) {
 				if (targetLink.dataset.bsToggle !== "collapse") {
 					// Collapse the sidebar menu if needed
-					document.body.classList.toggle("toggle-sidebar", false)
+					document.body.classList.toggle("sidebar-visible", false)
 				}
 				// If user clicked on the currently active module nav-link, then do nothing
 				if (targetLink.classList.contains("active") === true || targetLink.dataset?.screen == null) { return }
@@ -99,13 +99,13 @@ export function SwitchToScreen(screenKey) {
 			}
 		} else {
 			// If the user clicked on the currently active module's nav link, then collapse the sidebar menu if needed
-			document.body.classList.toggle("toggle-sidebar", false)
+			document.body.classList.toggle("sidebar-visible", false)
 		}
 	}
 }
 
 
-function BuildNavMenu() {
+function BuildSideBarNavMenu() {
 	const sectionTitle = (title) => {
 		return `<li class="nav-heading">${title}</li>`
 	}
@@ -182,14 +182,14 @@ function BuildNavMenu() {
 }
 
 
-function Initialize() {
+function InitializeUi() {
 	// Sidebar Toggle
 	document.querySelector(".toggle-sidebar-btn").onclick = () => {
-		document.body.classList.toggle("toggle-sidebar")
+		ToggleSideNavMenu(!document.body.classList.contains("sidebar-visible"))
 	}
 	// Page Mask Click
 	document.querySelector("#sidebar-nav-page-mask").onclick = () => {
-		document.body.classList.toggle("toggle-sidebar", false)
+		ToggleSideNavMenu(false)
 	}
 
 	const appHeaderMenu = new ContextMenu(null, [
@@ -217,7 +217,7 @@ function Initialize() {
 		appHeaderMenu.ForceShow(pos.x + pos.width, pos.y + pos.height, pos.height, false, true, e.target)
 	}
 
-	BuildNavMenu()
+	BuildSideBarNavMenu()
 
 	// Nav Link click events
 	document.querySelector("#sidebar-nav").onclick = (e) => {
@@ -232,6 +232,8 @@ function Initialize() {
 		e.target.classList.toggle("collapse-to-header", e.target.scrollTop > 20)
 	}, { passive: true })
 
+	InitializeSwipeGestures()
+
 	SwitchToScreen("home")
 }
 
@@ -245,4 +247,78 @@ if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.
 	window.addEventListener("resize", updateViewportHeight)
 }
 
-Initialize()
+const sideBarNavMenu = document.querySelector("#sidebar")
+export function ToggleSideNavMenu(open) {
+	sideBarNavMenu.classList.toggle("isDragging", false)
+	sideBarNavMenu.style.transform = null
+	document.body.classList.toggle("sidebar-visible", open)
+}
+
+export const swipePositions = {
+	minimumSwipeDistance: 100,
+	startX: 0,
+	currentX: 0,
+	startY: 0,
+	currentY: 0
+}
+
+function InitializeSwipeGestures() {
+	const sideBarWidth = 300 // This must match the CSS variable in index.css
+	const isMobileView = () => { return window.innerWidth <= 992 }
+
+	sideBarNavMenu.addEventListener("touchstart", (e) => {
+		if (isMobileView() === false) { return }
+		swipePositions.startX = e.touches[0].clientX
+	}, { passive: true })
+
+	sideBarNavMenu.addEventListener("touchmove", (e) => {
+		if (isMobileView() === false) { return }
+		sideBarNavMenu.classList.toggle("isDragging", true)
+		swipePositions.currentX = e.touches[0].clientX
+		let translateX = swipePositions.currentX - swipePositions.startX
+		// Prevent the menu from going beyond the boundaries
+		if (translateX < -sideBarWidth) translateX = -sideBarWidth
+		if (translateX > 0) translateX = 0
+		// Move the menu along with the finger
+		sideBarNavMenu.style.transform = `translate3d(${translateX}px, 0, 0)`
+	}, { passive: true })
+
+	sideBarNavMenu.addEventListener("touchend", () => {
+		if (isMobileView() === false) { return }
+		if (sideBarNavMenu.classList.contains("isDragging") === false) { return }
+		sideBarNavMenu.classList.toggle("isDragging", false)
+		const menuPosition = parseInt(sideBarNavMenu.style.transform.replace("translate3d(", "").replace("px, 0, 0)", ""))
+		// If the swipe is greater than the minimum swipe distance, then close it, otherwise bounce it back open
+		ToggleSideNavMenu(menuPosition > swipePositions.minimumSwipeDistance * -1)
+	})
+
+	// Allow opening menu when swiping right from off screen
+	document.addEventListener("touchstart", (e) => {
+		if (isMobileView() === false) { return }
+		swipePositions.startX = e.touches[0].clientX
+	}, { passive: true })
+
+	document.addEventListener("touchmove", (e) => {
+		if (isMobileView() === false) { return }
+		if (document.querySelector(".contextmenu-pageMask") != null) { return }
+		if (document.body.classList.contains("sidebar-visible") || swipePositions.startX > 20) { return }
+		sideBarNavMenu.classList.toggle("isDragging", true)
+		swipePositions.currentX = e.touches[0].clientX
+		let translateX = swipePositions.currentX - swipePositions.startX - sideBarWidth
+		// Prevent dragging beyond the boundaries
+		if (translateX < -sideBarWidth) translateX = -sideBarWidth
+		if (translateX > 0) translateX = 0
+
+		sideBarNavMenu.style.transform = `translate3d(${translateX}px, 0, 0)`
+	}, { passive: true })
+
+	document.addEventListener("touchend", () => {
+		if (isMobileView() === false) { return }
+		if (sideBarNavMenu.classList.contains("isDragging") === false) { return }
+		sideBarNavMenu.classList.toggle("isDragging", false)
+		const menuPosition = parseInt(sideBarNavMenu.style.transform.replace("translate3d(", "").replace("px, 0, 0)", ""))
+		ToggleSideNavMenu(menuPosition > sideBarWidth * -1 + swipePositions.minimumSwipeDistance)
+	})
+}
+
+InitializeUi()

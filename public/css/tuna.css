@@ -4,7 +4,7 @@ body.header-collapse .header {
 	opacity: 0%;
 }
 
-body.header-collapse .sidebar {
+body.header-collapse #sidebar {
 	top: 0px;
 }
 
