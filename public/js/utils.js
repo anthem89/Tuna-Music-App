@@ -44,6 +44,10 @@ export function RemoveAllChildren(parent) {
 	}
 }
 
+export function isMobileView() {
+	return window.innerWidth <= 992 
+}
+
 export function isNullOrWhiteSpace(string) {
 	return string == null || string.trim() === ""
 }

@@ -28,7 +28,7 @@
 }
 
 .contextmenu-container.mobile-view {
-	transform: translate3d(0px, 100dvh, 0px) !important;
+	transform: translate3d(0px, 100dvh, 0px);
 	transition: transform 0.3s ease !important;
 	position: fixed !important;
 	top: unset !important;
@@ -49,6 +49,14 @@
 	scrollbar-width: none;
 	min-height: 300px;
 	max-height: calc(100dvh - 50px);
+}
+
+.contextmenu-container.mobile-view.visible {
+	transform: translate3d(0px, 0px, 0px);
+}
+
+.contextmenu-container.mobile-view.isDragging {
+	transition: none !important;
 }
 
 .contextmenu-container.mobile-view.visible::-webkit-scrollbar {
@@ -75,18 +83,18 @@
 	opacity: 100%;
 }
 
-.contextmenu-container.visible {
-	transform: scale3d(1, 1, 1) !important;
-	opacity: 1;
-	transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
 .contextmenu-container.visible.no-animation {
 	transition: none !important;
 }
 
-.contextmenu-container.dropdownAnimation {
+.contextmenu-container:not(.mobile-view).dropdownAnimation {
 	transform: scale3d(1, 0.85, 0.85);
+}
+
+.contextmenu-container:not(.mobile-view).visible {
+	transform: scale3d(1, 1, 1);
+	opacity: 1;
+	transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .contextmenu-divider {

@@ -1,4 +1,4 @@
-import { RemoveAllChildren } from "./utils.js"
+import { RemoveAllChildren, isMobileView } from "./utils.js"
 import * as banners from "./components/alert-banner.js"
 import { ContextMenu } from "./components/context-menu.js"
 
@@ -254,17 +254,14 @@ export function ToggleSideNavMenu(open) {
 	document.body.classList.toggle("sidebar-visible", open)
 }
 
-export const swipePositions = {
+const swipePositions = {
 	minimumSwipeDistance: 100,
 	startX: 0,
 	currentX: 0,
-	startY: 0,
-	currentY: 0
 }
 
 function InitializeSwipeGestures() {
 	const sideBarWidth = 300 // This must match the CSS variable in index.css
-	const isMobileView = () => { return window.innerWidth <= 992 }
 
 	sideBarNavMenu.addEventListener("touchstart", (e) => {
 		if (isMobileView() === false) { return }
@@ -277,17 +274,17 @@ function InitializeSwipeGestures() {
 		swipePositions.currentX = e.touches[0].clientX
 		let translateX = swipePositions.currentX - swipePositions.startX
 		// Prevent the menu from going beyond the boundaries
-		if (translateX < -sideBarWidth) translateX = -sideBarWidth
-		if (translateX > 0) translateX = 0
+		if (translateX < -sideBarWidth) { translateX = -sideBarWidth }
+		if (translateX > 0) { translateX = 0 }
 		// Move the menu along with the finger
-		sideBarNavMenu.style.transform = `translate3d(${translateX}px, 0, 0)`
+		sideBarNavMenu.style.transform = `translate3d(${translateX}px, 0px, 0px)`
 	}, { passive: true })
 
 	sideBarNavMenu.addEventListener("touchend", () => {
 		if (isMobileView() === false) { return }
 		if (sideBarNavMenu.classList.contains("isDragging") === false) { return }
 		sideBarNavMenu.classList.toggle("isDragging", false)
-		const menuPosition = parseInt(sideBarNavMenu.style.transform.replace("translate3d(", "").replace("px, 0, 0)", ""))
+		const menuPosition = parseInt(sideBarNavMenu.style.transform.replace("translate3d(", "").replace("px, 0px, 0px)", ""))
 		// If the swipe is greater than the minimum swipe distance, then close it, otherwise bounce it back open
 		ToggleSideNavMenu(menuPosition > swipePositions.minimumSwipeDistance * -1)
 	})
@@ -306,17 +303,17 @@ function InitializeSwipeGestures() {
 		swipePositions.currentX = e.touches[0].clientX
 		let translateX = swipePositions.currentX - swipePositions.startX - sideBarWidth
 		// Prevent dragging beyond the boundaries
-		if (translateX < -sideBarWidth) translateX = -sideBarWidth
-		if (translateX > 0) translateX = 0
+		if (translateX < -sideBarWidth) { translateX = -sideBarWidth }
+		if (translateX > 0) { translateX = 0 }
 
-		sideBarNavMenu.style.transform = `translate3d(${translateX}px, 0, 0)`
+		sideBarNavMenu.style.transform = `translate3d(${translateX}px, 0px, 0px)`
 	}, { passive: true })
 
 	document.addEventListener("touchend", () => {
 		if (isMobileView() === false) { return }
 		if (sideBarNavMenu.classList.contains("isDragging") === false) { return }
 		sideBarNavMenu.classList.toggle("isDragging", false)
-		const menuPosition = parseInt(sideBarNavMenu.style.transform.replace("translate3d(", "").replace("px, 0, 0)", ""))
+		const menuPosition = parseInt(sideBarNavMenu.style.transform.replace("translate3d(", "").replace("px, 0px, 0px)", ""))
 		ToggleSideNavMenu(menuPosition > sideBarWidth * -1 + swipePositions.minimumSwipeDistance)
 	})
 }

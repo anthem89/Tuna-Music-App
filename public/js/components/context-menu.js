@@ -27,6 +27,14 @@ export class ContextMenu {
 		// The window width in px where the menu will convert to a mobile view
 		this.mobileViewBreakpoint = 992
 		this.mobileViewHasPageMask = true
+
+		this.swipePositions = {
+			minimumSwipeDistance: 100,
+			startY: 0,
+			currentY: 0,
+			scrollStarted: false
+		}
+
 		// An example of when you might want to prevent the menu from stealing focus is an auto-complete dropdown menu for a text input
 		this.menuCanStealFocus = true
 
@@ -115,10 +123,10 @@ export class ContextMenu {
 	 * @param {Number} targetElementHeight This is used to calculate the vertical offset that the menu will open at to avoid covering the target element if forced to open upwards
 	 * @param {Boolean} autoPosition Should the top level menu body attempt to re-position itself vertically to avoid opening off screen (even if it means overlapping the target element)
 	 */
-	_render(menuOptions, posX, posY, menuParent, menuAnimation, defaultSelection, targetElementHeight, autoPosition ) {
+	_render(menuOptions, posX, posY, menuParent, menuAnimation, defaultSelection, targetElementHeight, autoPosition) {
 		try {
 			if (menuParent == null) { menuParent = document.body }
-			if(autoPosition === undefined){ autoPosition = true }
+			if (autoPosition === undefined) { autoPosition = true }
 
 			let menuBody = document.createElement('div')
 			menuBody.classList.add("contextmenu-container")
@@ -128,15 +136,11 @@ export class ContextMenu {
 
 			const isMobileView = this.allowMobileView === true && window.innerWidth < this.mobileViewBreakpoint
 			menuBody.classList.toggle("mobile-view", isMobileView)
-			if (isMobileView === true && this.mobileViewHasPageMask === true && menuParent === document.body) {
-				const pageMask = document.createElement("div")
-				pageMask.className = "contextmenu-pageMask"
-				document.body.appendChild(pageMask)
-				requestAnimationFrame(() => { pageMask.classList.toggle("visible") })
-			}
 
 			// Adjust the menu open animation to only animate on the Y axis if the menu is a dropdown
-			menuBody.classList.toggle("dropdownAnimation", (this.animationType === "dropdown"))
+			if (isMobileView === false) {
+				menuBody.classList.toggle("dropdownAnimation", (this.animationType === "dropdown"))
+			}
 
 			// If menuParent !== document.body then its a submenu, so it needs to have position: relative;
 			if (menuParent === document.body) {
@@ -154,6 +158,12 @@ export class ContextMenu {
 					menuBody.style.top = posY + 'px' // If displaying a right-click menu, position it exactly where the user clicked
 				}
 
+				if (isMobileView === true && this.mobileViewHasPageMask === true) {
+					const pageMask = document.createElement("div")
+					pageMask.className = "contextmenu-pageMask"
+					document.body.appendChild(pageMask)
+					requestAnimationFrame(() => { pageMask.classList.toggle("visible") })
+				}
 			} else {
 				menuBody.classList.toggle("submenu", true)
 				menuBody.style.left = -menuParent.offsetLeft + menuParent.offsetWidth + 'px'
@@ -221,19 +231,27 @@ export class ContextMenu {
 						clearTimeout(submenuTimeout)
 						// If the item has a submenu, open it after a short delay of hovering
 						if (menuItem.hasOwnProperty("subMenu")) {
-							// Only open the submenu if the item is not already focused
-							if (item.classList.contains("contextmenu-item-focus") === false) {
-								this.CloseAllSubMenus(menuBody)
-								if (menuItem.hasOwnProperty('disabled') === false || menuItem.disabled === false) {
-									item.classList.toggle('contextmenu-item-focus', true)
-									submenuTimeout = setTimeout(() => {
-										// Render the submenu
-										this._render(menuItem.subMenu, 0, 0, item, true, triggerType.defaultSelection, null, true)
-										// If the cursor was moved to a different menu item while the submenu was in the process of rendering, then close the submenu
-										if (item.classList.contains("contextmenu-item-focus") === false) {
-											this.CloseAllSubMenus(menuBody)
-										}
-									}, triggerType.delay)
+							if (isMobileView === true) {
+								// If in mobile view, close the parent menu before opening the sub menu
+								document.querySelector(".contextmenu-pageMask").addEventListener("transitionend", () => {
+									this._render(menuItem.subMenu, null, null, null, true, false, null, false)
+								}, { once: true })
+								this.ForceClose()
+							} else {
+								// Only open the submenu if the item is not already focused
+								if (item.classList.contains("contextmenu-item-focus") === false) {
+									this.CloseAllSubMenus(menuBody)
+									if (menuItem.hasOwnProperty('disabled') === false || menuItem.disabled === false) {
+										item.classList.toggle('contextmenu-item-focus', true)
+										submenuTimeout = setTimeout(() => {
+											// Render the submenu
+											this._render(menuItem.subMenu, 0, 0, item, true, triggerType.defaultSelection, null, true)
+											// If the cursor was moved to a different menu item while the submenu was in the process of rendering, then close the submenu
+											if (item.classList.contains("contextmenu-item-focus") === false) {
+												this.CloseAllSubMenus(menuBody)
+											}
+										}, triggerType.delay)
+									}
 								}
 							}
 						} else {
@@ -262,18 +280,20 @@ export class ContextMenu {
 						}
 					}
 
-					// Menu item mouse enter event
-					hoverArea.onmousemove = () => {
-						// Highlight background - can't use CSS :hover because the arrow keys need to be able to activate the hover style as well
-						menuBody.querySelectorAll(".hover").forEach((e) => { e.classList.toggle("hover", false) })
-						hoverArea.classList.toggle("hover", true)
+					if (isMobileView === false) {
+						// Menu item mouse enter event
+						hoverArea.onmousemove = () => {
+							// Highlight background - can't use CSS :hover because the arrow keys need to be able to activate the hover style as well
+							menuBody.querySelectorAll(".hover").forEach((e) => { e.classList.toggle("hover", false) })
+							hoverArea.classList.toggle("hover", true)
+						}
+						hoverArea.onmouseenter = () => {
+							// If the item has a submenu, open it
+							openSubMenu(subMenuTriggerTypes.mouseenter)
+						}
+						// Menu item mouse leave event
+						hoverArea.onmouseleave = () => { hoverArea.classList.toggle("hover", false) }
 					}
-					hoverArea.onmouseenter = () => {
-						// If the item has a submenu, open it
-						openSubMenu(subMenuTriggerTypes.mouseenter)
-					}
-					// Menu item mouse leave event
-					hoverArea.onmouseleave = () => { hoverArea.classList.toggle("hover", false) }
 
 					// Event to open sub menu when right arrow key is pressed
 					hoverArea.addEventListener('open submenu on arrow key', () => { openSubMenu(subMenuTriggerTypes.arrowkey) })
@@ -315,10 +335,12 @@ export class ContextMenu {
 			if (defaultSelection === true) { menuBody.querySelector(".contextmenu-item:not(.disabled)")?.classList.toggle("hover", true) }
 
 			// Add event to handle certain keypresses while the context menu is open
-			menuBody.onkeydown = (e) => {
-				e.preventDefault()
-				e.stopPropagation()
-				this.SendKeyCommand(menuBody, e.key)
+			if (isMobileView === false) {
+				menuBody.onkeydown = (e) => {
+					e.preventDefault()
+					e.stopPropagation()
+					this.SendKeyCommand(menuBody, e.key)
+				}
 			}
 
 			// Disable browser context menu on top of this context menu
@@ -428,40 +450,96 @@ export class ContextMenu {
 				menuBody.classList.toggle("visible", true)
 			}
 
+			if (isMobileView === true) {
+				this.InitializeSwipeEvents(menuBody)
+			}
+
 		} catch (e) {
 			this.ForceClose()
 		}
 	}
 
-	// Global function to force close all context menus
-	CloseAllContextMenus(runCallbacks) {
-		if (runCallbacks === true) {
-			for (let callback of Object.values(this.menuCloseCallbacks)) {
-				callback()
-			}
+	InitializeSwipeEvents(menuBody) {
+		menuBody.ontouchstart = (e) => {
+			if (menuBody.querySelector(".contextmenu-container") != null) { e.preventDefault() }
+			this.swipePositions.startY = e.touches[0].clientY
+			this.swipePositions.scrollStarted = false
 		}
 
-		const isMobileView = this.allowMobileView === true && window.innerWidth < this.mobileViewBreakpoint
+		menuBody.ontouchmove = (e) => {
+			if (menuBody.querySelector(".contextmenu-container") != null) { e.preventDefault() }
+			if (menuBody.scrollTop > 20 || this.swipePositions.scrollStarted === true) {
+				this.swipePositions.scrollStarted = true
+				menuBody.style.transform = null
+				menuBody.classList.toggle("isDragging", false)
+				return
+			}
+			menuBody.classList.toggle("isDragging", true)
+			this.swipePositions.currentY = e.touches[0].clientY
+			let translateY = this.swipePositions.currentY - this.swipePositions.startY
+			// // Prevent the menu from going beyond the boundaries
+			if (translateY <= 0) { translateY = 0 }
+			// Move the menu along with the finger
+			menuBody.style.transform = `translate3d(0px, ${translateY}px, 0px)`
+		}
 
-		document.querySelectorAll(".contextmenu-container").forEach((menuContainer) => {
-			this.#disposeMenuItemEvents(menuContainer)
+		menuBody.ontouchend = (e) => {
+			if (menuBody.querySelector(".contextmenu-container") != null) { e.preventDefault() }
+			if (menuBody.classList.contains("isDragging") === false) { return }
+
+			const menuPosition = parseInt(menuBody.style.transform.replace("translate3d(0px, ", "").replace("px, 0px)", ""))
+			document.querySelectorAll(".contextmenu-container").forEach((menu) => {
+				menu.style.transform = null
+				menu.classList.toggle("isDragging", false)
+			})
+			// If the swipe is greater than the minimum swipe distance, then close it, otherwise bounce it back open
+			if (menuPosition > this.swipePositions.minimumSwipeDistance) {
+				if (menuBody.parentElement === document.body) {
+					this.ForceClose()
+				} else {
+					this.CloseAllSubMenus(menuBody.parentElement.closest(".contextmenu-container"))
+				}
+			}
+		}
+	}
+
+	// Global function to force close all context menus
+	CloseAllContextMenus(runCallbacks) {
+		try {
+			if (runCallbacks === true) {
+				for (let callback of Object.values(this.menuCloseCallbacks)) {
+					callback()
+				}
+			}
+
+			const isMobileView = this.allowMobileView === true && window.innerWidth < this.mobileViewBreakpoint
 			if (isMobileView === true) {
-				menuContainer.addEventListener("transitionend", () => { menuContainer.remove() }, { once: true })
-				menuContainer.classList.toggle("visible", false)
-				document.querySelectorAll(".contextmenu-pageMask").forEach((pageMask) => {
+				const pageMask = document.querySelector(".contextmenu-pageMask")
+				if (pageMask != null) {
 					pageMask.addEventListener("transitionend", (e) => { pageMask.remove() }, { once: true })
 					pageMask.classList.toggle("visible", false)
-				})
-			} else {
-				menuContainer.remove()
+				}
 			}
-		})
-		// Remove context menu focus styling from all elements
-		document.querySelectorAll(".contextMenuFocus").forEach((e) => { e.classList.toggle("contextMenuFocus", false) })
-		this.#toggleContextMenuLock(false, [])
+
+			document.querySelectorAll(".contextmenu-container").forEach((menuContainer) => {
+				this.#disposeMenuItemEvents(menuContainer)
+				if (isMobileView === true) {
+					menuContainer.addEventListener("transitionend", () => { menuContainer.remove() }, { once: true })
+					menuContainer.classList.toggle("visible", false)
+				} else {
+					menuContainer.remove()
+				}
+			})
+			// Remove context menu focus styling from all elements
+			document.querySelectorAll(".contextMenuFocus").forEach((e) => { e.classList.toggle("contextMenuFocus", false) })
+			this.#toggleContextMenuLock(false)
+		} catch { }
 	}
 
 	#disposeMenuItemEvents(menuContainer) {
+		menuContainer.ontouchstart = null
+		menuContainer.ontouchmove = null
+		menuContainer.ontouchend = null
 		menuContainer.querySelectorAll(".contextmenu-item").forEach((hoverArea) => {
 			hoverArea.onmouseenter = null
 			hoverArea.onmouseleave = null
