@@ -66,7 +66,8 @@ song-tile .btn-open-mobile-context-menu {
 }
 
 song-tile:not(.loading) .loading-spinner {
-	display: none !important;
+	/* display: none !important; */
+	opacity: 0% !important;
 }
 
 song-tile.loading,
@@ -96,6 +97,8 @@ song-tile .song-tile-image .loading-spinner {
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	opacity: 100%;
+	transition: opacity 0.3s ease;
 }
 
 song-tile .song-tile-image .spinner-border {
@@ -160,7 +163,7 @@ song-tile span {
 	}
 }
 
-.song-list-table table {
+.song-list-table {
 	width: 100%;
 	border-spacing: 0px 5px;
 	border-collapse: separate;

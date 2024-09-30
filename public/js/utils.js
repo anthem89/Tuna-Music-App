@@ -19,7 +19,7 @@ export function InjectGlobalStylesheets(customElement) {
 	})
 }
 
-export function CreateElementFromHTML(htmlString, sanitize = false) {
+export function CreateElementFromHTML(htmlString, sanitize = true) {
 	const template = document.createElement('template')
 	if (sanitize === true) {
 		template.innerHTML = DOMPurify.sanitize(htmlString.trim())

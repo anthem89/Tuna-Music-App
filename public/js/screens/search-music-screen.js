@@ -155,6 +155,7 @@ export class SearchMusicScreen extends HTMLElement {
 	disconnectedCallback() {
 		this.searchButton.onclick = null
 		this.dataTableWrapper.onclick = null
+		this.autocompleteInput.suggestionsElement.onclick = null
 		this.autocompleteInput.inputElement.onkeydown = null
 	}
 }

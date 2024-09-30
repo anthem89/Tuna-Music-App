@@ -1,19 +1,13 @@
-import { InjectGlobalStylesheets, secondsToTimestamp, RemoveAllChildren, CreateElementFromHTML } from "../utils.js"
-import { DataTable } from "../components/data-table.js"
-import { TrackData } from "../components/track-data.js"
+import { InjectGlobalStylesheets, RemoveAllChildren } from "../utils.js"
 import { SongTile } from "../components/song-tile.js"
-import { AlertBanner, SessionExpired } from "../index.js"
+import { AlertBanner } from "../index.js"
 import { SongActionsMenu } from "../components/song-actions-menu.js"
+import { VirtualizedInfiniteScroll } from "../components/infinite-scroll-list.js"
 
 export class LibraryScreen extends HTMLElement {
 	constructor() {
 		super()
 		this.attachShadow({ mode: "open" })
-
-		this.graphQlParams = {
-			top: 25,
-			skip: 0
-		}
 	}
 
 	async connectedCallback() {
@@ -25,12 +19,11 @@ export class LibraryScreen extends HTMLElement {
 		InjectGlobalStylesheets(this)
 
 		this.dataTableWrapper = this.shadowRoot.querySelector("#library-table-wrapper")
-
-		this.#loadLibraryData()
-
 		this.dataTableWrapper.onclick = (e) => {
 			this.#rowAction(e)
 		}
+
+		this.#loadLibraryData()
 
 		this.songActionsMenu = new SongActionsMenu()
 		this.songActionsMenu.SetVisibleOptions({ removeFromPlaylist: false, downloadToLibrary: false })
@@ -38,28 +31,7 @@ export class LibraryScreen extends HTMLElement {
 
 	async #loadLibraryData() {
 		try {
-			const res = await fetch("/user-library?top=" + this.graphQlParams.top + "&skip=" + this.graphQlParams.skip, { method: "GET" })
-			if (res.redirected) {
-				SessionExpired()
-			} else if (res.status >= 400) {
-				throw new Error(res.statusText)
-			}
-			const resJson = await res.json()
-
-			const columnHeaders = ["Song", "Actions", "Album Name", "Duration"]
-			const tableData = []
-
-			if (Array.isArray(resJson)) {
-				resJson.forEach((result, index) => {
-					const actionsHtml = `<div class="action-link-container"><a class="link-underline action-link" name="btn-actions">Actions</a></div>`
-					const trackData = new TrackData(result)
-					const albumNameHtml = `<span class="clampTwoLines">${trackData.album}</span>`
-					tableData.push([new SongTile(trackData), CreateElementFromHTML(actionsHtml), CreateElementFromHTML(albumNameHtml), secondsToTimestamp(trackData.duration)])
-				})
-			}
-
-			const libraryTable = new DataTable(columnHeaders, tableData)
-			libraryTable.classList.add("song-list-table")
+			const libraryTable = new VirtualizedInfiniteScroll("/user-library")
 			RemoveAllChildren(this.dataTableWrapper)
 			this.dataTableWrapper.appendChild(libraryTable)
 		} catch (e) {
@@ -85,12 +57,11 @@ export class LibraryScreen extends HTMLElement {
 			} else {
 				songTile.PlaySong()
 			}
-
 		}
 	}
 
 	disconnectedCallback() {
-
+		this.dataTableWrapper.onclick = null
 	}
 }
 

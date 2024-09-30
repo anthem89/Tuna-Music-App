@@ -13,23 +13,24 @@ export class SongTile extends HTMLElement {
 	}
 
 	connectedCallback() {
-		this.innerHTML = `
+		const defaultAlbumImage = "../../assets/img/no-album-art.png"
+		const html = `
 			<div class="song-tile-image">
-				<img src="${this.trackData.album_art}" loading="lazy">
+				<img src="${this.trackData.album_art || defaultAlbumImage}">
 				<div class="loading-spinner">
 					<div class="spinner-border" role="status"></div>
 				</div>
 			</div>
-			
 			<div class="song-tile-text-div">
-				<span class="song-title">${this.trackData.title}</span>
-				<span class="artist-name">${this.trackData.artist}</span>
+				<span class="song-title">${this.trackData.title || "Unknown"}</span>
+				<span class="artist-name">${this.trackData.artist || "Unknown"}</span>
 			</div>
 			<i class="btn-open-mobile-context-menu bi bi-three-dots-vertical"></i>
 		`
+		this.innerHTML = DOMPurify.sanitize(html)
 		this.albumImage = this.querySelector("img")
 		this.albumImage.onerror = () => {
-			this.albumImage.src = "../../assets/img/no-album-art.png"
+			this.albumImage.src = defaultAlbumImage
 		}
 	}
 
@@ -50,7 +51,7 @@ export class SongTile extends HTMLElement {
 	}
 
 	disconnectedCallback() {
-
+		this.albumImage.onerror = null
 	}
 }
 

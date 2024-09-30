@@ -9,11 +9,11 @@ let temporarySongCache = {}
 const audioPlayer = document.querySelector("audio-player")
 
 export function PlaySongFromLibrary(libraryUuid) {
-	return new Promise((resolve) => {
+	return new Promise(async (resolve) => {
 		try {
 			if (isNullOrWhiteSpace(libraryUuid)) { throw new Error("library uuid cannot be empty") }
 			audioPlayer.SetSource(libraryUuid)
-			audioPlayer.audioElement.play()
+			await audioPlayer.audioElement.play()
 			resolve()
 		} catch (e) {
 			AlertBanner.Toggle(true, true, "Error playing song", 7000, AlertBanner.bannerColors.error)
@@ -53,7 +53,7 @@ export function PlaySongFromYouTube(videoId) {
 			const audioUrl = await CacheSongFromYouTube(videoId)
 			if (audioUrl == null) { throw new Error("error downloading song from YouTube") }
 			audioPlayer.audioElement.src = audioUrl
-			audioPlayer.audioElement.play()
+			await audioPlayer.audioElement.play()
 			resolve()
 		} catch (e) {
 			AlertBanner.Toggle(true, true, "Error playing song", 7000, AlertBanner.bannerColors.error)

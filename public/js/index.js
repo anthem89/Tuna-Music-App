@@ -214,7 +214,7 @@ function InitializeUi() {
 
 	document.querySelector("#app-header-logo img").onclick = (e) => {
 		const pos = e.target.getBoundingClientRect()
-		appHeaderMenu.ForceShow(pos.x + pos.width, pos.y + pos.height, pos.height, false, true, e.target)
+		appHeaderMenu.ForceShow(pos.x + pos.width + 10, pos.y + pos.height, pos.height, false, true, e.target)
 	}
 
 	BuildSideBarNavMenu()
