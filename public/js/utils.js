@@ -45,7 +45,7 @@ export function RemoveAllChildren(parent) {
 }
 
 export function isMobileView() {
-	return window.innerWidth <= 992 
+	return window.innerWidth <= 992
 }
 
 export function isNullOrWhiteSpace(string) {

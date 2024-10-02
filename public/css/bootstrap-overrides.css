@@ -1,0 +1,47 @@
+.btn-primary {
+	--bs-btn-color: #fff;
+	--bs-btn-bg: #ff787e;
+	--bs-btn-border-color: #ff787e;
+	--bs-btn-hover-color: #fff;
+	--bs-btn-hover-bg: #e76a74;
+	--bs-btn-hover-border-color: #e76a74;
+	--bs-btn-focus-shadow-rgb: 255, 120, 126;
+	--bs-btn-active-color: #fff;
+	--bs-btn-active-bg: #e76a74;
+	--bs-btn-active-border-color: #e76a74;
+	--bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+	--bs-btn-disabled-color: #fff;
+	--bs-btn-disabled-bg: #ff787e;
+	--bs-btn-disabled-border-color: #ff787e;
+}
+
+.btn-secondary {
+    --bs-btn-color: #212529;                      
+    --bs-btn-bg: #e0e0e0;                         
+    --bs-btn-border-color: #e0e0e0;               
+    --bs-btn-hover-color: #212529;                
+    --bs-btn-hover-bg: #d0d0d0;                   
+    --bs-btn-hover-border-color: #d0d0d0;         
+    --bs-btn-focus-shadow-rgb: 201, 201, 201;      
+    --bs-btn-active-color: #fff;                  
+    --bs-btn-active-bg: #b0b0b0;                  
+    --bs-btn-active-border-color: #a6a6a6;        
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125); 
+    --bs-btn-disabled-color: #212529;               
+    --bs-btn-disabled-bg: #e0e0e0;                   
+    --bs-btn-disabled-border-color: #e0e0e0;         
+}
+
+.btn-close.btn-sm {
+	font-size: 12px;
+}
+
+.modal {
+	backdrop-filter: blur(2px);
+	-webkit-backdrop-filter: blur(2px);
+}
+
+.modal-backdrop.show {
+	/* This should match the opacity of the pageMask variable in index.css */
+	opacity: 0.4;
+}

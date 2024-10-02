@@ -1,31 +1,46 @@
 import { RemoveAllChildren, isMobileView } from "./utils.js"
 import * as banners from "./components/alert-banner.js"
+import * as modals from "./components/confirmation-modal.js"
+import { AudioPlayer } from "./components/audio-player.js"
+import { NavigationHistory } from "./components/navigation-history.js"
 import { ContextMenu } from "./components/context-menu.js"
+import { HomeScreen } from "./screens/home-screen.js"
+import { SearchMusicScreen } from "./screens/search-music-screen.js"
+import { LibraryScreen } from "./screens/library-screen.js"
+import { PlaylistsScreen } from "./screens/playlists-screen.js"
+import { PlaylistSongsScreen } from "./screens/playlist-songs-screen.js"
+import { SearchPodcastsScreen } from "./screens/search-podcasts-screen.js"
+import { PodcastsScreen } from "./screens/podcasts-screen.js"
+import { SettingsScreen } from "./screens/settings-screen.js"
+
 
 /** @type {banners.AlertBanner} */
 export const AlertBanner = document.querySelector("alert-banner")
+/** @type {modals.ConfirmationModal} */
+export const ConfirmationModal = document.querySelector("confirmation-modal")
+/** @type {NavigationHistory} */
+export const AppNavigationHistory = new NavigationHistory()
+/** @type {AudioPlayer} */
+export const AudioPlayerElement = document.querySelector("audio-player")
 
 export const NavMenuStructure = {
-	homeSection: { title: null, parent: null },
-	home: { title: "Home", tagName: "home-screen", icon: "bi bi-house-door", parent: "homeSection" },
+	homeSection: { "title": null, "parent": null },
+	home: { "title": "Home", "prototype": HomeScreen, "icon": "bi bi-house-door", "parent": "homeSection" },
 
-	musicSection: { title: "Music", parent: null },
-	searchMusic: { title: "Search Music", tagName: "search-music-screen", icon: "bi bi-search", parent: "musicSection" },
+	musicSection: { "title": "Music", "parent": null },
+	searchMusic: { "title": "Search Music", "prototype": SearchMusicScreen, "icon": "bi bi-search", "parent": "musicSection" },
+	library: { "title": "My Library", "icon": "bi bi-collection", "parent": "musicSection" },
+	allSongs: { "title": "All Songs", "prototype": LibraryScreen, "icon": null, "parent": "library" },
+	playlists: { "title": "Playlists", "prototype": PlaylistsScreen, "icon": null, "parent": "library" },
+	playlistSongs: { "title": "Playlist Songs", "prototype": PlaylistSongsScreen, "icon": null, "parent": null, "hidden": true },
 
-	library: { title: "My Library", icon: "bi bi-collection", parent: "musicSection" },
-	allSongs: { title: "All Songs", tagName: "library-screen", icon: null, parent: "library" },
-	playlists: { title: "Playlists", tagName: "playlists-screen", icon: null, parent: "library" },
+	podcastsSection: { "title": "Podcasts", "parent": null },
+	searchPodcasts: { "title": "Search Podcasts", "prototype": SearchPodcastsScreen, "icon": "bi bi-search", "parent": "podcastsSection" },
+	myPodcasts: { "title": "My Podcasts", "prototype": PodcastsScreen, "icon": "bi bi-headphones", "parent": "podcastsSection" },
 
-	podcastsSection: { title: "Podcasts", parent: null },
-	searchPodcasts: { title: "Search Podcasts", tagName: "search-podcasts-screen", icon: "bi bi-search", parent: "podcastsSection" },
-	myPodcasts: { title: "My Podcasts", tagName: "podcasts-screen", icon: "bi bi-headphones", parent: "podcastsSection" },
-
-	settingsSection: { title: "Settings", parent: null },
-	settings: { title: "My Settings", tagName: "settings-screen", icon: "bi bi-gear", parent: "settingsSection" },
-
+	settingsSection: { "title": "Settings", "parent": null },
+	settings: { "title": "My Settings", "prototype": SettingsScreen, "icon": "bi bi-gear", "parent": "settingsSection" },
 }
-
-export let currentScreenKey
 
 export function SessionExpired() {
 	window.location.href = "/login?session-expired"
@@ -40,19 +55,18 @@ export async function LogOut() {
 	}
 }
 
-export function SwitchToScreen(screenKey) {
+export function SwitchToScreen(screenKey, args) {
 	const targetScreen = NavMenuStructure[screenKey]
 
 	if (targetScreen != null) {
+		const currentScreenKey = AppNavigationHistory.history[AppNavigationHistory.currentIndex]?.screenKey
 		if (currentScreenKey !== screenKey) {
 			// Emit an event before switching screens. This allows attached listeners to cancel the screen switch if needed.
-			const event = new CustomEvent('beforeSwitchToScreen', { cancelable: true, detail: { screenKey: screenKey } })
+			const event = new CustomEvent('beforeSwitchToScreen', { cancelable: true, detail: { screenKey: screenKey, args: args } })
 			document.dispatchEvent(event)
 			if (event.defaultPrevented) { return }
 
-			currentScreenKey = screenKey
-
-			if (targetScreen.tagName != null) {
+			if (targetScreen.prototype != null) {
 				// Remove the contents of the previously active module
 				const contentWrapper = document.querySelector("#module-content-container > section")
 				RemoveAllChildren(contentWrapper)
@@ -61,11 +75,9 @@ export function SwitchToScreen(screenKey) {
 				contentTitle.innerText = NavMenuStructure[screenKey].title || ""
 				// Create a new instance of the currently active module, and add it to the DOM
 				/** @type {HTMLElement} */
-				const screenElement = document.createElement(NavMenuStructure[screenKey].tagName)
+				const screenElement = new NavMenuStructure[screenKey].prototype(args)
 				contentWrapper.classList.add("pre-transition")
 				contentWrapper.style.visibility = "hidden"
-				contentWrapper.appendChild(screenElement)
-
 				// Wait until the module's custom HTML element has finished initializing
 				screenElement.addEventListener("customElementLoaded", () => {
 					contentWrapper.style.visibility = "visible"
@@ -73,6 +85,8 @@ export function SwitchToScreen(screenKey) {
 						contentWrapper.classList.remove("pre-transition")
 					})
 				}, { once: true })
+
+				contentWrapper.appendChild(screenElement)
 			}
 			// Update the stylings of the nav-links to reflect the new currently active module
 			const targetLink = document.querySelector("a[data-screen='" + screenKey + "']")
@@ -172,8 +186,9 @@ function BuildSideBarNavMenu() {
 	// Build and insert sections into the nav container
 	for (const key of Object.keys(NavMenuStructure)) {
 		const rootSection = NavMenuStructure[key]
+		if (rootSection.hidden === true) { continue }
 		if (rootSection.parent === null) {
-			if (rootSection.title) {
+			if (rootSection.title != null) {
 				navMenuContainer.insertAdjacentHTML("beforeend", sectionTitle(rootSection.title))
 			}
 			navMenuContainer.insertAdjacentHTML("beforeend", buildMenu(key))
@@ -252,6 +267,9 @@ export function ToggleSideNavMenu(open) {
 	sideBarNavMenu.classList.toggle("isDragging", false)
 	sideBarNavMenu.style.transform = null
 	document.body.classList.toggle("sidebar-visible", open)
+	if (isMobileView() === true && open === true) {
+		window.history.pushState({}, null, "")
+	}
 }
 
 const swipePositions = {
@@ -317,5 +335,28 @@ function InitializeSwipeGestures() {
 		ToggleSideNavMenu(menuPosition > sideBarWidth * -1 + swipePositions.minimumSwipeDistance)
 	})
 }
+
+// Intercept browser "back" and "forward" navigation events
+window.history.pushState({}, null, "")
+window.addEventListener("popstate", (e) => {
+	if (isMobileView() === true) {
+		const activeContextMenus = document.querySelectorAll(".contextmenu-container")
+		if (activeContextMenus.length > 0) {
+			activeContextMenus.forEach((contextMenu) => {
+				contextMenu.classReference.ForceClose()
+			})
+		} else if (document.body.classList.contains("sidebar-visible")) {
+			document.body.classList.toggle("sidebar-visible", false)
+		} else {
+			AppNavigationHistory.GoBack()
+		}
+	}
+})
+
+window.addEventListener("beforeunload", (e) => {
+	if (isMobileView() === true) {
+		e.preventDefault()
+	}
+})
 
 InitializeUi()

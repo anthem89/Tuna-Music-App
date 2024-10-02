@@ -18,12 +18,12 @@ body.header-collapse #module-content-container {
 
 /* Mobile View */
 @media (max-width: 991px) {
-	song-tile {
+	.media-tile {
 		width: calc(100dvw - 20px) !important;
 		max-width: 100dvw !important;
 	}
 
-	song-tile .btn-open-mobile-context-menu {
+	.media-tile .btn-open-mobile-context-menu {
 		display: flex !important;
 		align-items: center;
 		justify-content: flex-end;
@@ -52,7 +52,7 @@ body.header-collapse #module-content-container {
 	}
 }
 
-song-tile {
+.media-tile {
 	display: flex;
 	align-items: center;
 	max-width: 350px;
@@ -61,21 +61,21 @@ song-tile {
 	height: 60px;
 }
 
-song-tile .btn-open-mobile-context-menu {
+.media-tile .btn-open-mobile-context-menu {
 	display: none;
 }
 
-song-tile:not(.loading) .loading-spinner {
+.media-tile:not(.loading) .loading-spinner {
 	/* display: none !important; */
 	opacity: 0% !important;
 }
 
-song-tile.loading,
-tr:has(song-tile.loading) {
+.media-tile.loading,
+tr:has(.media-tile.loading) {
 	cursor: wait !important;
 }
 
-song-tile .song-tile-image {
+.media-tile .media-tile-image {
 	min-width: 60px;
 	max-width: 60px;
 	width: 60px;
@@ -87,7 +87,7 @@ song-tile .song-tile-image {
 	position: relative;
 }
 
-song-tile .song-tile-image .loading-spinner {
+.media-tile .media-tile-image .loading-spinner {
 	width: 100%;
 	height: 100%;
 	background-color: #ff787f7e;
@@ -101,21 +101,21 @@ song-tile .song-tile-image .loading-spinner {
 	transition: opacity 0.3s ease;
 }
 
-song-tile .song-tile-image .spinner-border {
+.media-tile .media-tile-image .spinner-border {
 	color: var(--white);
 }
 
-song-tile .song-tile-image img {
+.media-tile .media-tile-image img {
 	object-fit: cover;
 	width: 100%;
 	height: 100%;
 }
 
-song-tile.large-image {
+.media-tile.large-image {
 	height: 110px;
 }
 
-song-tile.large-image .song-tile-image {
+.media-tile.large-image .media-tile-image {
 	min-width: 110px;
 	max-width: 110px;
 	width: 110px;
@@ -124,11 +124,11 @@ song-tile.large-image .song-tile-image {
 	height: 110px;
 }
 
-song-tile.large-image .song-tile-text-div {
+.media-tile.large-image .media-tile-text-div {
 	width: calc(100% - 120px);
 }
 
-.song-tile-text-div {
+.media-tile-text-div {
 	display: flex;
 	flex-direction: column;
 	width: calc(100% - 90px);
@@ -136,12 +136,16 @@ song-tile.large-image .song-tile-text-div {
 	padding-left: 10px;
 }
 
-song-tile .song-title {
+.media-tile .media-tile-primary-text {
 	font-weight: bold;
 	font-size: 16px;
 }
 
-song-tile span {
+.media-tile.is-playing .media-tile-primary-text{
+	color: var(--tunaPink);
+}
+
+.media-tile span {
 	text-overflow: ellipsis;
 	overflow: hidden;
 	white-space: nowrap;
@@ -149,45 +153,89 @@ song-tile span {
 
 /* Mobile View */
 @media (max-width: 991px) {
-	.song-list-table td:not(:has(song-tile)) {
+	.media-list-table td:not(:has(.media-tile)) {
 		display: none !important;
 	}
 
-	.song-list-table td {
+	.media-list-table td {
 		max-width: unset;
 		padding-right: 0px !important;
 	}
 
-	.song-list-table th {
+	.media-list-table th {
 		display: none !important;
 	}
 }
 
-.song-list-table {
+.media-list-table table,
+.media-list-table {
 	width: 100%;
 	border-spacing: 0px 5px;
 	border-collapse: separate;
 }
 
-.song-list-table th {
+.media-list-table thead {
+	position: sticky;
+	/* top should match the top padding of the #module-content-container */
+	top: -20px;
+	background-color: var(--background);
+	z-index: 99;
+}
+
+.media-list-table th {
 	text-align: center;
 	border-bottom: 2px solid var(--regularText);
 }
 
-.song-list-table tbody tr {
+.media-list-table tbody tr {
 	cursor: pointer;
 }
 
-.song-list-table tbody tr:hover {
+.media-list-table tbody tr:hover {
 	background-color: var(--offWhite);
 }
 
-.song-list-table td {
+.media-list-table td {
 	max-width: 350px;
 	padding-right: 15px;
 }
 
-.song-list-table .action-link {
+.media-list-table .action-link {
 	cursor: pointer !important;
 	padding: 15px 5px;
+}
+
+.media-actions-menu .media-actions-menu-header {
+	display: flex;
+	padding: 0px 10px;
+	overflow: hidden;
+}
+
+.media-actions-menu .media-actions-menu-header img {
+	border-radius: 5px;
+	min-width: 40px;
+    max-width: 40px;
+    width: 40px;
+    min-height: 40px;
+    max-height: 40px;
+    height: 40px;
+	margin-right: 5px;
+}
+
+.media-actions-menu .media-actions-menu-header span{
+	color: var(--regularText);
+	font-style: normal;
+	text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.media-actions-menu .media-actions-menu-header span.media-tile-primary-text{
+	font-weight: bold;
+	font-size: 14px;
+}
+
+.media-actions-menu .media-actions-menu-header span.media-tile-secondary-text{
+	font-weight: normal;
+	font-size: 12px;
 }

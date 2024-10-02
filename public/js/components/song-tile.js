@@ -1,57 +1,48 @@
-import { TrackData } from "./track-data.js"
+import { TrackData } from "./data-models.js"
 import { PlaySongFromLibrary, PlaySongFromYouTube } from "../app-functions.js"
 import { isNullOrWhiteSpace } from "../utils.js"
+import { MediaTile } from "./media-tile.js"
+import { AudioPlayerElement } from "../index.js"
 
-export class SongTile extends HTMLElement {
+export class SongTile extends MediaTile {
 	/** @param {TrackData} trackData */
 	constructor(trackData) {
-		super()
-
+		super(trackData.album_art, trackData.title || "Unknown", trackData.artist || "Unknown")
 		this.trackData = trackData
-		this.albumImage
-		this.isLoading = false
 	}
 
 	connectedCallback() {
-		const defaultAlbumImage = "../../assets/img/no-album-art.png"
-		const html = `
-			<div class="song-tile-image">
-				<img src="${this.trackData.album_art || defaultAlbumImage}">
-				<div class="loading-spinner">
-					<div class="spinner-border" role="status"></div>
-				</div>
-			</div>
-			<div class="song-tile-text-div">
-				<span class="song-title">${this.trackData.title || "Unknown"}</span>
-				<span class="artist-name">${this.trackData.artist || "Unknown"}</span>
-			</div>
-			<i class="btn-open-mobile-context-menu bi bi-three-dots-vertical"></i>
-		`
-		this.innerHTML = DOMPurify.sanitize(html)
-		this.albumImage = this.querySelector("img")
-		this.albumImage.onerror = () => {
-			this.albumImage.src = defaultAlbumImage
-		}
+		super.connectedCallback()
+
+		// When this tile loads, test if its video_id or id match the currently playing song, then set the "is-playing" attribute accordingly
+		this.isCurrentlyPlaying()
 	}
 
-	ToggleLoadingMask(isLoading) {
-		this.classList.toggle("loading", isLoading)
-		this.isLoading = isLoading
+	isCurrentlyPlaying() {
+		const idKeys = ["video_id", "id"]
+		let isCurrentlyPlaying = false
+		for (let idKey of idKeys) {
+			isCurrentlyPlaying = this.trackData[idKey] != null && AudioPlayerElement.currentTrack?.[idKey] === this.trackData[idKey] && AudioPlayerElement.audioElement.ended === false
+			if (isCurrentlyPlaying === true) { break }
+		}
+		this.classList.toggle("is-playing", isCurrentlyPlaying)
+		return isCurrentlyPlaying
 	}
 
 	async PlaySong() {
 		if (this.isLoading === true) { return }
 		this.ToggleLoadingMask(true)
 		if (isNullOrWhiteSpace(this.trackData.id)) {
-			await PlaySongFromYouTube(this.trackData.video_id)
+			await PlaySongFromYouTube(this.trackData)
 		} else {
-			await PlaySongFromLibrary(this.trackData.id)
+			await PlaySongFromLibrary(this.trackData)
 		}
+		// The audio-player element will take care of toggling "is-playing" attribute on and off for both the previous and current song tiles
 		this.ToggleLoadingMask(false)
 	}
 
 	disconnectedCallback() {
-		this.albumImage.onerror = null
+		super.disconnectedCallback()
 	}
 }
 

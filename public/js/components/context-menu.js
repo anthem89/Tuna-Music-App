@@ -11,7 +11,7 @@ export class ContextMenu {
 		this._clickListener
 		this.topLevelMenu
 		// Optional ability to add additional classes to the menu body for styling purposes
-		this.customClass
+		this.customClass = null
 		this.doNotCloseOnClick = false
 		// Pass in an array of event names that will not trigger the context menu to close (ie: "scroll", "blur", "resize", etc)
 		this.ignoreCloseMenuEvents = []
@@ -58,42 +58,6 @@ export class ContextMenu {
 			}
 			document.addEventListener('contextmenu', this._clickListener)
 		}
-
-	}
-
-	/** Remove the event listener to trigger this menu from the DOM. To simply force the menu closed, use the CloseAllContextMenus method instead */
-	Destroy() {
-		this.events.beforeRender = null
-		this.events.afterRender = null
-		this._menuOptions.forEach((option) => {
-			if (option.hasOwnProperty("clickEvent")) {
-				option["clickEvent"] = null
-			}
-		})
-		menuCloseCallbacks = {}
-		if (this._clickListener != null) {
-			document.removeEventListener("contextmenu", this._clickListener)
-		}
-		this.CloseAllContextMenus(true)
-	}
-
-	/** Programmatically force the menu and its children to close */
-	ForceClose() {
-		this.topLevelMenu = null
-		this.CloseAllContextMenus(true)
-	}
-
-	/** Programmatically force the sub-menus of a given menu to close */
-	CloseAllSubMenus(targetMenu) {
-		targetMenu.childNodes.forEach((nodeItem) => {
-			nodeItem.querySelectorAll('.contextmenu-container').forEach((nodeSubMenu) => {
-				this.#disposeMenuItemEvents(nodeSubMenu)
-				nodeSubMenu.remove()
-			})
-			nodeItem.classList.toggle("contextmenu-item-focus", false)
-		})
-		targetMenu.focus()
-		targetMenu.setAttribute("data-keydown-events-enabled", "true")
 	}
 
 	/** Programmatically force the menu to open
@@ -125,16 +89,25 @@ export class ContextMenu {
 	 */
 	_render(menuOptions, posX, posY, menuParent, menuAnimation, defaultSelection, targetElementHeight, autoPosition) {
 		try {
+			const isMobileView = this.allowMobileView === true && window.innerWidth < this.mobileViewBreakpoint
+			if (isMobileView === true) {
+				window.history.pushState({}, null, "")
+			}
+
 			if (menuParent == null) { menuParent = document.body }
 			if (autoPosition === undefined) { autoPosition = true }
 
 			let menuBody = document.createElement('div')
+
+			// Attach a reference to the JavaScript class object to the DOM element
+			// Example: document.querySelector(".contextmenu-container").classReference.ForceClose()
+			menuBody.classReference = this
+
 			menuBody.classList.add("contextmenu-container")
 			if (this.customClass != null) {
 				menuBody.classList.add(this.customClass)
 			}
 
-			const isMobileView = this.allowMobileView === true && window.innerWidth < this.mobileViewBreakpoint
 			menuBody.classList.toggle("mobile-view", isMobileView)
 
 			// Adjust the menu open animation to only animate on the Y axis if the menu is a dropdown
@@ -309,21 +282,21 @@ export class ContextMenu {
 
 			// Remove visually consecutive dividers
 			let lastVisibleDivider = null
-			let firstVisibleItemFound = false
+			let firstVisibleItem = null
 			const children = Array.from(menuBody.children)
-			children.forEach((child, index) => {
-				if (child.tagName === "DIV") {
-					const hiddenChild = child.querySelector(".hidden")
-					if (!hiddenChild) {
+			children.forEach((menuItem, index) => {
+				if (menuItem.tagName === "DIV") {
+					const isHidden = menuItem.classList.contains("hidden")
+					if (isHidden === false) {
 						lastVisibleDivider = null
-						firstVisibleItemFound = true
+						if (firstVisibleItem == null) { firstVisibleItem = menuItem }
 					}
-				} else if (child.tagName === "HR") {
-					if (!firstVisibleItemFound || index === children.length - 1 || lastVisibleDivider != null) {
-						menuBody.removeChild(child)
+				} else if (menuItem.tagName === "HR") {
+					if (firstVisibleItem == null || index === children.length - 1 || lastVisibleDivider != null) {
+						menuBody.removeChild(menuItem)
 					} else {
-						lastVisibleDivider = child
-						firstVisibleItemFound = true
+						lastVisibleDivider = menuItem
+						if (firstVisibleItem == null) { firstVisibleItem = menuItem }
 					}
 				}
 			})
@@ -503,6 +476,27 @@ export class ContextMenu {
 		}
 	}
 
+	/** Programmatically force the menu and its children to close */
+	ForceClose() {
+		this.topLevelMenu = null
+		this.CloseAllContextMenus(true)
+	}
+
+	/** Programmatically force the sub-menus of a given menu to close */
+	CloseAllSubMenus(targetMenu) {
+		targetMenu.childNodes.forEach((nodeItem) => {
+			nodeItem.querySelectorAll('.contextmenu-container').forEach((nodeSubMenu) => {
+				this.#disposeMenuItemEvents(nodeSubMenu)
+				// Clean up the reference to the JavaScript object class
+				nodeSubMenu.classReference = null
+				nodeSubMenu.remove()
+			})
+			nodeItem.classList.toggle("contextmenu-item-focus", false)
+		})
+		targetMenu.focus()
+		targetMenu.setAttribute("data-keydown-events-enabled", "true")
+	}
+
 	// Global function to force close all context menus
 	CloseAllContextMenus(runCallbacks) {
 		try {
@@ -523,6 +517,8 @@ export class ContextMenu {
 
 			document.querySelectorAll(".contextmenu-container").forEach((menuContainer) => {
 				this.#disposeMenuItemEvents(menuContainer)
+				// Clean up the reference to the JavaScript object class
+				menuContainer.classReference = null
 				if (isMobileView === true) {
 					menuContainer.addEventListener("transitionend", () => { menuContainer.remove() }, { once: true })
 					menuContainer.classList.toggle("visible", false)
@@ -534,6 +530,22 @@ export class ContextMenu {
 			document.querySelectorAll(".contextMenuFocus").forEach((e) => { e.classList.toggle("contextMenuFocus", false) })
 			this.#toggleContextMenuLock(false)
 		} catch { }
+	}
+
+	/** Remove the event listener to trigger this menu from the DOM. To simply force the menu closed, use the CloseAllContextMenus method instead */
+	Destroy() {
+		this.events.beforeRender = null
+		this.events.afterRender = null
+		this._menuOptions.forEach((option) => {
+			if (option.hasOwnProperty("clickEvent")) {
+				option["clickEvent"] = null
+			}
+		})
+		menuCloseCallbacks = {}
+		if (this._clickListener != null) {
+			document.removeEventListener("contextmenu", this._clickListener)
+		}
+		this.CloseAllContextMenus(true)
 	}
 
 	#disposeMenuItemEvents(menuContainer) {
@@ -653,10 +665,8 @@ export class ContextMenu {
 							parentMenu.setAttribute("data-keydown-events-enabled", "true")
 						}, 100)
 						// Close the topmost submenu
-						menuBody.remove()
+						this.CloseAllSubMenus(parentMenu)
 						parentMenu.focus()
-						parentMenu.querySelector(".contextmenu-item-focus .contextmenu-item").classList.toggle("hover", true)
-						parentMenu.querySelector(".contextmenu-item-focus").classList.toggle("contextmenu-item-focus", false)
 					}
 					break
 				case "Enter":

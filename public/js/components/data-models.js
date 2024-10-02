@@ -21,3 +21,16 @@ export class TrackData {
 		this.user_id = user_id
 	}
 }
+
+export class PlaylistData {
+	constructor({ id, user_id, title, description, date_created, date_last_played, number_of_plays, playlist_image } = {}) {
+		this.id = id
+		this.user_id = user_id
+		this.title = title
+		this.description = description
+		this.date_created = date_created
+		this.date_last_played = date_last_played
+		this.number_of_plays = number_of_plays || 0
+		this.playlist_image = playlist_image
+	}
+}

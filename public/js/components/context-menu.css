@@ -168,3 +168,15 @@
 .contextmenu-item.hover.disabled {
 	background-color: transparent;
 }
+
+.contextmenu-container.mobile-view::before {
+	content: "";
+	width: 50px;
+	left: calc(50vw - 25px);
+	left: calc(50dvw - 25px);
+	height: 5px;
+	border-radius: 10px;
+	background-color: var(--lightGray);
+	position: absolute;
+	top: 7px;
+}

@@ -7,7 +7,7 @@ import { createWriteStream, stat } from "fs"
 import Ffmpeg from "fluent-ffmpeg"
 import ffmpegPath from "ffmpeg-static"
 import { SaveSongToLibrary, DeleteSongFromLibrary } from "./user-library.js"
-import { TrackData } from "../public/js/components/track-data.js"
+import { TrackData } from "../public/js/components/data-models.js"
 
 const router = express.Router()
 

@@ -1,14 +1,27 @@
 import { ContextMenu } from "./context-menu.js"
-import { DownloadSongToLibrary, RemoveSongsFromLibrary } from "../app-functions.js"
+import { DownloadSongToLibrary, RemoveSongsFromLibrary, PlaylistCache, AddSongsToPlaylist } from "../app-functions.js"
 import { SongTile } from "./song-tile.js"
 import { AlertBanner } from "../index.js"
+import { OpenCreatePlaylistDialog } from "../app-functions.js"
+import { isMobileView } from "../utils.js"
+import { TrackData } from "./data-models.js"
 
 export class SongActionsMenu extends ContextMenu {
 	constructor() {
 
 		super(null, [], "context", true)
+		this.customClass = "media-actions-menu"
+
+		/** @type {SongTile} */
+		this.targetSongTile = null
 
 		this._menuOptions = [
+			{
+				customHTML: "", // Insert the song tile data here when the menu opens
+				disabled: true,
+				hidden: false,
+			},
+			"divider",
 			{
 				text: "Play song",
 				iconClass: "bi bi-play-circle",
@@ -17,7 +30,13 @@ export class SongActionsMenu extends ContextMenu {
 			{
 				text: "Add to playlist",
 				iconClass: "bi bi-music-note-list",
-				clickEvent: () => { }
+				subMenu: [
+					{
+						text: "Create new playlist",
+						iconClass: "bi bi-plus-circle",
+						clickEvent: () => { OpenCreatePlaylistDialog({ addSongIdOnSubmit: this.targetSongTile.trackData.id }) }
+					}
+				]
 			},
 			{
 				text: "Remove from playlist",
@@ -70,6 +89,45 @@ export class SongActionsMenu extends ContextMenu {
 			},
 		]
 
+	}
+
+	ForceShow(posX, posY, targetElementHeight, defaultSelection, autoPosition, targetSongTile) {
+		this.targetSongTile = targetSongTile
+		this.#createMenuHeader(this.targetSongTile.trackData)
+		this.#populateUserPlaylists()
+		super.ForceShow(posX, posY, targetElementHeight, defaultSelection, autoPosition, targetSongTile)
+	}
+
+	/** @param {TrackData} trackData */
+	#createMenuHeader(trackData) {
+		this._menuOptions[0].hidden = !isMobileView()
+		// If mobile view action sheet, then show the song information at the top of the context menu
+		if (this._menuOptions[0].hidden === false) {
+			this._menuOptions[0].customHTML = `
+				<div class="media-actions-menu-header">
+					<img src="${trackData.album_art || "../../assets/img/no-album-art.png"}">
+					<div class="media-tile-text-div">
+						<span class="media-tile-primary-text">${trackData.title}</span>
+						<span class="media-tile-secondary-text">${trackData.artist}</span>
+					</div>
+				</div>
+			`
+		}
+	}
+
+	#populateUserPlaylists() {
+		const addToPlaylist = this._menuOptions.find((menuItem) => menuItem.text === "Add to playlist")
+		if (addToPlaylist != null && Array.isArray(PlaylistCache)) {
+			addToPlaylist.subMenu.splice(1)
+			const playlistMenuItems = PlaylistCache.map((playlistItem) => {
+				return {
+					text: playlistItem.title,
+					iconClass: "bi bi-music-note-beamed",
+					clickEvent: () => { AddSongsToPlaylist(playlistItem.id, [this.targetSongTile.trackData.id]) }
+				}
+			})
+			addToPlaylist.subMenu.push(...playlistMenuItems)
+		}
 	}
 
 	SetVisibleOptions({ playSong, addToPlaylist, removeFromPlaylist, downloadToLibrary, removeFromLibrary, downloadToDevice, playNext, addToQueue, viewArtist, viewAlbum, editSongAttributes } = {}) {

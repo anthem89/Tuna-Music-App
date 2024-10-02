@@ -1,6 +1,6 @@
 import { InjectGlobalStylesheets } from "../utils.js"
 
-export class PodcastsScreen extends HTMLElement {
+export class SearchPodcastsScreen extends HTMLElement {
 	constructor() {
 		super()
 		this.attachShadow({ mode: "open" })
@@ -8,7 +8,7 @@ export class PodcastsScreen extends HTMLElement {
 
 	async connectedCallback() {
 		this.shadowRoot.innerHTML = `
-			<link href="./js/screens/podcasts-screen.css" rel="stylesheet" type="text/css">
+			<link href="./js/screens/search-podcasts-screen.css" rel="stylesheet" type="text/css">
 
 		`
 		InjectGlobalStylesheets(this)
@@ -20,4 +20,4 @@ export class PodcastsScreen extends HTMLElement {
 	}
 }
 
-customElements.define("podcasts-screen", PodcastsScreen)
+customElements.define("search-podcasts-screen", SearchPodcastsScreen)

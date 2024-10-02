@@ -1,7 +1,7 @@
 import { InjectGlobalStylesheets, secondsToTimestamp, RemoveAllChildren, CreateElementFromHTML, isNullOrWhiteSpace } from "../utils.js"
 import { AutocompleteInput } from "../components/autocomplete-input.js"
 import { DataTable } from "../components/data-table.js"
-import { TrackData } from "../components/track-data.js"
+import { TrackData } from "../components/data-models.js"
 import { SongTile } from "../components/song-tile.js"
 import { AlertBanner, SessionExpired } from "../index.js"
 import { SongActionsMenu } from "../components/song-actions-menu.js"
@@ -27,7 +27,7 @@ export class SearchMusicScreen extends HTMLElement {
 		`
 		InjectGlobalStylesheets(this)
 
-		this.dataTableWrapper = this.shadowRoot.querySelector("#search-results-table-wrapper")
+		this.tableWrapper = this.shadowRoot.querySelector("#search-results-table-wrapper")
 		this.searchButton = this.shadowRoot.querySelector("#search-button")
 		this.searchButton.onclick = () => { this.#performSearch() }
 
@@ -35,13 +35,13 @@ export class SearchMusicScreen extends HTMLElement {
 		this.autocompleteInput = this.shadowRoot.querySelector("autocomplete-input")
 		this.#initializeSearchAutoComplete()
 
-		this.dataTableWrapper.onclick = (e) => {
-			this.#rowAction(e)
+		this.tableWrapper.onclick = (e) => {
+			this.#handleRowClick(e)
 		}
 		this.resultsData = null
 
 		this.songActionsMenu = new SongActionsMenu()
-		this.songActionsMenu.SetVisibleOptions({ removeFromPlaylist: false, removeFromLibrary: false, downloadToDevice: false, editSongAttributes: false })
+		this.songActionsMenu.SetVisibleOptions({ addToPlaylist: false, removeFromPlaylist: false, removeFromLibrary: false, downloadToDevice: false, editSongAttributes: false })
 	}
 
 	#initializeSearchAutoComplete() {
@@ -90,7 +90,7 @@ export class SearchMusicScreen extends HTMLElement {
 				this.resultsData = []
 
 				if (Array.isArray(resJson)) {
-					resJson.forEach((result, index) => {
+					resJson.forEach((result) => {
 						const actionsHtml = `<div class="action-link-container"><a class="link-underline action-link" name="btn-actions">Actions</a></div>`
 						let albumArtwork = result["thumbnails"]
 						albumArtwork = (Array.isArray(albumArtwork) ? (albumArtwork[albumArtwork.length - 1]?.["url"] || "") : "")
@@ -101,7 +101,7 @@ export class SearchMusicScreen extends HTMLElement {
 						const albumName = result["album"]?.["name"] || "Unknown"
 						const albumId = result["album"]?.["albumId"]
 						const duration = result["duration"]
-						if(isNullOrWhiteSpace(videoId)){ return }
+						if (isNullOrWhiteSpace(videoId)) { return }
 
 						const trackData = new TrackData({
 							video_id: videoId,
@@ -115,16 +115,15 @@ export class SearchMusicScreen extends HTMLElement {
 						})
 						this.resultsData.push(trackData)
 						const songTile = new SongTile(trackData)
-						songTile.setAttribute("data-video-id", result["videoId"])
 						const albumNameHtml = `<span class="clampTwoLines">${albumName}</span>`
-						tableData.push([songTile, CreateElementFromHTML(actionsHtml), CreateElementFromHTML(albumNameHtml), secondsToTimestamp(duration)])
+						tableData.push([songTile, CreateElementFromHTML(actionsHtml, false), CreateElementFromHTML(albumNameHtml, true), secondsToTimestamp(duration)])
 					})
 				}
 
 				const searchResultsTable = new DataTable(columnHeaders, tableData)
-				searchResultsTable.classList.add("song-list-table")
-				RemoveAllChildren(this.dataTableWrapper)
-				this.dataTableWrapper.appendChild(searchResultsTable)
+				searchResultsTable.classList.add("media-list-table")
+				RemoveAllChildren(this.tableWrapper)
+				this.tableWrapper.appendChild(searchResultsTable)
 				resolve()
 			} catch (e) {
 				reject(e)
@@ -133,15 +132,16 @@ export class SearchMusicScreen extends HTMLElement {
 		})
 	}
 
-	async #rowAction(e) {
+	async #handleRowClick(e) {
 		const actionLink = e.target.closest("a")
-		const searchResultRow = e.target.closest("tr")
+		const tableRow = e.target.closest("tr")
 		/** @type {SongTile} */
-		const songTile = searchResultRow?.querySelector("song-tile")
+		const songTile = tableRow?.querySelector("song-tile")
+		if (songTile == null) { return }
 		if (actionLink != null) {
 			const pos = actionLink.getBoundingClientRect()
 			this.songActionsMenu.ForceShow(pos.x, pos.y + pos.height, pos.height, false, true, songTile)
-		} else if (songTile != null) {
+		} else {
 			if (e.target.closest(".btn-open-mobile-context-menu") != null) {
 				// User clicked on the "More options" button
 				this.songActionsMenu.ForceShow(0, 0, 0, false, false, songTile)
@@ -154,7 +154,7 @@ export class SearchMusicScreen extends HTMLElement {
 
 	disconnectedCallback() {
 		this.searchButton.onclick = null
-		this.dataTableWrapper.onclick = null
+		this.tableWrapper.onclick = null
 		this.autocompleteInput.suggestionsElement.onclick = null
 		this.autocompleteInput.inputElement.onkeydown = null
 	}

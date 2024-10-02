@@ -17,7 +17,7 @@ import searchAutocompleteRoute from "../routes/search-autocomplete.js"
 import searchRoute from "../routes/search.js"
 import downloadSongRoute from "../routes/download-song.js"
 import userLibraryRoute from "../routes/user-library.js"
-
+import playlistsRoute from "../routes/playlists.js"
 
 // Get the directory name of the current module
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -95,6 +95,7 @@ app.use("/search-autocomplete", searchAutocompleteRoute)
 app.use("/search", searchRoute)
 app.use("/download-song", downloadSongRoute)
 app.use("/user-library", userLibraryRoute)
+app.use("/playlists", playlistsRoute)
 
 // Start the server
 app.listen(port, () => {

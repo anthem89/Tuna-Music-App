@@ -1,31 +1,29 @@
-import { TrackData } from "./track-data.js"
+import { TrackData } from "./data-models.js"
 import { SongTile } from "./song-tile.js"
 import { secondsToTimestamp, RemoveAllChildren } from "../utils.js"
 import { SessionExpired, AlertBanner } from "../index.js"
+import { SongActionsMenu } from "./song-actions-menu.js"
 
 // This component incrementally fetches data as the users approaches the bottom of the scroll area
 // It also implements DOM virtualization to dramatically optimize scroll performance by removing DOM elements as they go off screen, and re-creating them as they approach the visislbe scroll area
 
-export class VirtualizedInfiniteScroll extends HTMLElement {
-	constructor(apiEndpoint, filterField, filterValue, sortField, sortOrder) {
+export class InfiniteScrollSongs extends HTMLElement {
+	constructor(apiEndpoint) {
 		super()
+
+		this.songActionsMenu = new SongActionsMenu()
 
 		this.apiEndpoint = apiEndpoint
 		this.batchSize = 25 // The number of items to fetch per data request
 		this.skip = 0
-
 		this.rowHeight = 62 // Must match the height in px of each tr element
-		this.filterField = filterField
-		this.filterValue = filterValue
-		this.sortField = sortField
-		this.sortOrder = sortOrder || "desc"
 		this.endOfData = false
 
 		/** @type {TrackData[]} */
 		this.tableData = []
 
 		this.innerHTML = `
-			<table class="song-list-table">
+			<table class="media-list-table">
 				<thead>
 					<tr>
 						<th>Song</th>
@@ -45,6 +43,7 @@ export class VirtualizedInfiniteScroll extends HTMLElement {
 			threshold: 0 // 0% of the target entry needs to be visible before triggering an intersection
 		})
 
+		this.onclick = (e) => { this.#handleRowClick(e) }
 		this.#fetchData()
 	}
 
@@ -99,13 +98,17 @@ export class VirtualizedInfiniteScroll extends HTMLElement {
 					resolve()
 					return
 				}
-				let sortField = this.sortField != null ? ("&sort=" + this.sortField) : ""
-				let sortOrder = this.sortOrder != null ? ("&order=" + this.sortOrder) : ""
-				let filter = ""
-				if (this.filterField != null && this.filterValue != null) {
-					filter = "&filterField=" + this.filterField + "&filterValue=" + this.filterValue
+
+				let queryParamsString = ""
+				const queryString = this.apiEndpoint.split("?")[1]
+				if (queryString) {
+					const queryParams = new URLSearchParams(queryString)
+					for (const [key, value] of queryParams) {
+						if (["top", "skip"].includes(key)) { continue }
+						queryParamsString += "&" + key + "=" + value
+					}
 				}
-				const res = await fetch(this.apiEndpoint + "?top=" + this.batchSize + "&skip=" + this.skip + sortField + sortOrder + filter, { method: "GET" })
+				const res = await fetch(this.apiEndpoint.split("?")[0] + "?top=" + this.batchSize + "&skip=" + this.skip + queryParamsString, { method: "GET" })
 				if (res.redirected) {
 					SessionExpired()
 					reject()
@@ -118,10 +121,10 @@ export class VirtualizedInfiniteScroll extends HTMLElement {
 					resolve()
 					return
 				}
-				
+
 				const trackDataArray = resJson.map((item) => new TrackData(item))
 				this.tableData.push(...trackDataArray)
-				
+
 				const tbody = document.createElement("tbody")
 				tbody.style.height = (this.rowHeight * resJson.length) + "px"
 				tbody.dataset.startIndex = this.skip
@@ -129,7 +132,7 @@ export class VirtualizedInfiniteScroll extends HTMLElement {
 				this.intersectionObserver.observe(tbody)
 
 				this.skip += resJson.length
-		
+
 				resolve()
 			} catch (e) {
 				AlertBanner.Toggle(true, true, "Error loading songs", 7000, AlertBanner.bannerColors.error)
@@ -138,23 +141,42 @@ export class VirtualizedInfiniteScroll extends HTMLElement {
 		})
 	}
 
-	Reset(apiEndpoint = null, filterField = null, filterValue = null, sortField = null, sortOrder = null) {
+	async #handleRowClick(e) {
+		const targetRow = e.target.closest("tr")
+		/** @type {SongTile} */
+		const songTile = targetRow?.querySelector("song-tile")
+		if (songTile == null) { return }
+		/** @type {HTMLAnchorElement} */
+		const actionLink = e.target.closest(".action-link")
+		if (actionLink != null) {
+			if (actionLink.getAttribute("name") === "btn-actions") {
+				const pos = actionLink.getBoundingClientRect()
+				this.songActionsMenu.ForceShow(pos.x, pos.y + pos.height, pos.height, false, true, songTile)
+			}
+		} else {
+			if (e.target.closest(".btn-open-mobile-context-menu") != null) {
+				// User clicked on the "More options" button
+				this.songActionsMenu.ForceShow(0, 0, 0, false, false, songTile)
+			} else {
+				songTile.PlaySong()
+			}
+		}
+	}
+
+	Reset(apiEndpoint = null) {
 		this.intersectionObserver.disconnect()
 		this.tableData = []
-		this.querySelectorAll("tbody").forEach((tbody)=>{ tbody.remove() })
+		this.querySelectorAll("tbody").forEach((tbody) => { tbody.remove() })
 		this.skip = 0
 		this.apiEndpoint = apiEndpoint || this.apiEndpoint
-		this.filterField = filterField || this.filterField
-		this.filterValue = filterValue || this.filterValue
-		this.sortField = sortField || this.sortField
-		this.sortOrder = sortOrder || this.sortOrder
 		this.endOfData = false
 		this.#fetchData()
 	}
 
 	disconnectedCallback() {
+		this.onclick = null
 		this.intersectionObserver.disconnect()
 	}
 }
 
-customElements.define("virtualized-infinite-scroll", VirtualizedInfiniteScroll)
+customElements.define("infinite-scroll-songs", InfiniteScrollSongs)

@@ -1,11 +1,12 @@
 import express from "express"
 import * as Database from "../server/database.js"
-import { TrackData } from "../public/js/components/track-data.js"
+import { TrackData } from "../public/js/components/data-models.js"
 import { unlink, access } from "fs/promises"
 import { constants } from "fs"
 import path from "path"
 
 const router = express.Router()
+export const allowedSongFilterFields = ["id", "title", "artist", "artist_id", "album", "album_id", "release_date", "genre", "number_of_plays", "composer", "date_downloaded", "date_last_played", "lyrics", "video_id"]
 
 /** Fetch the user's library songs
  * Query Parameters:
@@ -14,19 +15,15 @@ const router = express.Router()
 router.get("/", async (req, res) => {
 	try {
 		const userId = req.user?.id
-		if (userId == null) {
-			throw new Error("A valid user id is required")
-		}
+		if (userId == null) { throw new Error("A valid user id is required") }
 		// Get pagination parameters from query string
 		const skip = parseInt(req.query.skip) || 0 // Default to 0 if not specified
 		const top = parseInt(req.query.top) || 10 // Default to 10 if not specified
 
-		const allowedFields = ["title", "artist", "artist_id", "album", "album_id", "release_date", "genre", "number_of_plays", "composer", "date_downloaded", "date_last_played", "lyrics"]
-
 		// Get sorting and filtering parameters
-		const sortField = allowedFields.includes(req.query.sort) ? req.query.sort : "date_downloaded"
+		const sortField = allowedSongFilterFields.includes(req.query.sort) ? req.query.sort : "date_downloaded"
 		const sortOrder = req.query.order?.toLowerCase() === "asc" ? "ASC" : "DESC"
-		const filterField = allowedFields.includes(req.query.filterField) ? req.query.filterField : null
+		const filterField = allowedSongFilterFields.includes(req.query.filterField) ? req.query.filterField : null
 		const filterValue = req.query.filterValue
 
 		// Base query
@@ -54,7 +51,7 @@ router.get("/", async (req, res) => {
 	}
 })
 
-router.delete("/delete-song", async (req, res) => {
+router.delete("/delete-songs", async (req, res) => {
 	try {
 		const idArray = req.body?.idArray
 		const userId = req.user?.id
@@ -69,7 +66,7 @@ router.delete("/delete-song", async (req, res) => {
 	}
 })
 
-router.post("/edit-song-data", async (req, res) => {
+router.post("/edit-song-properties", async (req, res) => {
 	try {
 		const libraryUuid = req.body?.libraryUuid
 		const userId = req.user?.id

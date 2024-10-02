@@ -12,7 +12,7 @@
 	--shadow: rgba(0, 0, 0, 0.2);
 	--activeNavLink: #ff787e;
 	--hover: rgba(25, 221, 162, 0.196);
-	--pageMask: rgba(0, 0, 0, 0.3);
+	--pageMask: rgba(0, 0, 0, 0.4);
 	--white: #FFFFFF;
 	--sidebarWidth: 300px;
 }
@@ -42,6 +42,18 @@ a {
 
 a:hover {
 	text-decoration: underline !important;
+}
+
+textarea,
+input {
+	outline: none;
+	border: 1px solid var(--gray);
+	border-radius: 7px;
+	padding: 5px 7px;
+}
+
+textarea {
+	resize: none;
 }
 
 .hidden {
