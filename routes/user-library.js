@@ -21,8 +21,8 @@ router.get("/", async (req, res) => {
 		const top = parseInt(req.query.top) || 10 // Default to 10 if not specified
 
 		// Get sorting and filtering parameters
-		const sortField = allowedSongFilterFields.includes(req.query.sort) ? req.query.sort : "date_downloaded"
-		const sortOrder = req.query.order?.toLowerCase() === "asc" ? "ASC" : "DESC"
+		const sortField = allowedSongFilterFields.includes(req.query.sortField) ? req.query.sortField : "date_downloaded"
+		const sortOrder = req.query.sortOrder?.toLowerCase() === "asc" ? "ASC" : "DESC"
 		const filterField = allowedSongFilterFields.includes(req.query.filterField) ? req.query.filterField : null
 		const filterValue = req.query.filterValue
 

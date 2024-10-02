@@ -90,6 +90,8 @@ export class ContextMenu {
 	_render(menuOptions, posX, posY, menuParent, menuAnimation, defaultSelection, targetElementHeight, autoPosition) {
 		try {
 			const isMobileView = this.allowMobileView === true && window.innerWidth < this.mobileViewBreakpoint
+			
+			// Override the mobile browser's back button to close the context menu insted of navigating
 			if (isMobileView === true) {
 				window.history.pushState({}, null, "")
 			}

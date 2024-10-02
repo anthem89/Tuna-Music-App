@@ -1,8 +1,7 @@
 import { AudioPlayerElement } from "./index.js"
 import { AlertBanner, SessionExpired, ConfirmationModal } from "./index.js"
-import { isMobileView, isNullOrWhiteSpace } from "./utils.js"
+import { isNullOrWhiteSpace } from "./utils.js"
 import { TrackData, PlaylistData } from "./components/data-models.js"
-import { SongTile } from "./components/song-tile.js"
 
 const temporarySongCache = {}
 /** @type {PlaylistData[]} */
@@ -107,7 +106,7 @@ export function RemoveSongsFromLibrary(libraryUuidArray) {
 export function GetUserPlaylists() {
 	return new Promise(async (resolve, reject) => {
 		try {
-			const res = await fetch("/playlists?sortField=date_created&sortOrder=desc", { method: "GET" })
+			const res = await fetch("/playlists", { method: "GET" })
 			const resJson = await res.json()
 			PlaylistCache = resJson.map((data) => new PlaylistData(data))
 			resolve(PlaylistCache)

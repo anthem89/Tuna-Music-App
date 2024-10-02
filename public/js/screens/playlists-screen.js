@@ -4,7 +4,6 @@ import { PlaylistCache } from "../app-functions.js"
 import { PlaylistTile } from "../components/playlist-tile.js"
 import { DataTable } from "../components/data-table.js"
 import { PlaylistActionsMenu } from "../components/playlist-actions-menu.js"
-import { InfiniteScrollSongs } from "../components/infinite-scroll-songs.js"
 import { SwitchToScreen } from "../index.js"
 
 export class PlaylistsScreen extends HTMLElement {
@@ -31,6 +30,10 @@ export class PlaylistsScreen extends HTMLElement {
 		const columnHeaders = ["Playlist", "Actions", "Description"]
 		const tableData = []
 		if (Array.isArray(PlaylistCache)) {
+
+			// Sort playlists by date created
+			PlaylistCache.sort((a, b) => Date(a.date_created) - Date(b.date_created))
+			
 			PlaylistCache.forEach((playlistData) => {
 				const playlistTile = new PlaylistTile(playlistData)
 				const actionsHtml = `<div class="action-link-container"><a class="link-underline action-link" name="btn-actions">Actions</a></div>`

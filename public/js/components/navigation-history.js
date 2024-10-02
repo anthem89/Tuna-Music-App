@@ -1,4 +1,4 @@
-import { SwitchToScreen } from "../index.js"
+import { SwitchToScreen, OverrideMobileBrowserBackButton } from "../index.js"
 
 export class NavigationHistory {
 	constructor() {
@@ -10,7 +10,9 @@ export class NavigationHistory {
 			if (e.defaultPrevented || this.suspendHistory) {
 				return
 			}
-			window.history.pushState({}, null, "")
+
+			OverrideMobileBrowserBackButton()
+
 			const { screenKey, args } = e.detail
 			// Remove any forward history if present
 			this.history = this.history.slice(0, this.currentIndex + 1)

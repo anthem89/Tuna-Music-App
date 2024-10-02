@@ -32,7 +32,7 @@ export const NavMenuStructure = {
 	library: { "title": "My Library", "icon": "bi bi-collection", "parent": "musicSection" },
 	allSongs: { "title": "All Songs", "prototype": LibraryScreen, "icon": null, "parent": "library" },
 	playlists: { "title": "Playlists", "prototype": PlaylistsScreen, "icon": null, "parent": "library" },
-	playlistSongs: { "title": "Playlist Songs", "prototype": PlaylistSongsScreen, "icon": null, "parent": null, "hidden": true },
+	playlistSongs: { "title": "", "prototype": PlaylistSongsScreen, "icon": null, "parent": null, "hidden": true },
 
 	podcastsSection: { "title": "Podcasts", "parent": null },
 	searchPodcasts: { "title": "Search Podcasts", "prototype": SearchPodcastsScreen, "icon": "bi bi-search", "parent": "podcastsSection" },
@@ -267,9 +267,7 @@ export function ToggleSideNavMenu(open) {
 	sideBarNavMenu.classList.toggle("isDragging", false)
 	sideBarNavMenu.style.transform = null
 	document.body.classList.toggle("sidebar-visible", open)
-	if (isMobileView() === true && open === true) {
-		window.history.pushState({}, null, "")
-	}
+	OverrideMobileBrowserBackButton()
 }
 
 const swipePositions = {
@@ -336,8 +334,14 @@ function InitializeSwipeGestures() {
 	})
 }
 
+export function OverrideMobileBrowserBackButton() {
+	if (isMobileView() === true) {
+		window.history.pushState({}, null, "")
+	}
+}
+
 // Intercept browser "back" and "forward" navigation events
-window.history.pushState({}, null, "")
+OverrideMobileBrowserBackButton()
 window.addEventListener("popstate", (e) => {
 	if (isMobileView() === true) {
 		const activeContextMenus = document.querySelectorAll(".contextmenu-container")
