@@ -172,6 +172,7 @@ export class SongActionsMenu extends ContextMenu {
 			targetSongTile.ToggleLoadingMask(true)
 			// Download the song
 			await DownloadSongToLibrary(trackData)
+			AlertBanner.Toggle(true, true, "Song added to library", 7000, AlertBanner.bannerColors.success)
 		} catch (e) {
 			AlertBanner.Toggle(true, true, "Error downloading song", 7000, AlertBanner.bannerColors.error)
 		}
