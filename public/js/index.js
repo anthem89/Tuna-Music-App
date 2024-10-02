@@ -136,12 +136,12 @@ function BuildSideBarNavMenu() {
 	const navItemWithChildren = (sectionKey, title, icon, children) => {
 		return `
 		<li class="nav-item">
-		  <a class="nav-link collapsed" data-bs-target="#${sectionKey}-nav-section" data-bs-toggle="collapse">
+		  <a class="nav-link show" data-bs-target="#${sectionKey}-nav-section" data-bs-toggle="collapse">
 			<i class="${icon}"></i>
 			<span>${title}</span>
 			<i class="bi bi-chevron-down ms-auto"></i>
 		  </a>
-		  <ul id="${sectionKey}-nav-section" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+		  <ul id="${sectionKey}-nav-section" class="nav-content show" data-bs-parent="#sidebar-nav">
 			${children}
 		  </ul>
 		</li>

@@ -15,12 +15,20 @@ export class AudioPlayer extends HTMLElement {
 		this.shadowRoot.innerHTML = `
 			<link href="./js/components/audio-player.css" rel="stylesheet" type="text/css">
 
-			<audio controls>
-				<source src="" type="audio/mpeg">
-			</audio>
+			<div id="element-wrapper">
+				<img id="album-image" src="">
+				<audio controls>
+					<source src="" type="audio/mpeg">
+				</audio>
+			</div>
+
 		`
 		InjectGlobalStylesheets(this)
 		this.audioElement = this.shadowRoot.querySelector("audio")
+
+		this.albumImage = this.shadowRoot.querySelector("img")
+		this.albumImage.onerror = (e) => { e.target.src = "../../assets/img/no-album-art.png" }
+
 
 		this.audioElement.onended = () => {
 			this.#updateSongTiles()
@@ -29,6 +37,7 @@ export class AudioPlayer extends HTMLElement {
 		this.audioElement.onplay = () => {
 			this.#updateSongTiles()
 		}
+
 	}
 
 	// Force all song tiles to test if their track id or video_id matches the currently playing track, and update accordingly
@@ -45,6 +54,7 @@ export class AudioPlayer extends HTMLElement {
 				if (isNullOrWhiteSpace(sourceUrl) === false) {
 					this.currentTrack = new TrackData({ ...trackData })
 					this.audioElement.src = sourceUrl
+					this.albumImage.src = this.currentTrack.album_art || "../../assets/img/no-album-art.png"
 					await this.audioElement.play()
 				}
 				resolve()
@@ -56,7 +66,9 @@ export class AudioPlayer extends HTMLElement {
 	}
 
 	disconnectedCallback() {
-
+		this.albumImage.onerror = null
+		this.audioElement.onended = null
+		this.audioElement.onplay = null
 	}
 }
 
