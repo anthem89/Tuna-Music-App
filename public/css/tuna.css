@@ -65,14 +65,8 @@ body.header-collapse #module-content-container {
 	display: none;
 }
 
-.media-tile:not(.loading) .loading-spinner {
-	/* display: none !important; */
+.media-tile:not(.is-buffering):not(.is-downloading) .loading-spinner {
 	opacity: 0% !important;
-}
-
-.media-tile.loading,
-tr:has(.media-tile.loading) {
-	cursor: wait !important;
 }
 
 .media-tile .media-tile-image {

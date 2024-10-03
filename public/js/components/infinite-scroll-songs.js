@@ -3,15 +3,17 @@ import { SongTile } from "./song-tile.js"
 import { secondsToTimestamp, RemoveAllChildren } from "../utils.js"
 import { SessionExpired, AlertBanner } from "../index.js"
 import { SongActionsMenu } from "./song-actions-menu.js"
+import { AudioPlayerElement } from "../index.js"
 
 // This component incrementally fetches data as the users approaches the bottom of the scroll area
 // It also implements DOM virtualization to dramatically optimize scroll performance by removing DOM elements as they go off screen, and re-creating them as they approach the visislbe scroll area
 
 export class InfiniteScrollSongs extends HTMLElement {
-	constructor(apiEndpoint) {
+	constructor(apiEndpoint, parentPlaylistId) {
 		super()
 
-		this.songActionsMenu = new SongActionsMenu()
+		this.parentPlaylistId = parentPlaylistId
+		this.songActionsMenu = new SongActionsMenu(parentPlaylistId)
 
 		this.apiEndpoint = apiEndpoint
 		this.batchSize = 25 // The number of items to fetch per data request
@@ -158,7 +160,7 @@ export class InfiniteScrollSongs extends HTMLElement {
 				// User clicked on the "More options" button
 				this.songActionsMenu.ForceShow(0, 0, 0, false, false, songTile)
 			} else {
-				songTile.PlaySong()
+				songTile.Play(this.parentPlaylistId)
 			}
 		}
 	}

@@ -3,7 +3,7 @@ import { AutocompleteInput } from "../components/autocomplete-input.js"
 import { DataTable } from "../components/data-table.js"
 import { TrackData } from "../components/data-models.js"
 import { SongTile } from "../components/song-tile.js"
-import { AlertBanner, SessionExpired } from "../index.js"
+import { AlertBanner, SessionExpired, AudioPlayerElement } from "../index.js"
 import { SongActionsMenu } from "../components/song-actions-menu.js"
 
 export class SearchMusicScreen extends HTMLElement {
@@ -40,7 +40,7 @@ export class SearchMusicScreen extends HTMLElement {
 		}
 		this.resultsData = null
 
-		this.songActionsMenu = new SongActionsMenu()
+		this.songActionsMenu = new SongActionsMenu(null)
 		this.songActionsMenu.SetVisibleOptions({ addToPlaylist: false, removeFromPlaylist: false, removeFromLibrary: false, downloadToDevice: false, editSongAttributes: false })
 	}
 
@@ -84,16 +84,18 @@ export class SearchMusicScreen extends HTMLElement {
 				}
 				const resJson = await res.json()
 
-				const columnHeaders = ["Song", "Actions", "Album Name", "Duration"]
+				const columnHeaders = ["Song", "", "Actions", "Album Name", "Duration"]
 
 				const tableData = []
 				this.resultsData = []
 
 				if (Array.isArray(resJson)) {
 					resJson.forEach((result) => {
-						const actionsHtml = `<div class="action-link-container"><a class="link-underline action-link" name="btn-actions">Actions</a></div>`
+						const actionsHtml = /*html*/`<div class="action-link-container"><a class="link-underline action-link" name="btn-actions">Actions</a></div>`
 						let albumArtwork = result["thumbnails"]
 						albumArtwork = (Array.isArray(albumArtwork) ? (albumArtwork[albumArtwork.length - 1]?.["url"] || "") : "")
+						const libraryUuid = result["libraryUuid"]
+						const alreadyDownloadedCheckmark = /*html*/`<i class="bi bi-check-circle-fill already-downloaded-checkmark ${libraryUuid == null ? "hidden" : ""}"></i>`
 						const videoId = result["videoId"]
 						const artistName = result["artist"]?.["name"] || "Unknown"
 						const artistId = result["artist"]?.["artistId"]
@@ -104,6 +106,7 @@ export class SearchMusicScreen extends HTMLElement {
 						if (isNullOrWhiteSpace(videoId)) { return }
 
 						const trackData = new TrackData({
+							id: libraryUuid,
 							video_id: videoId,
 							album_art: albumArtwork,
 							artist: artistName,
@@ -116,7 +119,7 @@ export class SearchMusicScreen extends HTMLElement {
 						this.resultsData.push(trackData)
 						const songTile = new SongTile(trackData)
 						const albumNameHtml = `<span class="clampTwoLines">${albumName}</span>`
-						tableData.push([songTile, CreateElementFromHTML(actionsHtml, false), CreateElementFromHTML(albumNameHtml, true), secondsToTimestamp(duration)])
+						tableData.push([songTile, CreateElementFromHTML(alreadyDownloadedCheckmark), CreateElementFromHTML(actionsHtml, false), CreateElementFromHTML(albumNameHtml, true), secondsToTimestamp(duration)])
 					})
 				}
 
@@ -147,7 +150,7 @@ export class SearchMusicScreen extends HTMLElement {
 				this.songActionsMenu.ForceShow(0, 0, 0, false, false, songTile)
 			} else {
 				// User clicked on a row to play a song without downloading it to the library
-				songTile.PlaySong()
+				songTile.Play(null)
 			}
 		}
 	}

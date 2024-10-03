@@ -3,29 +3,15 @@ import { AlertBanner, SessionExpired, ConfirmationModal } from "./index.js"
 import { isNullOrWhiteSpace } from "./utils.js"
 import { TrackData, PlaylistData } from "./components/data-models.js"
 
+const pendingDownloads = {}
 const temporarySongCache = {}
 /** @type {PlaylistData[]} */
 export let PlaylistCache = []
 GetUserPlaylists()
 
-/** @param {TrackData} trackData */
-export function PlaySongFromLibrary(trackData) {
-	return new Promise(async (resolve) => {
-		try {
-			if (isNullOrWhiteSpace(trackData.id)) { throw new Error("library uuid cannot be empty") }
-			await AudioPlayerElement.Play("./play-song?library-uuid=" + trackData.id, trackData)
-			resolve()
-		} catch (e) {
-			AlertBanner.Toggle(true, true, "Error playing song", 7000, AlertBanner.bannerColors.error)
-			resolve(e)
-		}
-	})
-}
-
 export function CacheSongFromYouTube(videoId) {
 	return new Promise(async (resolve) => {
 		try {
-			if (isNullOrWhiteSpace(videoId)) { throw new Error("video id cannot be empty") }
 			let audioUrl
 			if (temporarySongCache[videoId] == null) {
 				const res = await fetch("/play-temporary-song?videoId=" + videoId)
@@ -47,25 +33,14 @@ export function CacheSongFromYouTube(videoId) {
 }
 
 /** @param {TrackData} trackData */
-export function PlaySongFromYouTube(trackData) {
-	return new Promise(async (resolve) => {
-		try {
-			if (isNullOrWhiteSpace(trackData.video_id)) { throw new Error("video id cannot be empty") }
-			const audioUrl = await CacheSongFromYouTube(trackData.video_id)
-			if (audioUrl == null) { throw new Error("error downloading song from YouTube") }
-			await AudioPlayerElement.Play(audioUrl, trackData)
-			resolve()
-		} catch (e) {
-			AlertBanner.Toggle(true, true, "Error playing song", 7000, AlertBanner.bannerColors.error)
-			resolve(e)
-		}
-	})
-}
-
-/** @param {TrackData} trackData */
 export function DownloadSongToLibrary(trackData) {
 	return new Promise(async (resolve, reject) => {
 		try {
+			if (pendingDownloads.hasOwnProperty(trackData.video_id)) {
+				reject("Download already in progress")
+				return
+			}
+			pendingDownloads[trackData.video_id] = true
 			const reqHeader = { "Content-Type": "application/json" }
 			const res = await fetch("/download-song", { method: "POST", body: JSON.stringify(trackData), headers: reqHeader })
 			if (res.redirected) { SessionExpired() }
@@ -73,6 +48,7 @@ export function DownloadSongToLibrary(trackData) {
 			if (resJson["libraryUuid"] == null) {
 				throw new Error(resJson.error || "Error downloading song")
 			}
+			delete pendingDownloads[trackData.video_id]
 			resolve(resJson["libraryUuid"])
 		} catch (e) {
 			reject(e)

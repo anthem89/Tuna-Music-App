@@ -7,10 +7,11 @@ import { isMobileView } from "../utils.js"
 import { TrackData } from "./data-models.js"
 
 export class SongActionsMenu extends ContextMenu {
-	constructor() {
+	constructor(parentPlaylistId) {
 
 		super(null, [], "context", true)
 		this.customClass = "media-actions-menu"
+		this.parentPlaylistId = parentPlaylistId
 
 		/** @type {SongTile} */
 		this.targetSongTile = null
@@ -91,10 +92,12 @@ export class SongActionsMenu extends ContextMenu {
 
 	}
 
+	/** @param {SongTile} targetSongTile */
 	ForceShow(posX, posY, targetElementHeight, defaultSelection, autoPosition, targetSongTile) {
 		this.targetSongTile = targetSongTile
 		this.#createMenuHeader(this.targetSongTile.trackData)
 		this.#populateUserPlaylists()
+		this.SetVisibleOptions({ downloadToLibrary: targetSongTile.trackData.id == null && !targetSongTile.isDownloading })
 		super.ForceShow(posX, posY, targetElementHeight, defaultSelection, autoPosition, targetSongTile)
 	}
 
@@ -119,7 +122,8 @@ export class SongActionsMenu extends ContextMenu {
 		const addToPlaylist = this._menuOptions.find((menuItem) => menuItem.text === "Add to playlist")
 		if (addToPlaylist != null && Array.isArray(PlaylistCache)) {
 			addToPlaylist.subMenu.splice(1)
-			const playlistMenuItems = PlaylistCache.map((playlistItem) => {
+			// Don't allow song to be re-added to the current playlist
+			const playlistMenuItems = PlaylistCache.filter((playlistItem)=>playlistItem.id !== this.parentPlaylistId).map((playlistItem) => {
 				return {
 					text: playlistItem.title,
 					iconClass: "bi bi-music-note-beamed",
@@ -133,17 +137,17 @@ export class SongActionsMenu extends ContextMenu {
 	SetVisibleOptions({ playSong, addToPlaylist, removeFromPlaylist, downloadToLibrary, removeFromLibrary, downloadToDevice, playNext, addToQueue, viewArtist, viewAlbum, editSongAttributes } = {}) {
 		for (let option of this._menuOptions) {
 			if (option === "divider") { continue }
-			if (option.text === "Play song" && playSong === false) { option.hidden = true }
-			if (option.text === "Add to playlist" && addToPlaylist === false) { option.hidden = true }
-			if (option.text === "Remove from playlist" && removeFromPlaylist === false) { option.hidden = true }
-			if (option.text === "Download to library" && downloadToLibrary === false) { option.hidden = true }
-			if (option.text === "Remove from library" && removeFromLibrary === false) { option.hidden = true }
-			if (option.text === "Download to device" && downloadToDevice === false) { option.hidden = true }
-			if (option.text === "Play next" && playNext === false) { option.hidden = true }
-			if (option.text === "Add to queue" && addToQueue === false) { option.hidden = true }
-			if (option.text === "View artist" && viewArtist === false) { option.hidden = true }
-			if (option.text === "View album" && viewAlbum === false) { option.hidden = true }
-			if (option.text === "Edit song attributes" && editSongAttributes === false) { option.hidden = true }
+			if (option.text === "Play song") { if (playSong != null) { option.hidden = !playSong } }
+			if (option.text === "Add to playlist") { if (addToPlaylist != null) { option.hidden = !addToPlaylist } }
+			if (option.text === "Remove from playlist") { if (removeFromPlaylist != null) { option.hidden = !removeFromPlaylist } }
+			if (option.text === "Download to library") { if (downloadToLibrary != null) { option.hidden = !downloadToLibrary } }
+			if (option.text === "Remove from library") { if (removeFromLibrary != null) { option.hidden = !removeFromLibrary } }
+			if (option.text === "Download to device") { if (downloadToDevice != null) { option.hidden = !downloadToDevice } }
+			if (option.text === "Play next") { if (playNext != null) { option.hidden = !playNext } }
+			if (option.text === "Add to queue") { if (addToQueue != null) { option.hidden = !addToQueue } }
+			if (option.text === "View artist") { if (viewArtist != null) { option.hidden = !viewArtist } }
+			if (option.text === "View album") { if (viewAlbum != null) { option.hidden = !viewAlbum } }
+			if (option.text === "Edit song attributes") { if (editSongAttributes != null) { option.hidden = !editSongAttributes } }
 		}
 	}
 
@@ -157,7 +161,7 @@ export class SongActionsMenu extends ContextMenu {
 	async #playSong() {
 		/** @type {SongTile} */
 		const targetSongTile = this.targetElement
-		targetSongTile.PlaySong()
+		targetSongTile.Play(this.parentPlaylistId)
 	}
 
 	async #downloadToLibrary() {
@@ -169,14 +173,16 @@ export class SongActionsMenu extends ContextMenu {
 				AlertBanner.Toggle(true, true, "Song already exists in library", 7000, AlertBanner.bannerColors.info)
 				return
 			}
-			targetSongTile.ToggleLoadingMask(true)
+			targetSongTile.ToggleDownloadingSpinner(true)
 			// Download the song
-			await DownloadSongToLibrary(trackData)
+			const libraryUuid = await DownloadSongToLibrary(trackData)
+			targetSongTile.trackData.id = libraryUuid
+			targetSongTile.closest("tr")?.querySelector(".already-downloaded-checkmark")?.classList.toggle("hidden", false)
 			AlertBanner.Toggle(true, true, "Song added to library", 7000, AlertBanner.bannerColors.success)
 		} catch (e) {
 			AlertBanner.Toggle(true, true, "Error downloading song", 7000, AlertBanner.bannerColors.error)
 		}
-		targetSongTile.ToggleLoadingMask(false)
+		targetSongTile.ToggleDownloadingSpinner(false)
 	}
 
 	async #removeFromLibrary() {

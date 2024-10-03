@@ -171,12 +171,12 @@ router.post("/remove-songs", async (req, res) => {
 
         // Build the query for bulk deletion
         let placeholders = []
-        let values = [playlistId, userId]
+        let params = [playlistId, userId]
         songIds.forEach(songId => {
             // Skip invalid or empty song IDs
             if (songId && songId !== "") {
                 placeholders.push("?")
-                values.push(songId)
+                params.push(songId)
             }
         })
         // If no valid songs were provided, do nothing
@@ -189,7 +189,7 @@ router.post("/remove-songs", async (req, res) => {
             WHERE playlist_id = ? AND user_id = ?
             AND song_id IN (${placeholders.join(", ")});
         `
-        const dbDeleteResult = await Database.writeQuery(deleteQuery, values)
+        const dbDeleteResult = await Database.writeQuery(deleteQuery, params)
         // Step 2: Recalculate the new list_positions for each song
         const updateQuery = `
             UPDATE playlist_songs

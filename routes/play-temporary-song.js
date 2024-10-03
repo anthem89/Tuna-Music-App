@@ -6,6 +6,7 @@ const router = express.Router()
 router.get("/", async (req, res) => {
 	try {
 		const videoId = req.query.videoId
+		if(videoId == null){ throw new Error("video id cannot be empty") }
 		const videoUrl = "https://music.youtube.com/watch?v=" + videoId
 
 		// Set response headers for downloading

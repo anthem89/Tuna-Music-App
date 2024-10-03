@@ -24,3 +24,7 @@ autocomplete-input {
 .action-link-container {
 	white-space: nowrap;
 }
+
+.already-downloaded-checkmark {
+	color: var(--tunaPink);
+}

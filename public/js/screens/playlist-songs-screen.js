@@ -19,7 +19,7 @@ export class PlaylistSongsScreen extends HTMLElement {
 		InjectGlobalStylesheets(this)
 
 		this.tableWrapper = this.shadowRoot.querySelector("#playlist-songs-table-wrapper")
-		const songList = new InfiniteScrollSongs("/playlists/playlist-songs?playlistId=" + this.playlistData.id )
+		const songList = new InfiniteScrollSongs("/playlists/playlist-songs?playlistId=" + this.playlistData.id, this.playlistData.id)
 		this.tableWrapper.appendChild(songList)
 
 		this.shadowRoot.ownerDocument.querySelector("#module-title").textContent = this.playlistData.title || "Untitled Playlist"
