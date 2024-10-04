@@ -17,8 +17,8 @@ router.get("/", async (req, res) => {
 		const userId = req.user?.id
 		if (userId == null) { throw new Error("A valid user id is required") }
 		// Get pagination parameters from query string
-		const skip = parseInt(req.query.skip) || 0 // Default to 0 if not specified
-		const top = parseInt(req.query.top) || 10 // Default to 10 if not specified
+		const skip = parseInt(req.query.skip || -1)
+		const top = parseInt(req.query.top || -1)
 
 		// Get sorting and filtering parameters
 		const sortField = allowedSongFilterFields.includes(req.query.sortField) ? req.query.sortField : "date_downloaded"
@@ -40,8 +40,14 @@ router.get("/", async (req, res) => {
 		query += " ORDER BY " + sortField + " " + sortOrder
 
 		// Add pagination
-		query += " LIMIT ? OFFSET ?"
-		params.push(top, skip)
+		if (top > 0) {
+			query += " LIMIT ?"
+			params.push(top)
+		}
+		if (skip > 0) {
+			query += " OFFSET ?"
+			params.push(skip)
+		}
 
 		const data = await Database.readQuery(query, params)
 

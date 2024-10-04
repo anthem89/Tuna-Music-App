@@ -12,7 +12,7 @@ import { PlaylistSongsScreen } from "./screens/playlist-songs-screen.js"
 import { SearchPodcastsScreen } from "./screens/search-podcasts-screen.js"
 import { PodcastsScreen } from "./screens/podcasts-screen.js"
 import { SettingsScreen } from "./screens/settings-screen.js"
-
+import { NowPlayingScreen } from "./screens/now-playing-screen.js"
 
 /** @type {banners.AlertBanner} */
 export const AlertBanner = document.querySelector("alert-banner")
@@ -22,6 +22,7 @@ export const ConfirmationModal = document.querySelector("confirmation-modal")
 export const AppNavigationHistory = new NavigationHistory()
 /** @type {AudioPlayer} */
 export const AudioPlayerElement = document.querySelector("audio-player")
+export let currentScreenKey = null
 
 export const NavMenuStructure = {
 	homeSection: { "title": null, "parent": null },
@@ -33,6 +34,7 @@ export const NavMenuStructure = {
 	allSongs: { "title": "All Songs", "prototype": LibraryScreen, "icon": null, "parent": "library" },
 	playlists: { "title": "Playlists", "prototype": PlaylistsScreen, "icon": null, "parent": "library" },
 	playlistSongs: { "title": "", "prototype": PlaylistSongsScreen, "icon": null, "parent": null, "hidden": true },
+	nowPlaying: { "title": "Now Playing", "prototype": NowPlayingScreen, "icon": null, "parent": null, "hidden": true },
 
 	podcastsSection: { "title": "Podcasts", "parent": null },
 	searchPodcasts: { "title": "Search Podcasts", "prototype": SearchPodcastsScreen, "icon": "bi bi-search", "parent": "podcastsSection" },
@@ -59,12 +61,12 @@ export function SwitchToScreen(screenKey, args) {
 	const targetScreen = NavMenuStructure[screenKey]
 
 	if (targetScreen != null) {
-		const currentScreenKey = AppNavigationHistory.history[AppNavigationHistory.currentIndex]?.screenKey
 		if (currentScreenKey !== screenKey) {
 			// Emit an event before switching screens. This allows attached listeners to cancel the screen switch if needed.
 			const event = new CustomEvent('beforeSwitchToScreen', { cancelable: true, detail: { screenKey: screenKey, args: args } })
 			document.dispatchEvent(event)
 			if (event.defaultPrevented) { return }
+			currentScreenKey = screenKey
 
 			if (targetScreen.prototype != null) {
 				// Remove the contents of the previously active module

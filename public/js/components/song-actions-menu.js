@@ -1,8 +1,7 @@
 import { ContextMenu } from "./context-menu.js"
-import { DownloadSongToLibrary, RemoveSongsFromLibrary, PlaylistCache, AddSongsToPlaylist } from "../app-functions.js"
+import { DownloadSongToLibrary, RemoveSongsFromLibrary, PlaylistCache, AddSongsToPlaylist, OpenCreatePlaylistDialog  } from "../app-functions.js"
 import { SongTile } from "./song-tile.js"
 import { AlertBanner } from "../index.js"
-import { OpenCreatePlaylistDialog } from "../app-functions.js"
 import { isMobileView } from "../utils.js"
 import { TrackData } from "./data-models.js"
 
@@ -123,7 +122,7 @@ export class SongActionsMenu extends ContextMenu {
 		if (addToPlaylist != null && Array.isArray(PlaylistCache)) {
 			addToPlaylist.subMenu.splice(1)
 			// Don't allow song to be re-added to the current playlist
-			const playlistMenuItems = PlaylistCache.filter((playlistItem)=>playlistItem.id !== this.parentPlaylistId).map((playlistItem) => {
+			const playlistMenuItems = PlaylistCache.filter((playlistItem) => playlistItem.id !== this.parentPlaylistId).map((playlistItem) => {
 				return {
 					text: playlistItem.title,
 					iconClass: "bi bi-music-note-beamed",
@@ -159,38 +158,32 @@ export class SongActionsMenu extends ContextMenu {
 	}
 
 	async #playSong() {
-		/** @type {SongTile} */
-		const targetSongTile = this.targetElement
-		targetSongTile.Play(this.parentPlaylistId)
+		this.targetSongTile.Play(this.parentPlaylistId)
 	}
 
 	async #downloadToLibrary() {
-		/** @type {SongTile} */
-		const targetSongTile = this.targetElement
 		try {
-			const trackData = targetSongTile.trackData
+			const trackData = this.targetSongTile.trackData
 			if (trackData.id != null) {
 				AlertBanner.Toggle(true, true, "Song already exists in library", 7000, AlertBanner.bannerColors.info)
 				return
 			}
-			targetSongTile.ToggleDownloadingSpinner(true)
+			this.targetSongTile.ToggleDownloadingSpinner(true)
 			// Download the song
 			const libraryUuid = await DownloadSongToLibrary(trackData)
-			targetSongTile.trackData.id = libraryUuid
-			targetSongTile.closest("tr")?.querySelector(".already-downloaded-checkmark")?.classList.toggle("hidden", false)
+			this.targetSongTile.trackData.id = libraryUuid
+			this.targetSongTile.closest("tr")?.querySelector(".already-downloaded-checkmark")?.classList.toggle("hidden", false)
 			AlertBanner.Toggle(true, true, "Song added to library", 7000, AlertBanner.bannerColors.success)
 		} catch (e) {
 			AlertBanner.Toggle(true, true, "Error downloading song", 7000, AlertBanner.bannerColors.error)
 		}
-		targetSongTile.ToggleDownloadingSpinner(false)
+		this.targetSongTile.ToggleDownloadingSpinner(false)
 	}
 
 	async #removeFromLibrary() {
 		try {
-			/** @type {SongTile} */
-			const targetSongTile = this.targetElement
-			RemoveSongsFromLibrary([targetSongTile.trackData.id])
-			targetSongTile.closest("tr").remove()
+			RemoveSongsFromLibrary([this.targetSongTile.trackData.id])
+			this.targetSongTile.closest("tr").remove()
 		} catch (e) {
 			AlertBanner.Toggle(true, true, "Error removing song(s) from library", 7000, AlertBanner.bannerColors.error)
 		}

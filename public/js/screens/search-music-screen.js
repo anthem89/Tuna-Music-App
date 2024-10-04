@@ -3,7 +3,7 @@ import { AutocompleteInput } from "../components/autocomplete-input.js"
 import { DataTable } from "../components/data-table.js"
 import { TrackData } from "../components/data-models.js"
 import { SongTile } from "../components/song-tile.js"
-import { AlertBanner, SessionExpired, AudioPlayerElement } from "../index.js"
+import { AlertBanner, SessionExpired } from "../index.js"
 import { SongActionsMenu } from "../components/song-actions-menu.js"
 
 export class SearchMusicScreen extends HTMLElement {

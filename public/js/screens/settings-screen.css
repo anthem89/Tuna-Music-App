@@ -1,0 +1,30 @@
+.grid-container {
+	display: flex;
+    flex-direction: column;
+    gap: 40px;
+    padding: 20px 10px;
+    max-width: 500px;
+}
+
+/* Mobile View */
+@media (max-width: 991px) {
+	.grid-container {
+		max-width: 100%;
+	}
+}
+
+.setting-row {
+	display: grid;
+	grid-template-columns: 1fr 90px;
+	align-items: center;
+	gap: 15px;
+}
+
+.form-check-input,
+.btn {
+	justify-self: end;
+}
+
+.form-check-label, .form-button-label {
+	justify-self: start;
+}

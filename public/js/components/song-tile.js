@@ -14,9 +14,20 @@ export class SongTile extends MediaTile {
 	}
 
 	async Play(parentPlaylistId = null) {
-		if (this.isBuffering === true) { return }
-		this.ToggleBufferingSpinner(true)
-		await AudioPlayerElement.PlaySong(this.trackData, parentPlaylistId)
+		try {
+			if (this.isBuffering === true) { return }
+			this.ToggleBufferingSpinner(true)
+
+			/** @type {InfiniteScrollSongs} */
+			const parentInfiniteScroll = this.closest("infinite-scroll-songs")
+			if (parentInfiniteScroll != null) {
+				AudioPlayerElement.UpdateQueue(parentInfiniteScroll.trackDataArray)
+			} else {
+				AudioPlayerElement.ClearQueue()
+			}
+			await AudioPlayerElement.PlaySong(this.trackData, parentPlaylistId)
+
+		} catch { }
 		this.ToggleBufferingSpinner(false)
 	}
 
