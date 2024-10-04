@@ -48,7 +48,7 @@ body.header-collapse #module-content-container {
 		position: absolute;
 		z-index: 1000;
 		font-size: 18px;
-		transform: translate3d(70px, -60px, 10px);
+		transform: translate3d(70px, -55px, 10px);
 	}
 }
 
