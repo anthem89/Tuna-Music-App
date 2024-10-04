@@ -15,6 +15,7 @@ export class InfiniteScrollSongs extends HTMLElement {
 		this.batchSize = 25 // The number of items to show using scroll virtualization
 		this.rowHeight = 66.8 // Must match the height in px of each tr element
 		this.tbodyIndex = 0
+		this.scrollEnd = false
 
 		/** @type {TrackData[]} */
 		this.trackDataArray = []
@@ -43,12 +44,12 @@ export class InfiniteScrollSongs extends HTMLElement {
 		this.table = this.querySelector("table")
 		this.onclick = (e) => { this.#handleRowClick(e) }
 		await this.#fetchData()
-		this.#createTableSection()
+		this.#createTableSection(Math.min(this.trackDataArray.length, this.batchSize))
 	}
 
 	/** @type {IntersectionObserverCallback} */
 	#domVirtualization(entries, observer) {
-		entries.forEach(async (entry, index) => {
+		entries.forEach(async (entry) => {
 			if (entry.isIntersecting) {
 				/** @type {HTMLTableSectionElement} */
 				const tbody = entry.target
@@ -57,8 +58,12 @@ export class InfiniteScrollSongs extends HTMLElement {
 					this.#populateTableSection(tbody, this.trackDataArray.slice(startIndex, startIndex + this.batchSize))
 				}
 				// If user has scrolled to last batch in the list, then create a new tbody element
-				if (tbody === this.table.lastElementChild) {
-					this.#createTableSection()
+				if (tbody === this.table.lastElementChild && this.scrollEnd === false) {
+					const remainingRows = this.trackDataArray.length - this.batchSize - tbody.dataset.startIndex
+					if (remainingRows <= this.batchSize) {
+						this.scrollEnd = true
+					}
+					this.#createTableSection(Math.min(remainingRows, this.batchSize))
 				}
 			} else {
 				// Remove all elements from the tbody if it is off screen
@@ -85,7 +90,6 @@ export class InfiniteScrollSongs extends HTMLElement {
 			`
 			rowsHtml += rowTemplate
 		}
-		tbody.style.height = (trackDataArray.length * this.rowHeight) + "px"
 		tbody.insertAdjacentHTML("afterbegin", rowsHtml)
 		trackDataArray.forEach((trackData, index) => {
 			tbody.rows[index].cells[0].appendChild(new SongTile(trackData))
@@ -93,9 +97,10 @@ export class InfiniteScrollSongs extends HTMLElement {
 		tbody.style.visibility = null
 	}
 
-	#createTableSection() {
+	#createTableSection(rowCount) {
 		const tbody = document.createElement("tbody")
 		tbody.dataset.startIndex = this.tbodyIndex
+		tbody.style.height = (rowCount * this.rowHeight) + "px"
 		this.table.insertAdjacentElement("beforeend", tbody)
 		this.intersectionObserver.observe(tbody)
 		this.tbodyIndex += this.batchSize

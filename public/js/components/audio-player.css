@@ -1,14 +1,27 @@
 #element-wrapper {
 	display: flex;
-	align-items: center;
+	align-items: end;
 }
 
 audio {
 	width: 100%;
+	filter: drop-shadow(2px 4px 7px rgba(0, 0, 0, 0.3));
+	border-radius: 50px;
 }
 
 #album-image {
-	height: 50px;
-    margin-right: 10px;
-    border-radius: 5px;
+	height: 70px;
+	margin-right: 10px;
+	border-radius: 5px;
+}
+
+/* Mobile View */
+@media (max-width: 991px) {
+	audio {
+		height: 40px;
+	}
+
+	#album-image {
+		height: 50px;
+	}
 }

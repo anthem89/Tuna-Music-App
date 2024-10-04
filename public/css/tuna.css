@@ -16,6 +16,10 @@ body.header-collapse #module-content-container {
 	cursor: pointer;
 }
 
+.media-tile .mobile-end-container {
+	display: none;
+}
+
 /* Mobile View */
 @media (max-width: 991px) {
 	.media-tile {
@@ -23,14 +27,17 @@ body.header-collapse #module-content-container {
 		max-width: 100dvw !important;
 	}
 
-	.media-tile .btn-open-mobile-context-menu {
+	.media-tile .mobile-end-container {
 		display: flex !important;
 		align-items: center;
 		justify-content: flex-end;
+	}
+
+	.media-tile .btn-open-mobile-context-menu {
 		font-size: 24px;
 		color: var(--tunaPink);
 		height: 100%;
-		width: 40px;
+		padding-left: 10px;
 	}
 
 	/* When scrolling in mobile view, collapse the module title to the app header to save vertical space */
@@ -59,10 +66,6 @@ body.header-collapse #module-content-container {
 	width: 100%;
 	cursor: pointer;
 	height: 60px;
-}
-
-.media-tile .btn-open-mobile-context-menu {
-	display: none;
 }
 
 .media-tile:not(.is-buffering):not(.is-downloading) .loading-spinner {
@@ -119,13 +122,13 @@ body.header-collapse #module-content-container {
 }
 
 .media-tile.large-image .media-tile-text-div {
-	width: calc(100% - 120px);
+	width: calc(100% - 170px);
 }
 
 .media-tile-text-div {
 	display: flex;
 	flex-direction: column;
-	width: calc(100% - 90px);
+	width: calc(100% - 130px);
 	flex: 1;
 	padding-left: 10px;
 }

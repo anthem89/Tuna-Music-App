@@ -1,5 +1,5 @@
 import { ContextMenu } from "./context-menu.js"
-import { DownloadSongToLibrary, RemoveSongsFromLibrary, PlaylistCache, AddSongsToPlaylist, OpenCreatePlaylistDialog  } from "../app-functions.js"
+import { DownloadSongToLibrary, RemoveSongsFromLibrary, PlaylistCache, AddSongsToPlaylist, OpenCreatePlaylistDialog } from "../app-functions.js"
 import { SongTile } from "./song-tile.js"
 import { AlertBanner } from "../index.js"
 import { isMobileView } from "../utils.js"
@@ -158,32 +158,36 @@ export class SongActionsMenu extends ContextMenu {
 	}
 
 	async #playSong() {
-		this.targetSongTile.Play(this.parentPlaylistId)
+		const targetSongTile = this.targetSongTile
+		targetSongTile.Play(this.parentPlaylistId)
 	}
 
 	async #downloadToLibrary() {
+		const targetSongTile = this.targetSongTile
 		try {
-			const trackData = this.targetSongTile.trackData
+			const trackData = targetSongTile.trackData
 			if (trackData.id != null) {
 				AlertBanner.Toggle(true, true, "Song already exists in library", 7000, AlertBanner.bannerColors.info)
+				targetSongTile.ToggleDownloadingSpinner(false)
 				return
 			}
-			this.targetSongTile.ToggleDownloadingSpinner(true)
+			targetSongTile.ToggleDownloadingSpinner(true)
 			// Download the song
 			const libraryUuid = await DownloadSongToLibrary(trackData)
-			this.targetSongTile.trackData.id = libraryUuid
-			this.targetSongTile.closest("tr")?.querySelector(".already-downloaded-checkmark")?.classList.toggle("hidden", false)
+			targetSongTile.trackData.id = libraryUuid
+			targetSongTile.closest("tr")?.querySelector(".already-downloaded-checkmark")?.classList.toggle("hidden", false)
 			AlertBanner.Toggle(true, true, "Song added to library", 7000, AlertBanner.bannerColors.success)
 		} catch (e) {
 			AlertBanner.Toggle(true, true, "Error downloading song", 7000, AlertBanner.bannerColors.error)
 		}
-		this.targetSongTile.ToggleDownloadingSpinner(false)
+		targetSongTile.ToggleDownloadingSpinner(false)
 	}
 
 	async #removeFromLibrary() {
 		try {
-			RemoveSongsFromLibrary([this.targetSongTile.trackData.id])
-			this.targetSongTile.closest("tr").remove()
+			const targetSongTile = this.targetSongTile
+			RemoveSongsFromLibrary([targetSongTile.trackData.id])
+			targetSongTile.closest("tr").remove()
 		} catch (e) {
 			AlertBanner.Toggle(true, true, "Error removing song(s) from library", 7000, AlertBanner.bannerColors.error)
 		}

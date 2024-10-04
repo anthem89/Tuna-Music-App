@@ -27,7 +27,7 @@ export class SongTile extends MediaTile {
 			}
 			await AudioPlayerElement.PlaySong(this.trackData, parentPlaylistId)
 
-		} catch { }
+		} catch { } 
 		this.ToggleBufferingSpinner(false)
 	}
 

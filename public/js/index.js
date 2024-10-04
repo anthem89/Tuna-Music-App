@@ -234,6 +234,11 @@ function InitializeUi() {
 		appHeaderMenu.ForceShow(pos.x + pos.width + 10, pos.y + pos.height, pos.height, false, true, e.target)
 	}
 
+	// Assign events to mobile app bottom nav buttons
+	document.querySelector("#mobile-app-nav i[name='home']").onclick = () => { SwitchToScreen("home") }
+	document.querySelector("#mobile-app-nav i[name='searchMusic']").onclick = () => { SwitchToScreen("searchMusic") }
+	document.querySelector("#mobile-app-nav i[name='playlists']").onclick = () => { SwitchToScreen("playlists") }
+
 	BuildSideBarNavMenu()
 
 	// Nav Link click events

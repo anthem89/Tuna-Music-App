@@ -15,7 +15,9 @@ export class MediaTile extends HTMLElement {
 				<span class="media-tile-primary-text">${primaryText}</span>
 				<span class="media-tile-secondary-text">${secondaryText}</span>
 			</div>
-			<i class="btn-open-mobile-context-menu bi bi-three-dots-vertical"></i>
+			<div class="mobile-end-container">
+				<i class="btn-open-mobile-context-menu bi bi-three-dots-vertical"></i>
+			</div>
 		`
 		this.innerHTML = DOMPurify.sanitize(html)
 

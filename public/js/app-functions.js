@@ -1,4 +1,3 @@
-import { AudioPlayerElement } from "./index.js"
 import { AlertBanner, SessionExpired, ConfirmationModal } from "./index.js"
 import { isNullOrWhiteSpace } from "./utils.js"
 import { TrackData, PlaylistData } from "./components/data-models.js"

@@ -27,4 +27,5 @@ autocomplete-input {
 
 .already-downloaded-checkmark {
 	color: var(--tunaPink);
+	padding-left: 10px;
 }
