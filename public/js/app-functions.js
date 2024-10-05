@@ -1,6 +1,7 @@
 import { AlertBanner, SessionExpired, ConfirmationModal } from "./index.js"
 import { isNullOrWhiteSpace } from "./utils.js"
 import { TrackData, PlaylistData } from "./components/data-models.js"
+import { AppSettings } from "./screens/settings-screen.js"
 
 const pendingDownloads = {}
 const temporarySongCache = {}
@@ -41,7 +42,9 @@ export function DownloadSongToLibrary(trackData) {
 			}
 			pendingDownloads[trackData.video_id] = true
 			const reqHeader = { "Content-Type": "application/json" }
-			const res = await fetch("/download-song", { method: "POST", body: JSON.stringify(trackData), headers: reqHeader })
+			// quality options are "high" or "low"
+			const quality = AppSettings.preferHighQualityDownload ? "high" : "low"
+			const res = await fetch("/download-song", { method: "POST", body: JSON.stringify({ trackData: trackData, quality: quality }), headers: reqHeader })
 			if (res.redirected) { SessionExpired() }
 			const resJson = await res.json()
 			if (resJson["libraryUuid"] == null) {

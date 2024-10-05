@@ -3,11 +3,16 @@ import { LogOut } from "../index.js"
 
 export const AppSettings = {
 	autoCreateQueue: null,
+	preferHighQualityDownload: null,
 }
+
 function initializeAppSettings() {
+	// Initialize default settings
 	const appSettings = JSON.parse(localStorage.getItem("app-settings"))
 	AppSettings.autoCreateQueue = appSettings?.["autoCreateQueue"] != null ? appSettings["autoCreateQueue"] : true
+	AppSettings.preferHighQualityDownload = appSettings?.["preferHighQualityDownload"] != null ? appSettings["preferHighQualityDownload"] : true
 }
+
 initializeAppSettings()
 
 export class SettingsScreen extends HTMLElement {
@@ -22,6 +27,11 @@ export class SettingsScreen extends HTMLElement {
 
 			<hr>
 			<div class="grid-container">
+				<div class="setting-row form-check form-switch">
+					<label class="form-check-label">Prefer highest quality download (uses more data)</label>
+					<input id="high-quality-download-switch" class="form-check-input" type="checkbox" role="switch" ${AppSettings.preferHighQualityDownload ? "checked" : ""}>
+				</div>
+
 				<div class="setting-row form-check form-switch">
 					<label class="form-check-label">Playing a song automatically resets the queue</label>
 					<input id="auto-create-queue-switch" class="form-check-input" type="checkbox" role="switch" ${AppSettings.autoCreateQueue ? "checked" : ""}>
@@ -41,6 +51,11 @@ export class SettingsScreen extends HTMLElement {
 		`
 		InjectGlobalStylesheets(this)
 
+		this.shadowRoot.querySelector("#high-quality-download-switch").onchange = (e) => {
+			AppSettings.preferHighQualityDownload = e.target.checked
+			this.SaveSettings()
+		}
+
 		this.shadowRoot.querySelector("#auto-create-queue-switch").onchange = (e) => {
 			AppSettings.autoCreateQueue = e.target.checked
 			this.SaveSettings()
@@ -57,6 +72,7 @@ export class SettingsScreen extends HTMLElement {
 	}
 
 	disconnectedCallback() {
+		this.shadowRoot.querySelector("#high-quality-download-switch").onchange = null
 		this.shadowRoot.querySelector("#auto-create-queue-switch").onchange = null
 		this.shadowRoot.querySelector("#btn-logout").onclick = null
 	}
