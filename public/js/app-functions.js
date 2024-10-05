@@ -42,9 +42,7 @@ export function DownloadSongToLibrary(trackData) {
 			}
 			pendingDownloads[trackData.video_id] = true
 			const reqHeader = { "Content-Type": "application/json" }
-			// quality options are "high" or "low"
-			const quality = AppSettings.preferHighQualityDownload ? "high" : "low"
-			const res = await fetch("/download-song", { method: "POST", body: JSON.stringify({ trackData: trackData, quality: quality }), headers: reqHeader })
+			const res = await fetch("/download-song", { method: "POST", body: JSON.stringify(trackData), headers: reqHeader })
 			if (res.redirected) { SessionExpired() }
 			const resJson = await res.json()
 			if (resJson["libraryUuid"] == null) {
