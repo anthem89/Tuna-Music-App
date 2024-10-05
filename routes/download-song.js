@@ -27,7 +27,7 @@ router.post("/", async (req, res) => {
 		// Download the audio from the video
 		const fileStream = createWriteStream(outputPath)
 
-		ytdl(videoUrl, { filter: "audioonly" })
+		ytdl(videoUrl, { filter: "audioonly", quality: "highestaudio" })
 			.pipe(fileStream)
 			.on('finish', () => {
 				// Once the download is finished, get the file size

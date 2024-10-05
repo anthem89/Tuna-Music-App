@@ -1,5 +1,5 @@
 import { ContextMenu } from "./context-menu.js"
-import { DownloadSongToLibrary, RemoveSongsFromLibrary, PlaylistCache, AddSongsToPlaylist, OpenCreatePlaylistDialog } from "../app-functions.js"
+import * as AppFunctions from "../app-functions.js"
 import { SongTile } from "./song-tile.js"
 import { AlertBanner } from "../index.js"
 import { isMobileView } from "../utils.js"
@@ -34,7 +34,7 @@ export class SongActionsMenu extends ContextMenu {
 					{
 						text: "Create new playlist",
 						iconClass: "bi bi-plus-circle",
-						clickEvent: () => { OpenCreatePlaylistDialog({ addSongIdOnSubmit: this.targetSongTile.trackData.id }) }
+						clickEvent: () => { AppFunctions.OpenCreatePlaylistDialog({ addSongIdOnSubmit: this.targetSongTile.trackData.id }) }
 					}
 				]
 			},
@@ -57,7 +57,7 @@ export class SongActionsMenu extends ContextMenu {
 			{
 				text: "Download to device",
 				iconClass: "bi bi-download",
-				clickEvent: () => { }
+				clickEvent: () => { AppFunctions.DownloadSongToDevice(this.targetSongTile.trackData) }
 			},
 			"divider",
 			{
@@ -119,14 +119,14 @@ export class SongActionsMenu extends ContextMenu {
 
 	#populateUserPlaylists() {
 		const addToPlaylist = this._menuOptions.find((menuItem) => menuItem.text === "Add to playlist")
-		if (addToPlaylist != null && Array.isArray(PlaylistCache)) {
+		if (addToPlaylist != null && Array.isArray(AppFunctions.PlaylistCache)) {
 			addToPlaylist.subMenu.splice(1)
 			// Don't allow song to be re-added to the current playlist
-			const playlistMenuItems = PlaylistCache.filter((playlistItem) => playlistItem.id !== this.parentPlaylistId).map((playlistItem) => {
+			const playlistMenuItems = AppFunctions.PlaylistCache.filter((playlistItem) => playlistItem.id !== this.parentPlaylistId).map((playlistItem) => {
 				return {
 					text: playlistItem.title,
 					iconClass: "bi bi-music-note-beamed",
-					clickEvent: () => { AddSongsToPlaylist(playlistItem.id, [this.targetSongTile.trackData.id]) }
+					clickEvent: () => { AppFunctions.AddSongsToPlaylist(playlistItem.id, [this.targetSongTile.trackData.id]) }
 				}
 			})
 			addToPlaylist.subMenu.push(...playlistMenuItems)
@@ -173,7 +173,7 @@ export class SongActionsMenu extends ContextMenu {
 			}
 			targetSongTile.ToggleDownloadingSpinner(true)
 			// Download the song
-			const libraryUuid = await DownloadSongToLibrary(trackData)
+			const libraryUuid = await AppFunctions.DownloadSongToLibrary(trackData)
 			targetSongTile.trackData.id = libraryUuid
 			targetSongTile.closest("tr")?.querySelectorAll(".already-downloaded-checkmark").forEach((el)=>{el.classList.toggle("hidden", false)})
 			AlertBanner.Toggle(true, true, "Song added to library", 7000, AlertBanner.bannerColors.success)
@@ -186,7 +186,7 @@ export class SongActionsMenu extends ContextMenu {
 	async #removeFromLibrary() {
 		try {
 			const targetSongTile = this.targetSongTile
-			RemoveSongsFromLibrary([targetSongTile.trackData.id])
+			AppFunctions.RemoveSongsFromLibrary([targetSongTile.trackData.id])
 			targetSongTile.Remove(this.parentPlaylistId, true)
 		} catch (e) {
 			AlertBanner.Toggle(true, true, "Error removing song(s) from library", 7000, AlertBanner.bannerColors.error)

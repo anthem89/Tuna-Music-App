@@ -28,6 +28,8 @@ export function CacheSongFromYouTube(videoId) {
 			resolve(audioUrl)
 		} catch (e) {
 			resolve(null)
+		} finally {
+			CleanupTemporarySongBlobCache()
 		}
 	})
 }
@@ -159,4 +161,54 @@ export function AddSongsToPlaylist(playlistId, trackDataArray) {
 		}
 		resolve()
 	})
+}
+
+/** @param {TrackData} trackData */
+export async function DownloadSongToDevice(trackData) {
+	return new Promise(async (resolve, reject) => {
+		let tempLink
+		try {
+			// Try to fetch the song from the client in-memory cache first (most economical)
+			let bloblUrl = temporarySongCache[trackData.video_id]
+			if (bloblUrl == null) {
+				if (isNullOrWhiteSpace(trackData.id)) {
+					if (isNullOrWhiteSpace(trackData.video_id)) { throw new Error("Cannot play song without either a library id or video id") }
+					// Download the song directly from YouTube
+					bloblUrl = await CacheSongFromYouTube(trackData.video_id)
+					if (bloblUrl == null) { throw new Error("error downloading song from YouTube") }
+				} else {
+					// Download the song from the Tuna library
+					const res = await fetch("./play-song?library-uuid=" + trackData.id)
+					const resblob = await res.blob()
+					bloblUrl = URL.createObjectURL(resblob)
+					// Store the song in cache
+					temporarySongCache[trackData.video_id] = bloblUrl
+				}
+			}
+			tempLink = document.createElement("a")
+			tempLink.href = bloblUrl
+			tempLink.download = (trackData.artist || "Unknown Artist") + " - " + (trackData.title || "Unknown Title") + (trackData.file_format || ".mp3")
+			document.body.appendChild(tempLink)
+			tempLink.click()
+			AlertBanner.Toggle(true, true, "Successfully downloaded song", 7000, AlertBanner.bannerColors.success)
+			resolve()
+		} catch (e) {
+			AlertBanner.Toggle(true, true, "Error downloading song", 7000, AlertBanner.bannerColors.error)
+			reject(e)
+		} finally {
+			if (tempLink != null) { tempLink.remove() }
+			CleanupTemporarySongBlobCache()
+		}
+	})
+}
+
+// Only keep a limited number of blob ojects in the in-memory song cache to preserve memory on the user's device
+export function CleanupTemporarySongBlobCache(numberOfItemsToKeep = 10) {
+	const keys = Object.keys(temporarySongCache)
+	if (keys.length > numberOfItemsToKeep) {
+		keys.slice(numberOfItemsToKeep).forEach((key) => {
+			URL.revokeObjectURL(temporarySongCache[key])
+			delete temporarySongCache[key]
+		})
+	}
 }
