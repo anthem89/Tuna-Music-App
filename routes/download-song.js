@@ -15,7 +15,8 @@ router.post("/", async (req, res) => {
 	try {
 		Ffmpeg.setFfmpegPath(ffmpegPath)
 		/** @type {TrackData} */
-		const trackData = req.body
+		const trackData = req.body.trackData
+		let quality = req.body.quality === "high" ? "highestaudio" : "lowestaudio"
 		const videoId = trackData?.video_id
 		if (videoId == null) { throw new Error("You must provide a video id") }
 		const videoUrl = "https://music.youtube.com/watch?v=" + videoId
@@ -27,7 +28,7 @@ router.post("/", async (req, res) => {
 		// Download the audio from the video
 		const fileStream = createWriteStream(outputPath)
 
-		ytdl(videoUrl, { filter: "audioonly", quality: "highestaudio" })
+		ytdl(videoUrl, { filter: "audioonly", quality: quality })
 			.pipe(fileStream)
 			.on('finish', () => {
 				// Once the download is finished, get the file size

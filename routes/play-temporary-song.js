@@ -6,7 +6,8 @@ const router = express.Router()
 router.get("/", async (req, res) => {
 	try {
 		const videoId = req.query.videoId
-		if(videoId == null){ throw new Error("video id cannot be empty") }
+		const quality = req.query.quality === "high" ? "highestaudio" : "lowestaudio"
+		if (videoId == null) { throw new Error("video id cannot be empty") }
 		const videoUrl = "https://music.youtube.com/watch?v=" + videoId
 
 		// Set response headers for downloading
@@ -14,7 +15,7 @@ router.get("/", async (req, res) => {
 		res.setHeader("Content-Type", "audio/webm")
 
 		// Directly stream without conversion to mp3 using FFMPEG. this is significantly faster when the user doesn't need to save the file to disk
-		const stream = ytdl(videoUrl, { filter: 'audioonly', quality: 'highestaudio' })
+		const stream = ytdl(videoUrl, { filter: "audioonly", quality: quality })
 		stream.pipe(res).on("error", (e) => {
 			res.status(500).send({ error: e.toString() })
 		})

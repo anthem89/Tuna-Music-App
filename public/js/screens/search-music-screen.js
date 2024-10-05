@@ -5,6 +5,7 @@ import { TrackData } from "../components/data-models.js"
 import { SongTile } from "../components/song-tile.js"
 import { AlertBanner, SessionExpired } from "../index.js"
 import { SongActionsMenu } from "../components/song-actions-menu.js"
+import { AppSettings } from "./settings-screen.js"
 
 export class SearchMusicScreen extends HTMLElement {
 	constructor() {
@@ -114,7 +115,8 @@ export class SearchMusicScreen extends HTMLElement {
 							title: songTitle,
 							album: albumName,
 							album_id: albumId,
-							duration: duration
+							duration: duration,
+							quality: AppSettings.preferHighQualityDownload ? "high" : "low"
 						})
 						this.resultsData.push(trackData)
 						const songTile = new SongTile(trackData)
