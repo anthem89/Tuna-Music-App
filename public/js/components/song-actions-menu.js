@@ -175,7 +175,7 @@ export class SongActionsMenu extends ContextMenu {
 			// Download the song
 			const libraryUuid = await DownloadSongToLibrary(trackData)
 			targetSongTile.trackData.id = libraryUuid
-			targetSongTile.closest("tr")?.querySelector(".already-downloaded-checkmark")?.classList.toggle("hidden", false)
+			targetSongTile.closest("tr")?.querySelectorAll(".already-downloaded-checkmark").forEach((el)=>{el.classList.toggle("hidden", false)})
 			AlertBanner.Toggle(true, true, "Song added to library", 7000, AlertBanner.bannerColors.success)
 		} catch (e) {
 			AlertBanner.Toggle(true, true, "Error downloading song", 7000, AlertBanner.bannerColors.error)
@@ -187,7 +187,7 @@ export class SongActionsMenu extends ContextMenu {
 		try {
 			const targetSongTile = this.targetSongTile
 			RemoveSongsFromLibrary([targetSongTile.trackData.id])
-			targetSongTile.closest("tr").remove()
+			targetSongTile.Remove(this.parentPlaylistId, true)
 		} catch (e) {
 			AlertBanner.Toggle(true, true, "Error removing song(s) from library", 7000, AlertBanner.bannerColors.error)
 		}

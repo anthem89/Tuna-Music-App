@@ -353,11 +353,20 @@ window.addEventListener("popstate", (e) => {
 	if (isMobileView() === true) {
 		const activeContextMenus = document.querySelectorAll(".contextmenu-container")
 		if (activeContextMenus.length > 0) {
+			// Close any active context menus
 			activeContextMenus.forEach((contextMenu) => {
 				contextMenu.classReference.ForceClose()
 			})
 		} else if (document.body.classList.contains("sidebar-visible")) {
+			// CLose sidebar nav if visible
 			document.body.classList.toggle("sidebar-visible", false)
+		} else if (document.querySelector(".modal.show") != null) {
+			// Close any open modals
+			/** @type {modals.ConfirmationModal[]} */
+			const confirmationModals = Array.from(document.querySelectorAll("confirmation-modal"))
+			confirmationModals.forEach((modal) => {
+				modal.Hide()
+			})
 		} else {
 			AppNavigationHistory.GoBack()
 		}

@@ -119,7 +119,7 @@ export class SearchMusicScreen extends HTMLElement {
 						this.resultsData.push(trackData)
 						const songTile = new SongTile(trackData)
 						const albumNameHtml = `<span class="clampTwoLines">${albumName}</span>`
-						songTile.querySelector(".btn-open-mobile-context-menu").insertAdjacentHTML("beforebegin", alreadyDownloadedCheckmark)
+						songTile.querySelector(".mobile-end-container").insertAdjacentHTML("afterbegin", alreadyDownloadedCheckmark)
 						tableData.push([songTile, CreateElementFromHTML(alreadyDownloadedCheckmark, false), CreateElementFromHTML(actionsHtml, false), CreateElementFromHTML(albumNameHtml, true), secondsToTimestamp(duration)])
 					})
 				}

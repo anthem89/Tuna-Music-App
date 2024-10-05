@@ -1,6 +1,7 @@
 import { TrackData } from "./data-models.js"
 import { MediaTile } from "./media-tile.js"
 import { AudioPlayerElement } from "../index.js"
+import { InfiniteScrollSongs } from "./infinite-scroll-songs.js"
 
 export class SongTile extends MediaTile {
 	/** @param {TrackData} trackData */
@@ -13,22 +14,36 @@ export class SongTile extends MediaTile {
 		super.connectedCallback()
 	}
 
-	async Play(parentPlaylistId = null) {
+	async Play(parentPlaylistId) {
 		try {
 			if (this.isBuffering === true) { return }
 			this.ToggleBufferingSpinner(true)
 
-			/** @type {InfiniteScrollSongs} */
-			const parentInfiniteScroll = this.closest("infinite-scroll-songs")
-			if (parentInfiniteScroll != null) {
-				AudioPlayerElement.UpdateQueue(parentInfiniteScroll.trackDataArray)
-			} else {
-				AudioPlayerElement.ClearQueue()
+			if (AudioPlayerElement.currentPlaylistId !== parentPlaylistId || parentPlaylistId == null) {
+				/** @type {InfiniteScrollSongs} */
+				const parentInfiniteScroll = this.closest("infinite-scroll-songs")
+				AudioPlayerElement.UpdateQueue([...parentInfiniteScroll?.trackDataArray] || [], parentPlaylistId)
 			}
-			await AudioPlayerElement.PlaySong(this.trackData, parentPlaylistId)
 
-		} catch { } 
+			await AudioPlayerElement.PlaySong(this.trackData, false)
+
+		} catch { }
 		this.ToggleBufferingSpinner(false)
+	}
+
+	Remove(parentPlaylistId, ignorePlaylistId) {
+		/** @type {InfiniteScrollSongs} */
+		const parentInfiniteScroll = this.closest("infinite-scroll-songs")
+		// Remove the track's DOM element
+		if (parentInfiniteScroll != null) {
+			parentInfiniteScroll.RemoveTrack(this.trackData)
+		} else {
+			this.closest("tr").remove()
+		}
+		// Remove the track from the now playing queue if appropriate
+		if (parentPlaylistId === AudioPlayerElement.currentPlaylistId || ignorePlaylistId === true) {
+			AudioPlayerElement.RemoveTrackFromQueue(this.trackData)
+		}
 	}
 
 	disconnectedCallback() {

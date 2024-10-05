@@ -2,7 +2,7 @@ import { InjectGlobalStylesheets, isNullOrWhiteSpace } from "../utils.js"
 import { TrackData } from "./data-models.js"
 import { MediaTile } from "./media-tile.js"
 import { CacheSongFromYouTube } from "../app-functions.js"
-import { currentScreenKey, AlertBanner } from "../index.js"
+import { AlertBanner } from "../index.js"
 
 export class AudioPlayer extends HTMLElement {
 	constructor() {
@@ -18,7 +18,11 @@ export class AudioPlayer extends HTMLElement {
 		/** @type {TrackData[]} */
 		this.trackQueue = []
 		this.currentQueueIndex = 0
-		this.maxQueueLength = 20
+		this.isPlaying = false
+		this.isPaused = false
+
+		this.consecutiveErrorCount = 0
+		this.maximumConsecutiveErrorLimit = 5
 	}
 
 	connectedCallback() {
@@ -41,6 +45,8 @@ export class AudioPlayer extends HTMLElement {
 
 
 		this.audioElement.onended = async () => {
+			this.isPlaying = false
+			this.isPaused = false
 			if (this.trackQueue.length > 0) {
 				await this.PlayNextSongInQueue()
 			}
@@ -48,7 +54,14 @@ export class AudioPlayer extends HTMLElement {
 		}
 
 		this.audioElement.onplay = () => {
+			this.isPlaying = true
+			this.isPaused = false
 			this.#updateMediaTiles()
+		}
+
+		this.audioElement.onpause = () => {
+			this.isPlaying = false
+			this.isPaused = true
 		}
 
 		// Set up media session actions
@@ -76,10 +89,11 @@ export class AudioPlayer extends HTMLElement {
 	}
 
 	/** @param {TrackData} trackData */
-	PlaySong(trackData, parentPlaylistId) {
-		return new Promise(async (resolve, reject) => {
+	PlaySong(trackData, playNextOnFailure = false) {
+		return new Promise(async (resolve) => {
 			try {
-				this.currentPlaylistId = parentPlaylistId
+				this.currentQueueIndex = this.#getTrackIndexInQueue(trackData)
+				if (this.currentQueueIndex == null) { this.currentQueueIndex = 0 }
 				let sourceUrl
 				if (isNullOrWhiteSpace(trackData.id)) {
 					if (isNullOrWhiteSpace(trackData.video_id)) { throw new Error("Cannot play song without either a library id or video id") }
@@ -92,15 +106,6 @@ export class AudioPlayer extends HTMLElement {
 				}
 
 				this.currentTrack = new TrackData({ ...trackData })
-				this.currentQueueIndex = this.trackQueue.findIndex((trackData) => {
-					if (this.currentTrack.id != null) {
-						return trackData.id === this.currentTrack.id
-					} else {
-						return trackData.video_id === this.currentTrack.video_id
-					}
-				})
-				if(this.currentQueueIndex  < 0){ this.currentQueueIndex = 0}
-
 				this.audioElement.src = sourceUrl
 				this.albumImage.src = this.currentTrack.album_art || "../../assets/img/no-album-art.png"
 				await this.audioElement.play()
@@ -112,41 +117,88 @@ export class AudioPlayer extends HTMLElement {
 					artwork: [{ src: trackData.album_art }]
 				})
 
-				// #updateMediaTiles automatically gets called in the audioElement.play callback
-				resolve()
+				this.consecutiveErrorCount = 0
+
+				resolve(true)
 			} catch (e) {
-				this.currentTrack = null
-				this.#updateMediaTiles()
+				this.consecutiveErrorCount++
 				AlertBanner.Toggle(true, true, "Error playing song", 7000, AlertBanner.bannerColors.error)
-				reject(e)
+				if (playNextOnFailure === true && this.trackQueue.length > 1 && this.consecutiveErrorCount < this.maximumConsecutiveErrorLimit) {
+					this.PlayNextSongInQueue()
+				} else {
+					this.#resetAudioElement()
+					this.#updateMediaTiles()
+				}
+				resolve(false)
 			}
 		})
 	}
 
 	async PlayNextSongInQueue() {
 		this.currentQueueIndex = (this.currentQueueIndex + 1) % this.trackQueue.length  // Loop back to start if at end
-		await this.PlaySong(this.trackQueue[this.currentQueueIndex], this.currentPlaylistId)
+		await this.PlaySong(this.trackQueue[this.currentQueueIndex], true)
 	}
 
 	async PlayPreviousSongInQueue() {
 		this.currentQueueIndex = (this.currentQueueIndex - 1 + this.trackQueue.length) % this.trackQueue.length  // Loop to end if at start
-		await this.PlaySong(this.trackQueue[this.currentQueueIndex], this.currentPlaylistId)
+		await this.PlaySong(this.trackQueue[this.currentQueueIndex], false)
 	}
 
 	/** @param {TrackData[]} */
-	UpdateQueue(trackDataArray) {
+	UpdateQueue(trackDataArray, playlistId) {
 		this.trackQueue = trackDataArray
-		if(this.trackQueue.length <= 0){ this.currentQueueIndex = 0 }
-		if (currentScreenKey === "nowPlaying") {
-			// TODO
-			// TODO
-			// TODO
-			// TODO
+		this.currentPlaylistId = playlistId
+		this.currentQueueIndex = 0
+		// Reset the audio element
+		if (this.trackQueue.length === 0) {
+			this.#resetAudioElement()
+		}
+	}
+
+	/** @param {TrackData} targetTrackData */
+	async RemoveTrackFromQueue(targetTrackData) {
+		const targetIndex = this.#getTrackIndexInQueue(targetTrackData)
+		// If the track is not found, do nothing
+		if (targetIndex === -1) { return }
+		if (this.trackQueue.length > 1) {
+			// If the song that is currently playing gets removed, skip to the next song
+			if (targetIndex === this.currentQueueIndex) {
+				const wasPlaying = this.isPlaying
+				await this.PlayNextSongInQueue()
+				if (wasPlaying === false) {
+					this.audioElement.pause()
+				}
+			}
+			// Remove the target track from the queue and adjust the current queue index accordingly
+			this.trackQueue.splice(targetIndex, 1)
+			if (targetIndex < this.currentQueueIndex && this.currentQueueIndex > 0) {
+				this.currentQueueIndex -= 1
+			}
+		} else {
+			this.UpdateQueue([], this.currentPlaylistId)
 		}
 	}
 
 	ClearQueue() {
-		this.UpdateQueue([])
+		this.UpdateQueue([], null)
+	}
+
+	/** @param {TrackData} targetTrackData */
+	#getTrackIndexInQueue(targetTrackData) {
+		return this.trackQueue.findIndex((trackData) => {
+			if (targetTrackData.id != null) {
+				return targetTrackData.id === trackData.id
+			} else {
+				return targetTrackData.video_id === trackData.video_id
+			}
+		})
+	}
+
+	#resetAudioElement() {
+		this.isPlaying = false
+		this.isPaused = false
+		this.audioElement.src = ""
+		this.audioElement.load()
 	}
 
 	disconnectedCallback() {

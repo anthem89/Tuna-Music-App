@@ -40,7 +40,7 @@ export class MediaTile extends HTMLElement {
 
 	isCurrentlyPlaying() {
 		let isCurrentlyPlaying = false
-		if (AudioPlayerElement.audioElement.ended === false) {
+		if (AudioPlayerElement.isPlaying || AudioPlayerElement.isPaused) {
 			if (this.trackData != null) {
 				if (this.trackData["id"] == null) {
 					isCurrentlyPlaying = this.trackData["video_id"] != null && AudioPlayerElement.currentTrack?.["video_id"] === this.trackData["video_id"]

@@ -35,7 +35,7 @@ export class InfiniteScrollSongs extends HTMLElement {
 	}
 
 	async connectedCallback() {
-		this.intersectionObserver = new IntersectionObserver((entries, observer) => { this.#domVirtualization(entries, observer) }, {
+		this.intersectionObserver = new IntersectionObserver((entries, observer) => { this.#intersectionObserverCallback(entries, observer) }, {
 			root: null, // default to the viewport
 			rootMargin: "50px", // apply 50px margin to each observed entry's intersection area (ie: an intersection will trigger when the entry is within 50px of the visible area)
 			threshold: 0 // 0% of the target entry needs to be visible before triggering an intersection
@@ -48,7 +48,7 @@ export class InfiniteScrollSongs extends HTMLElement {
 	}
 
 	/** @type {IntersectionObserverCallback} */
-	#domVirtualization(entries, observer) {
+	#intersectionObserverCallback(entries, observer) {
 		entries.forEach(async (entry) => {
 			if (entry.isIntersecting) {
 				/** @type {HTMLTableSectionElement} */
@@ -59,7 +59,7 @@ export class InfiniteScrollSongs extends HTMLElement {
 				}
 				// If user has scrolled to last batch in the list, then create a new tbody element
 				if (tbody === this.table.lastElementChild && this.scrollEnd === false) {
-					const remainingRows = this.trackDataArray.length - this.batchSize - tbody.dataset.startIndex
+					const remainingRows = this.trackDataArray.length - this.batchSize - parseInt(tbody.dataset.startIndex)
 					if (remainingRows <= this.batchSize) {
 						this.scrollEnd = true
 					}
@@ -90,6 +90,7 @@ export class InfiniteScrollSongs extends HTMLElement {
 			`
 			rowsHtml += rowTemplate
 		}
+		tbody.style.height = (trackDataArray.length * this.rowHeight) + "px"
 		tbody.insertAdjacentHTML("afterbegin", rowsHtml)
 		trackDataArray.forEach((trackData, index) => {
 			tbody.rows[index].cells[0].appendChild(new SongTile(trackData))
@@ -104,6 +105,27 @@ export class InfiniteScrollSongs extends HTMLElement {
 		this.table.insertAdjacentElement("beforeend", tbody)
 		this.intersectionObserver.observe(tbody)
 		this.tbodyIndex += this.batchSize
+	}
+
+	/** @param {TrackData} targetTrackData */
+	RemoveTrack(targetTrackData) {
+		// Find the index of the track to be removed
+		const targetIndex = this.trackDataArray.findIndex((track) => {
+			if (targetTrackData.id != null) {
+				return track.id === targetTrackData.id
+			} else {
+				return track.video_id === targetTrackData.video_id
+			}
+		})
+		if (targetIndex > -1) {
+			this.trackDataArray.splice(targetIndex, 1)
+
+			this.intersectionObserver.disconnect()
+			this.table.querySelectorAll("tbody").forEach((tbody, index) => {
+				RemoveAllChildren(tbody)
+				this.intersectionObserver.observe(tbody)
+			})
+		}
 	}
 
 	async #fetchData() {
@@ -150,12 +172,13 @@ export class InfiniteScrollSongs extends HTMLElement {
 		}
 	}
 
-	Reset(apiEndpoint = null) {
+	async Reset(apiEndpoint = null) {
 		this.intersectionObserver.disconnect()
 		this.trackDataArray = []
 		this.querySelectorAll("tbody").forEach((tbody) => { tbody.remove() })
 		this.apiEndpoint = apiEndpoint || this.apiEndpoint
-		this.#fetchData()
+		await this.#fetchData()
+		this.#createTableSection(Math.min(this.trackDataArray.length, this.batchSize))
 	}
 
 	disconnectedCallback() {

@@ -1,6 +1,5 @@
 import { ContextMenu } from "./context-menu.js"
 import { PlaylistTile } from "./playlist-tile.js"
-import { AlertBanner } from "../index.js"
 import { isMobileView } from "../utils.js"
 import { PlaylistData } from "./data-models.js"
 
@@ -51,7 +50,7 @@ export class PlaylistActionsMenu extends ContextMenu {
 				text: "Edit playlist attributes",
 				iconClass: "bi bi-pencil-square",
 				clickEvent: () => { }
-			},	
+			},
 		]
 
 	}
@@ -82,12 +81,12 @@ export class PlaylistActionsMenu extends ContextMenu {
 	SetVisibleOptions({ playPlaylist, addPlaylistToQueue, downloadToDevice, copyPlaylist, deletePlaylist, editPlaylistAttributes } = {}) {
 		for (let option of this._menuOptions) {
 			if (option === "divider") { continue }
-			if (option.text === "Play playlist" && playPlaylist === false) { option.hidden = true }
-			if (option.text === "Add playlist to queue" && addPlaylistToQueue === false) { option.hidden = true }
-			if (option.text === "Download to device" && downloadToDevice === false) { option.hidden = true }
-			if (option.text === "Copy playlist" && copyPlaylist === false) { option.hidden = true }
-			if (option.text === "Delete playlist" && deletePlaylist === false) { option.hidden = true }
-			if (option.text === "Edit playlist attributes" && editPlaylistAttributes === false) { option.hidden = true }
+			if (option.text === "Play playlist") { if (playPlaylist != null) { option.hidden = !playPlaylist } }
+			if (option.text === "Add playlist to queue") { if (addPlaylistToQueue != null) { option.hidden = !addPlaylistToQueue } }
+			if (option.text === "Download to device") { if (downloadToDevice != null) { option.hidden = !downloadToDevice } }
+			if (option.text === "Copy playlist") { if (copyPlaylist != null) { option.hidden = !copyPlaylist } }
+			if (option.text === "Delete playlist") { if (deletePlaylist != null) { option.hidden = !deletePlaylist } }
+			if (option.text === "Edit playlist attributes") { if (editPlaylistAttributes != null) { option.hidden = !editPlaylistAttributes } }
 		}
 	}
 
