@@ -1,4 +1,7 @@
 
+dayjs.extend(dayjs_plugin_utc)
+
+
 /** @param {HTMLElement} customElement */
 export function InjectGlobalStylesheets(customElement) {
 	let stylesheets = Array.from(document.head.querySelectorAll("link[rel='stylesheet']")).map((link) => link.href).reverse()
@@ -17,6 +20,10 @@ export function InjectGlobalStylesheets(customElement) {
 		}
 		customElement.shadowRoot.prepend(link)
 	})
+}
+
+export function CurrentUtcTimestamp() {
+	return dayjs.utc().format("YYYY-MM-DD HH:mm:ss")
 }
 
 export function CreateElementFromHTML(htmlString, sanitize = true) {

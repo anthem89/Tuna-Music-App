@@ -1,4 +1,4 @@
-import { InjectGlobalStylesheets, isNullOrWhiteSpace } from "../utils.js"
+import { InjectGlobalStylesheets, isNullOrWhiteSpace, CurrentUtcTimestamp } from "../utils.js"
 import { TrackData } from "./data-models.js"
 import { MediaTile } from "./media-tile.js"
 import { CacheSongFromYouTube } from "../app-functions.js"
@@ -50,13 +50,13 @@ export class AudioPlayer extends HTMLElement {
 			if (this.trackQueue.length > 0) {
 				await this.PlayNextSongInQueue()
 			}
-			this.#updateMediaTiles()
+			this.#updateMediaTiles(false)
 		}
 
 		this.audioElement.onplay = () => {
 			this.isPlaying = true
 			this.isPaused = false
-			this.#updateMediaTiles()
+			this.#updateMediaTiles(true)
 		}
 
 		this.audioElement.onpause = () => {
@@ -81,10 +81,21 @@ export class AudioPlayer extends HTMLElement {
 	}
 
 	// Force all song tiles to test if their track id or video_id matches the currently playing track, and update accordingly
-	#updateMediaTiles() {
+	#updateMediaTiles(updateRowStats) {
 		const currentScreenElement = document.querySelector("#module-content-container section").firstElementChild.shadowRoot
 		currentScreenElement.querySelectorAll(".media-tile").forEach(/** @param {MediaTile} mediaTile */(mediaTile) => {
 			mediaTile.isCurrentlyPlaying()
+
+			// Update play count and date last played stats for any table rows that are currently being displayed
+			if (updateRowStats === true && mediaTile.tagName === "SONG-TILE") {
+				const tableRow = mediaTile.closest("tr")
+				if (tableRow != null) {
+					tableRow.querySelector("td[name='date_last_played'] span").textContent = mediaTile.trackData.date_last_played ? dayjs(mediaTile.trackData.date_last_played + "Z").fromNow() : "N/A"
+					if (this.currentTrack.id === mediaTile.trackData.id || this.currentTrack.video_id === mediaTile.trackData.video_id) {
+						tableRow.querySelector("td[name='number_of_plays']").textContent = this.currentTrack.number_of_plays || "0"
+					}
+				}
+			}
 		})
 	}
 
@@ -93,28 +104,33 @@ export class AudioPlayer extends HTMLElement {
 		return new Promise(async (resolve) => {
 			try {
 				this.currentQueueIndex = this.#getTrackIndexInQueue(trackData)
+				this.currentTrack = this.trackQueue[this.currentQueueIndex]
+
 				if (this.currentQueueIndex == null) { this.currentQueueIndex = 0 }
 				let sourceUrl
-				if (isNullOrWhiteSpace(trackData.id)) {
-					if (isNullOrWhiteSpace(trackData.video_id)) { throw new Error("Cannot play song without either a library id or video id") }
+				if (isNullOrWhiteSpace(this.currentTrack.id)) {
+					if (isNullOrWhiteSpace(this.currentTrack.video_id)) { throw new Error("Cannot play song without either a library id or video id") }
 					// Play the song directly from YouTube
-					sourceUrl = await CacheSongFromYouTube(trackData.video_id)
+					sourceUrl = await CacheSongFromYouTube(this.currentTrack.video_id)
 					if (sourceUrl == null) { throw new Error("error downloading song from YouTube") }
 				} else {
 					// Play the song from the Tuna library
-					sourceUrl = "./play-song?library-uuid=" + trackData.id
+					sourceUrl = "./play-song?library-uuid=" + this.currentTrack.id
+
+					// The incremental number of plays statistic will only apply if the song is played from the tuna library
+					this.currentTrack.date_last_played = CurrentUtcTimestamp()
+					this.currentTrack.number_of_plays += 1
 				}
 
-				this.currentTrack = new TrackData({ ...trackData })
 				this.audioElement.src = sourceUrl
 				this.albumImage.src = this.currentTrack.album_art || "../../assets/img/no-album-art.png"
 				await this.audioElement.play()
 
 				navigator.mediaSession.metadata = new MediaMetadata({
-					title: trackData.title,
-					artist: trackData.artist,
-					album: trackData.album,
-					artwork: [{ src: trackData.album_art }]
+					title: this.currentTrack.title,
+					artist: this.currentTrack.artist,
+					album: this.currentTrack.album,
+					artwork: [{ src: this.currentTrack.album_art }]
 				})
 
 				this.consecutiveErrorCount = 0
@@ -127,7 +143,7 @@ export class AudioPlayer extends HTMLElement {
 					this.PlayNextSongInQueue()
 				} else {
 					this.#resetAudioElement()
-					this.#updateMediaTiles()
+					this.#updateMediaTiles(false)
 				}
 				resolve(false)
 			}

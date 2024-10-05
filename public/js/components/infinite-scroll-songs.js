@@ -3,6 +3,7 @@ import { SongTile } from "./song-tile.js"
 import { secondsToTimestamp, RemoveAllChildren } from "../utils.js"
 import { SessionExpired, AlertBanner } from "../index.js"
 import { SongActionsMenu } from "./song-actions-menu.js"
+dayjs.extend(dayjs_plugin_relativeTime)
 
 export class InfiniteScrollSongs extends HTMLElement {
 	constructor(apiEndpoint, parentPlaylistId) {
@@ -28,6 +29,9 @@ export class InfiniteScrollSongs extends HTMLElement {
 						<th>Actions</th>
 						<th>Album Name</th>
 						<th>Duration</th>
+						<th>Plays</th>
+						<th>Last Played</th>
+						<th>Date Added</th>
 					</tr>
 				</thead>
 			</table>
@@ -37,8 +41,8 @@ export class InfiniteScrollSongs extends HTMLElement {
 	async connectedCallback() {
 		this.intersectionObserver = new IntersectionObserver((entries, observer) => { this.#intersectionObserverCallback(entries, observer) }, {
 			root: null, // default to the viewport
-			rootMargin: "50px", // apply 50px margin to each observed entry's intersection area (ie: an intersection will trigger when the entry is within 50px of the visible area)
-			threshold: 0 // 0% of the target entry needs to be visible before triggering an intersection
+			rootMargin: "50px 0px", // apply 50px margin to each observed entry's intersection area (ie: an intersection will trigger when the entry is within 50px of the visible area)
+			threshold: 0.01 // 0% of the target entry needs to be visible before triggering an intersection
 		})
 
 		this.table = this.querySelector("table")
@@ -83,9 +87,12 @@ export class InfiniteScrollSongs extends HTMLElement {
 			const rowTemplate = `
 				<tr>
 					<td></td>
-					<td><div class="action-link-container"><a class="link-underline action-link" name="btn-actions">Actions</a></div></td>
-					<td><span class="clampTwoLines">${DOMPurify.sanitize(trackData.album)}</span></td>
-					<td>${secondsToTimestamp(trackData.duration)}</td>
+					<td class="text-center"><div class="action-link-container"><a class="link-underline action-link" name="btn-actions">Actions</a></div></td>
+					<td name="album"><span class="clampTwoLines">${DOMPurify.sanitize(trackData.album)}</span></td>
+					<td name="duration" class="text-center">${secondsToTimestamp(trackData.duration)}</td>
+					<td name="number_of_plays" class="text-center">${trackData.number_of_plays || "0"}</td>
+					<td name="date_last_played"><span class="text-center clampTwoLines">${trackData.date_last_played ? dayjs(trackData.date_last_played + "Z").fromNow() : "N/A"}</span></td>
+					<td name="date_downloaded"><span class="text-center clampTwoLines">${trackData.date_downloaded ? dayjs(trackData.date_downloaded + "Z").fromNow() : "N/A"}</span></td>
 				</tr>
 			`
 			rowsHtml += rowTemplate

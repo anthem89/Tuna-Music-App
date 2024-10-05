@@ -41,13 +41,13 @@ export class MediaTile extends HTMLElement {
 	isCurrentlyPlaying() {
 		let isCurrentlyPlaying = false
 		if (AudioPlayerElement.isPlaying || AudioPlayerElement.isPaused) {
-			if (this.trackData != null) {
+			if (this.tagName === "SONG-TILE") {
 				if (this.trackData["id"] == null) {
 					isCurrentlyPlaying = this.trackData["video_id"] != null && AudioPlayerElement.currentTrack?.["video_id"] === this.trackData["video_id"]
 				} else {
 					isCurrentlyPlaying = this.trackData["id"] != null && AudioPlayerElement.currentTrack?.["id"] === this.trackData["id"]
 				}
-			} else if (this.playlistData != null) {
+			} else if (this.tagName === "PLAYLIST-TILE") {
 				isCurrentlyPlaying = AudioPlayerElement.currentPlaylistId === this.playlistData.id
 			}
 		}

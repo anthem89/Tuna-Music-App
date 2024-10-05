@@ -171,6 +171,14 @@ body.header-collapse #module-content-container {
 	border-collapse: separate;
 }
 
+/* Desktop View */
+@media (min-width: 992px) {
+	.media-list-table table,
+	.media-list-table {
+		min-width: 900px;
+	}
+}
+
 .media-list-table thead {
 	position: sticky;
 	/* top should match the top padding of the #module-content-container */
@@ -182,6 +190,7 @@ body.header-collapse #module-content-container {
 .media-list-table th {
 	text-align: center;
 	border-bottom: 2px solid var(--regularText);
+	padding: 5px 10px;
 }
 
 .media-list-table tbody tr {
