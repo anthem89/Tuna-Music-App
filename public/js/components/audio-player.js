@@ -146,7 +146,7 @@ export class AudioPlayer extends HTMLElement {
 
 	/** @param {TrackData[]} */
 	UpdateQueue(trackDataArray, playlistId) {
-		this.trackQueue = trackDataArray
+		this.trackQueue = Array.isArray(trackDataArray) ? [...trackDataArray] : []
 		this.currentPlaylistId = playlistId
 		this.currentQueueIndex = 0
 		// Reset the audio element
