@@ -2,7 +2,8 @@ import { InjectGlobalStylesheets, isNullOrWhiteSpace, CurrentUtcTimestamp } from
 import { TrackData } from "./data-models.js"
 import { MediaTile } from "./media-tile.js"
 import { CacheSongFromYouTube } from "../app-functions.js"
-import { AlertBanner } from "../index.js"
+import { AlertBanner, isMobileUserAgent } from "../index.js"
+import { SaveSessionState } from "../app-functions.js"
 
 export class AudioPlayer extends HTMLElement {
 	constructor() {
@@ -44,6 +45,7 @@ export class AudioPlayer extends HTMLElement {
 		this.albumImage.onerror = (e) => { e.target.src = "../../assets/img/no-album-art.png" }
 
 
+		let lastSave = 0
 		this.audioElement.onended = async () => {
 			this.isPlaying = false
 			this.isPaused = false
@@ -51,6 +53,22 @@ export class AudioPlayer extends HTMLElement {
 				await this.PlayNextSongInQueue()
 			}
 			this.#updateMediaTiles(false)
+
+			if (isMobileUserAgent === true && document.visibilityState === "hidden") {
+				SaveSessionState(false)
+				lastSave = Date.now()
+			}
+		}
+		
+		this.audioElement.ontimeupdate = () => {
+			// Since mobile browsers don't fire the unload event (allowing the opportunity to save session state) when the app is minimized, the session state must be periodically saved when the app is hidden
+			if (isMobileUserAgent === true && document.visibilityState === "hidden") {
+				const now = Date.now()
+				if (now - lastSave > 5000) {
+					SaveSessionState(false)
+					lastSave = now
+				}
+			}
 		}
 
 		this.audioElement.onplay = () => {
@@ -100,6 +118,38 @@ export class AudioPlayer extends HTMLElement {
 	}
 
 	/** @param {TrackData} trackData */
+	async LoadSongInAudioPlayer(trackData) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				let sourceUrl
+				if (isNullOrWhiteSpace(trackData.id)) {
+					if (isNullOrWhiteSpace(trackData.video_id)) { throw new Error("Cannot play song without either a library id or video id") }
+					// Create a blob url for the temporary song download
+					sourceUrl = await CacheSongFromYouTube(trackData.video_id)
+					if (sourceUrl == null) { throw new Error("error downloading song from YouTube") }
+				} else {
+					// The url to play the song directly fron the Tuna library
+					sourceUrl = "./play-song?library-uuid=" + trackData.id
+				}
+				const albumArt = trackData.album_art || "../../assets/img/no-album-art.png"
+
+				navigator.mediaSession.metadata = new MediaMetadata({
+					title: trackData.title,
+					artist: trackData.artist,
+					album: trackData.album,
+					artwork: [{ src: albumArt }]
+				})
+
+				this.audioElement.src = sourceUrl
+				this.albumImage.src = albumArt
+				resolve()
+			} catch (e) {
+				reject(e)
+			}
+		})
+	}
+
+	/** @param {TrackData} trackData */
 	PlaySong(trackData, playNextOnFailure = false) {
 		return new Promise(async (resolve) => {
 			try {
@@ -107,34 +157,16 @@ export class AudioPlayer extends HTMLElement {
 				this.currentTrack = this.trackQueue[this.currentQueueIndex]
 
 				if (this.currentQueueIndex == null) { this.currentQueueIndex = 0 }
-				let sourceUrl
-				if (isNullOrWhiteSpace(this.currentTrack.id)) {
-					if (isNullOrWhiteSpace(this.currentTrack.video_id)) { throw new Error("Cannot play song without either a library id or video id") }
-					// Play the song directly from YouTube
-					sourceUrl = await CacheSongFromYouTube(this.currentTrack.video_id)
-					if (sourceUrl == null) { throw new Error("error downloading song from YouTube") }
-				} else {
-					// Play the song from the Tuna library
-					sourceUrl = "./play-song?library-uuid=" + this.currentTrack.id
 
+				await this.LoadSongInAudioPlayer(this.currentTrack)
+				await this.audioElement.play()
+
+				if (this.audioElement.src.startsWith("blob:") === false) {
 					// The incremental number of plays statistic will only apply if the song is played from the tuna library
 					this.currentTrack.date_last_played = CurrentUtcTimestamp()
 					this.currentTrack.number_of_plays += 1
 				}
-
-				this.audioElement.src = sourceUrl
-				this.albumImage.src = this.currentTrack.album_art || "../../assets/img/no-album-art.png"
-				await this.audioElement.play()
-
-				navigator.mediaSession.metadata = new MediaMetadata({
-					title: this.currentTrack.title,
-					artist: this.currentTrack.artist,
-					album: this.currentTrack.album,
-					artwork: [{ src: this.currentTrack.album_art }]
-				})
-
 				this.consecutiveErrorCount = 0
-
 				resolve(true)
 			} catch (e) {
 				this.consecutiveErrorCount++
@@ -198,7 +230,11 @@ export class AudioPlayer extends HTMLElement {
 	/** @param {TrackData} trackData */
 	AddTrackToQueue(trackData) {
 		if (this.GetTrackIndexInQueue(trackData) === -1) {
-			this.trackQueue.push(new TrackData({ ...trackData }))
+			const clonedTrack = new TrackData({ ...trackData })
+			this.trackQueue.push(clonedTrack)
+			if (this.trackQueue.length === 1) {
+				this.LoadSongInAudioPlayer(clonedTrack)
+			}
 			return true
 		} else {
 			return false
@@ -212,7 +248,7 @@ export class AudioPlayer extends HTMLElement {
 			this.AddTrackToQueue(trackData)
 		} else {
 			this.RemoveTrackFromQueue(trackData)
-			this.trackQueue.splice(this.currentQueueIndex + 1, 0, new TrackData({...trackData}))
+			this.trackQueue.splice(this.currentQueueIndex + 1, 0, new TrackData({ ...trackData }))
 		}
 	}
 

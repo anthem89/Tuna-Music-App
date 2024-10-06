@@ -6,15 +6,18 @@ const router = express.Router()
 
 router.get("/", async (req, res) => {
 	try {
+		const userId = req.user?.id
+		if (userId == null) { throw new Error("A valid user id is required") }
+
 		let searchResults = await ytMusic.searchSongs(req.query["query"])
-		await TestIfVideoIdExistsInLibrary(searchResults)
+		await TestIfVideoIdExistsInLibrary(searchResults, userId)
 		res.send(searchResults)
 	} catch (error) {
 		res.status(404).send({ error: e.toString() })
 	}
 })
 
-async function TestIfVideoIdExistsInLibrary(searchResults) {
+async function TestIfVideoIdExistsInLibrary(searchResults, userId) {
 	return new Promise(async (resolve, reject) => {
 		try {
 			if (Array.isArray(searchResults) == false || searchResults.length === 0) {
@@ -23,8 +26,8 @@ async function TestIfVideoIdExistsInLibrary(searchResults) {
 			}
 			const videoIds = searchResults.map((searchResult) => searchResult.videoId)
 			// Build the query to search the songs table for matching video id's
-			let placeholders = []
-			let params = []
+			let placeholders = ["?"]
+			let params = [userId]
 			videoIds.forEach(videoId => {
 				if (videoId && videoId !== "") {
 					placeholders.push("?")
@@ -38,7 +41,8 @@ async function TestIfVideoIdExistsInLibrary(searchResults) {
 			}
 			const query = `
 				SELECT video_id, id FROM songs
-				WHERE video_id IN (${placeholders.join(", ")});
+				WHERE user_id = ?
+				AND video_id IN (${placeholders.join(", ")});
 			`
 			const dbResult = await Database.readQuery(query, params)
 			if (Array.isArray(dbResult) && dbResult.length > 0) {

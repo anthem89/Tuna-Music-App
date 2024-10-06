@@ -13,6 +13,7 @@ import { SearchPodcastsScreen } from "./screens/search-podcasts-screen.js"
 import { PodcastsScreen } from "./screens/podcasts-screen.js"
 import { SettingsScreen } from "./screens/settings-screen.js"
 import { NowPlayingScreen } from "./screens/now-playing-screen.js"
+import { SaveSessionState, RestoreSessionState } from "./app-functions.js"
 
 /** @type {banners.AlertBanner} */
 export const AlertBanner = document.querySelector("alert-banner")
@@ -22,7 +23,10 @@ export const ConfirmationModal = document.querySelector("confirmation-modal")
 export const AppNavigationHistory = new NavigationHistory()
 /** @type {AudioPlayer} */
 export const AudioPlayerElement = document.querySelector("audio-player")
-export let currentScreenKey = null
+export let CurrentScreen = {
+	screenKey: null,
+	args: null
+}
 
 export const NavMenuStructure = {
 	homeSection: { "title": null, "parent": null },
@@ -65,12 +69,13 @@ export function SwitchToScreen(screenKey, args) {
 	const targetScreen = NavMenuStructure[screenKey]
 
 	if (targetScreen != null) {
-		if (currentScreenKey !== screenKey) {
+		if (CurrentScreen.screenKey !== screenKey) {
 			// Emit an event before switching screens. This allows attached listeners to cancel the screen switch if needed.
 			const event = new CustomEvent('beforeSwitchToScreen', { cancelable: true, detail: { screenKey: screenKey, args: args } })
 			document.dispatchEvent(event)
 			if (event.defaultPrevented) { return }
-			currentScreenKey = screenKey
+			CurrentScreen.screenKey = screenKey
+			CurrentScreen.args = args
 
 			if (targetScreen.prototype != null) {
 				// Remove the contents of the previously active module
@@ -260,7 +265,6 @@ function InitializeUi() {
 
 	InitializeSwipeGestures()
 
-	SwitchToScreen("home")
 }
 
 // Hack to force PWA app to calculate screen height correctly after a page redirect
@@ -377,10 +381,29 @@ window.addEventListener("popstate", (e) => {
 	}
 })
 
-window.addEventListener("beforeunload", (e) => {
-	if (isMobileView() === true) {
-		e.preventDefault()
+export let isMobileUserAgent
+async function InitializeAppStateChangeListeners() {
+	if (navigator.userAgentData) {
+		const ua = await navigator.userAgentData.getHighEntropyValues(["platform"])
+		isMobileUserAgent = ua.platform === "Android" || ua.platform === "iOS"
+	} else {
+		isMobileUserAgent = /Mobi|Android/i.test(navigator.userAgent)
 	}
-})
+
+	if (isMobileUserAgent === true) {
+		document.onvisibilitychange = () => {
+			if (document.visibilityState === "hidden") {
+				SaveSessionState(true)
+			}
+		}
+	} else {
+		window.addEventListener("unload", () => {
+			SaveSessionState(true)
+		})
+	}
+}
+
 
 InitializeUi()
+InitializeAppStateChangeListeners()
+RestoreSessionState()

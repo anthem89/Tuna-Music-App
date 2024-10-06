@@ -1,4 +1,4 @@
-import { AlertBanner, SessionExpired, ConfirmationModal } from "./index.js"
+import { AlertBanner, SessionExpired, ConfirmationModal, AudioPlayerElement, CurrentScreen, SwitchToScreen } from "./index.js"
 import { isNullOrWhiteSpace } from "./utils.js"
 import { TrackData, PlaylistData } from "./components/data-models.js"
 import { AppSettings } from "./screens/settings-screen.js"
@@ -242,5 +242,50 @@ export function CleanupTemporarySongBlobCache(numberOfItemsToKeep = 10) {
 			URL.revokeObjectURL(temporarySongCache[key])
 			delete temporarySongCache[key]
 		})
+	}
+}
+
+
+// Before quitting the app, store the current state in localstorage so it can be restored for the next session
+// This includes saving the current queue, current track, current playlist, and current track progress
+export function SaveSessionState(includeFullSessionState) {
+	const sessionTrackData = {
+		currentQueueIndex: AudioPlayerElement.currentQueueIndex,
+		currentTrackProgress: AudioPlayerElement.audioElement.currentTime,
+	}
+	if (includeFullSessionState === true) {
+		const sessionStateData = {
+			trackQueue: AudioPlayerElement.trackQueue,
+			currentPlaylistId: AudioPlayerElement.currentPlaylistId,
+			currentScreenKey: ["searchMusic", "settings"].includes(CurrentScreen.screenKey) ? "home" : CurrentScreen.screenKey,
+			currentScreenArgs: CurrentScreen.args,
+		}
+		localStorage.setItem("session-state", JSON.stringify(sessionStateData))
+		localStorage.setItem("session-track-state", JSON.stringify(sessionTrackData))
+	} else {
+		localStorage.setItem("session-track-state", JSON.stringify(sessionTrackData))
+	}
+}
+
+export function RestoreSessionState() {
+	const appStateJson = localStorage.getItem("session-state")
+	const trackStateJson = localStorage.getItem("session-track-state")
+
+	if (isNullOrWhiteSpace(appStateJson) === false && isNullOrWhiteSpace(trackStateJson) === false) {
+		const appState = JSON.parse(appStateJson)
+		const trackState = JSON.parse(trackStateJson)
+
+		AudioPlayerElement.UpdateQueue(appState.trackQueue, appState.currentPlaylistId)
+		AudioPlayerElement.currentQueueIndex = trackState.currentQueueIndex
+		AudioPlayerElement.audioElement.currentTime = trackState.currentTrackProgress
+		
+		if (AudioPlayerElement.trackQueue.length > 0) {
+			AudioPlayerElement.currentTrack = AudioPlayerElement.trackQueue[AudioPlayerElement.currentQueueIndex]
+			AudioPlayerElement.LoadSongInAudioPlayer(AudioPlayerElement.currentTrack)
+			AudioPlayerElement.isPaused = true
+		}
+		SwitchToScreen(appState.currentScreenKey, appState.currentScreenArgs)
+	} else {
+		SwitchToScreen("home")
 	}
 }
