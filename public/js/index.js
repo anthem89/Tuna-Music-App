@@ -13,7 +13,7 @@ import { SearchPodcastsScreen } from "./screens/search-podcasts-screen.js"
 import { PodcastsScreen } from "./screens/podcasts-screen.js"
 import { SettingsScreen } from "./screens/settings-screen.js"
 import { NowPlayingScreen } from "./screens/now-playing-screen.js"
-import { SaveSessionState, RestoreSessionState } from "./app-functions.js"
+import { SaveSessionState, RestoreSessionState, GetUserPlaylists } from "./app-functions.js"
 
 /** @type {banners.AlertBanner} */
 export const AlertBanner = document.querySelector("alert-banner")
@@ -208,7 +208,7 @@ function BuildSideBarNavMenu() {
 }
 
 
-function InitializeUi() {
+async function InitializeUi() {
 	// Sidebar Toggle
 	document.querySelector(".toggle-sidebar-btn").onclick = () => {
 		ToggleSideNavMenu(!document.body.classList.contains("sidebar-visible"))
@@ -265,6 +265,7 @@ function InitializeUi() {
 
 	InitializeSwipeGestures()
 
+	await GetUserPlaylists()
 }
 
 // Hack to force PWA app to calculate screen height correctly after a page redirect
@@ -403,7 +404,9 @@ async function InitializeAppStateChangeListeners() {
 	}
 }
 
-
-InitializeUi()
 InitializeAppStateChangeListeners()
-RestoreSessionState()
+InitializeUi()
+	.then(() => {
+		RestoreSessionState()
+	})
+

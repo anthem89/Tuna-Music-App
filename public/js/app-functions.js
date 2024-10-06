@@ -7,7 +7,6 @@ const pendingDownloads = {}
 const temporarySongCache = {}
 /** @type {PlaylistData[]} */
 export let PlaylistCache = []
-GetUserPlaylists()
 
 export function CacheSongFromYouTube(videoId) {
 	return new Promise(async (resolve) => {
@@ -278,7 +277,7 @@ export function RestoreSessionState() {
 		AudioPlayerElement.UpdateQueue(appState.trackQueue, appState.currentPlaylistId)
 		AudioPlayerElement.currentQueueIndex = trackState.currentQueueIndex
 		AudioPlayerElement.audioElement.currentTime = trackState.currentTrackProgress
-		
+
 		if (AudioPlayerElement.trackQueue.length > 0) {
 			AudioPlayerElement.currentTrack = AudioPlayerElement.trackQueue[AudioPlayerElement.currentQueueIndex]
 			AudioPlayerElement.LoadSongInAudioPlayer(AudioPlayerElement.currentTrack)
