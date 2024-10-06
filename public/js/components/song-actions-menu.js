@@ -1,7 +1,7 @@
 import { ContextMenu } from "./context-menu.js"
 import * as AppFunctions from "../app-functions.js"
 import { SongTile } from "./song-tile.js"
-import { AlertBanner } from "../index.js"
+import { AlertBanner, AudioPlayerElement, FeatureNotAvailableYetNotice } from "../index.js"
 import { isMobileView } from "../utils.js"
 import { TrackData } from "./data-models.js"
 
@@ -61,31 +61,36 @@ export class SongActionsMenu extends ContextMenu {
 			},
 			"divider",
 			{
-				text: "Play next",
+				text: "Set to play next",
 				iconClass: "bi bi-arrow-return-right",
-				clickEvent: () => { }
+				clickEvent: () => { AudioPlayerElement.SetTrackToPlayNextInQueue(this.targetSongTile.trackData) }
 			},
 			{
 				text: "Add to queue",
 				iconClass: "bi bi-list-task",
-				clickEvent: () => { }
+				clickEvent: () => { this.#addToQueue() }
+			},
+			{
+				text: "Remove from queue",
+				iconClass: "bi bi-list-task",
+				clickEvent: () => { this.#removeFromQueue() }
 			},
 			"divider",
 			{
 				text: "View artist",
 				iconClass: "bi bi-person",
-				clickEvent: () => { }
+				clickEvent: () => { FeatureNotAvailableYetNotice() }
 			},
 			{
 				text: "View album",
 				iconClass: "bi bi-disc",
-				clickEvent: () => { }
+				clickEvent: () => { FeatureNotAvailableYetNotice() }
 			},
 			"divider",
 			{
 				text: "Edit song attributes",
 				iconClass: "bi bi-pencil-square",
-				clickEvent: () => { }
+				clickEvent: () => { FeatureNotAvailableYetNotice() }
 			},
 		]
 
@@ -96,7 +101,18 @@ export class SongActionsMenu extends ContextMenu {
 		this.targetSongTile = targetSongTile
 		this.#createMenuHeader(this.targetSongTile.trackData)
 		this.#populateUserPlaylists()
-		this.SetVisibleOptions({ downloadToLibrary: targetSongTile.trackData.id == null && !targetSongTile.isDownloading })
+
+		const trackPositionInNowPlayingQueue = AudioPlayerElement.GetTrackIndexInQueue(this.targetSongTile.trackData)
+		const trackExistsInNowPlayingQueue = trackPositionInNowPlayingQueue > -1
+		const trackIsCurrentlyPlaying = trackPositionInNowPlayingQueue === AudioPlayerElement.currentQueueIndex
+
+		this.SetVisibleOptions({
+			downloadToLibrary: targetSongTile.trackData.id == null && !targetSongTile.isDownloading,
+			addToQueue: !trackExistsInNowPlayingQueue,
+			removeFromQueue: trackExistsInNowPlayingQueue,
+			playNext: !trackIsCurrentlyPlaying,
+		})
+
 		super.ForceShow(posX, posY, targetElementHeight, defaultSelection, autoPosition, targetSongTile)
 	}
 
@@ -133,7 +149,7 @@ export class SongActionsMenu extends ContextMenu {
 		}
 	}
 
-	SetVisibleOptions({ playSong, addToPlaylist, removeFromPlaylist, downloadToLibrary, removeFromLibrary, downloadToDevice, playNext, addToQueue, viewArtist, viewAlbum, editSongAttributes } = {}) {
+	SetVisibleOptions({ playSong, addToPlaylist, removeFromPlaylist, downloadToLibrary, removeFromLibrary, downloadToDevice, playNext, addToQueue, removeFromQueue, viewArtist, viewAlbum, editSongAttributes } = {}) {
 		for (let option of this._menuOptions) {
 			if (option === "divider") { continue }
 			if (option.text === "Play song") { if (playSong != null) { option.hidden = !playSong } }
@@ -142,8 +158,9 @@ export class SongActionsMenu extends ContextMenu {
 			if (option.text === "Download to library") { if (downloadToLibrary != null) { option.hidden = !downloadToLibrary } }
 			if (option.text === "Remove from library") { if (removeFromLibrary != null) { option.hidden = !removeFromLibrary } }
 			if (option.text === "Download to device") { if (downloadToDevice != null) { option.hidden = !downloadToDevice } }
-			if (option.text === "Play next") { if (playNext != null) { option.hidden = !playNext } }
+			if (option.text === "Set to play next") { if (playNext != null) { option.hidden = !playNext } }
 			if (option.text === "Add to queue") { if (addToQueue != null) { option.hidden = !addToQueue } }
+			if (option.text === "Remove from queue") { if (removeFromQueue != null) { option.hidden = !removeFromQueue } }
 			if (option.text === "View artist") { if (viewArtist != null) { option.hidden = !viewArtist } }
 			if (option.text === "View album") { if (viewAlbum != null) { option.hidden = !viewAlbum } }
 			if (option.text === "Edit song attributes") { if (editSongAttributes != null) { option.hidden = !editSongAttributes } }
@@ -175,7 +192,7 @@ export class SongActionsMenu extends ContextMenu {
 			// Download the song
 			const libraryUuid = await AppFunctions.DownloadSongToLibrary(trackData)
 			targetSongTile.trackData.id = libraryUuid
-			targetSongTile.closest("tr")?.querySelectorAll(".already-downloaded-checkmark").forEach((el)=>{el.classList.toggle("hidden", false)})
+			targetSongTile.closest("tr")?.querySelectorAll(".already-downloaded-checkmark").forEach((el) => { el.classList.toggle("hidden", false) })
 			AlertBanner.Toggle(true, true, "Song added to library", 7000, AlertBanner.bannerColors.success)
 		} catch (e) {
 			AlertBanner.Toggle(true, true, "Error downloading song", 7000, AlertBanner.bannerColors.error)
@@ -188,8 +205,9 @@ export class SongActionsMenu extends ContextMenu {
 			const targetSongTile = this.targetSongTile
 			AppFunctions.RemoveSongsFromLibrary([targetSongTile.trackData.id])
 			targetSongTile.Remove(this.parentPlaylistId, true)
+			AlertBanner.Toggle(true, true, "Song removed from library", 7000, AlertBanner.bannerColors.success)
 		} catch (e) {
-			AlertBanner.Toggle(true, true, "Error removing song(s) from library", 7000, AlertBanner.bannerColors.error)
+			AlertBanner.Toggle(true, true, "Error removing song from library", 7000, AlertBanner.bannerColors.error)
 		}
 	}
 
@@ -198,8 +216,30 @@ export class SongActionsMenu extends ContextMenu {
 			const targetSongTile = this.targetSongTile
 			AppFunctions.RemoveSongsFromPlaylist(this.parentPlaylistId, [targetSongTile.trackData.id])
 			targetSongTile.Remove(this.parentPlaylistId, false)
+			AlertBanner.Toggle(true, true, "Song removed from playlist", 7000, AlertBanner.bannerColors.success)
 		} catch (e) {
-			AlertBanner.Toggle(true, true, "Error removing song(s) from library", 7000, AlertBanner.bannerColors.error)
+			AlertBanner.Toggle(true, true, "Error removing song from playlist", 7000, AlertBanner.bannerColors.error)
+		}
+	}
+
+	async #removeFromQueue() {
+		try {
+			if (this.parentPlaylistId === "now-playing-queue") {
+				this.targetSongTile.Remove(this.parentPlaylistId, true)
+			} else {
+				AudioPlayerElement.RemoveTrackFromQueue(this.targetSongTile.trackData)
+			}
+			AlertBanner.Toggle(true, true, "Song removed from queue", 7000, AlertBanner.bannerColors.success)
+		} catch (e) {
+			AlertBanner.Toggle(true, true, "Error removing song from queue", 7000, AlertBanner.bannerColors.error)
+		}
+	}
+
+	#addToQueue() {
+		if (AudioPlayerElement.AddTrackToQueue(this.targetSongTile.trackData) === true) {
+			AlertBanner.Toggle(true, true, "Song added to queue", 7000, AlertBanner.bannerColors.success)
+		} else {
+			AlertBanner.Toggle(true, true, "Song is already in queue", 7000, AlertBanner.bannerColors.info)
 		}
 	}
 }

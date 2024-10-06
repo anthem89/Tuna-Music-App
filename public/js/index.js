@@ -48,6 +48,10 @@ export function SessionExpired() {
 	window.location.href = "/login?session-expired"
 }
 
+export function FeatureNotAvailableYetNotice() {
+	AlertBanner.Toggle(true, true, "This feature isn't available yet", 7000, AlertBanner.bannerColors.caution)
+}
+
 export async function LogOut() {
 	const res = await fetch("/logout")
 	if (res.redirected) {

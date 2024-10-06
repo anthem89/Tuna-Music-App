@@ -103,7 +103,7 @@ export class AudioPlayer extends HTMLElement {
 	PlaySong(trackData, playNextOnFailure = false) {
 		return new Promise(async (resolve) => {
 			try {
-				this.currentQueueIndex = this.#getTrackIndexInQueue(trackData)
+				this.currentQueueIndex = this.GetTrackIndexInQueue(trackData)
 				this.currentTrack = this.trackQueue[this.currentQueueIndex]
 
 				if (this.currentQueueIndex == null) { this.currentQueueIndex = 0 }
@@ -173,7 +173,7 @@ export class AudioPlayer extends HTMLElement {
 
 	/** @param {TrackData} targetTrackData */
 	async RemoveTrackFromQueue(targetTrackData) {
-		const targetIndex = this.#getTrackIndexInQueue(targetTrackData)
+		const targetIndex = this.GetTrackIndexInQueue(targetTrackData)
 		// If the track is not found, do nothing
 		if (targetIndex === -1) { return }
 		if (this.trackQueue.length > 1) {
@@ -195,12 +195,33 @@ export class AudioPlayer extends HTMLElement {
 		}
 	}
 
+	/** @param {TrackData} trackData */
+	AddTrackToQueue(trackData) {
+		if (this.GetTrackIndexInQueue(trackData) === -1) {
+			this.trackQueue.push(new TrackData({ ...trackData }))
+			return true
+		} else {
+			return false
+		}
+	}
+
+	/** @param {TrackData} trackData */
+	SetTrackToPlayNextInQueue(trackData) {
+		const targetTrackIndex = this.GetTrackIndexInQueue(trackData)
+		if (targetTrackIndex === -1) {
+			this.AddTrackToQueue(trackData)
+		} else {
+			this.RemoveTrackFromQueue(trackData)
+			this.trackQueue.splice(this.currentQueueIndex + 1, 0, new TrackData({...trackData}))
+		}
+	}
+
 	ClearQueue() {
 		this.UpdateQueue([], null)
 	}
 
 	/** @param {TrackData} targetTrackData */
-	#getTrackIndexInQueue(targetTrackData) {
+	GetTrackIndexInQueue(targetTrackData) {
 		return this.trackQueue.findIndex((trackData) => {
 			if (targetTrackData.id != null) {
 				return targetTrackData.id === trackData.id
