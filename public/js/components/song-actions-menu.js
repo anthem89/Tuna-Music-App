@@ -41,7 +41,7 @@ export class SongActionsMenu extends ContextMenu {
 			{
 				text: "Remove from playlist",
 				iconClass: "bi bi-dash-circle",
-				clickEvent: () => { }
+				clickEvent: () => { this.#removeFromPlaylist() }
 			},
 			"divider",
 			{
@@ -193,6 +193,15 @@ export class SongActionsMenu extends ContextMenu {
 		}
 	}
 
+	async #removeFromPlaylist() {
+		try {
+			const targetSongTile = this.targetSongTile
+			AppFunctions.RemoveSongsFromPlaylist(this.parentPlaylistId, [targetSongTile.trackData.id])
+			targetSongTile.Remove(this.parentPlaylistId, false)
+		} catch (e) {
+			AlertBanner.Toggle(true, true, "Error removing song(s) from library", 7000, AlertBanner.bannerColors.error)
+		}
+	}
 }
 
 

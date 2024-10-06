@@ -141,14 +141,17 @@ export function OpenCreatePlaylistDialog({ addSongIdOnSubmit } = {}) {
 	ConfirmationModal.Show("Create new playlist", html, submitCallback, null, "Create", "Cancel", false, true)
 }
 
-/** @param {TrackData[]} */
-export function AddSongsToPlaylist(playlistId, trackDataArray) {
+/**
+ * @param {String} playlistId
+ * @param {String[]} trackIdArray
+ */
+export function AddSongsToPlaylist(playlistId, trackIdArray) {
 	return new Promise(async (resolve, reject) => {
 		try {
 			const reqHeader = { "Content-Type": "application/json" }
 			const body = {
 				playlistId: playlistId,
-				songIds: trackDataArray
+				songIds: trackIdArray
 			}
 			const res = await fetch("/playlists/add-songs", { method: "POST", body: JSON.stringify(body), headers: reqHeader })
 			const resJson = await res.json()
@@ -160,6 +163,33 @@ export function AddSongsToPlaylist(playlistId, trackDataArray) {
 			}
 		} catch (e) {
 			AlertBanner.Toggle(true, true, "Error adding song(s) to playlist", 7000, AlertBanner.bannerColors.error)
+		}
+		resolve()
+	})
+}
+
+/**
+ * @param {String} playlistId
+ * @param {String[]} trackIdArray
+ */
+export function RemoveSongsFromPlaylist(playlistId, trackIdArray) {
+	return new Promise(async (resolve, reject) => {
+		try {
+			const reqHeader = { "Content-Type": "application/json" }
+			const body = {
+				playlistId: playlistId,
+				songIds: trackIdArray
+			}
+			const res = await fetch("/playlists/remove-songs", { method: "POST", body: JSON.stringify(body), headers: reqHeader })
+			const resJson = await res.json()
+			const plural = resJson.removedCount > 1 ? "s" : ""
+			if (resJson.removedCount > 0) {
+				AlertBanner.Toggle(true, true, "Removed " + resJson.removedCount + " song" + plural + " from playlist", 7000, AlertBanner.bannerColors.success)
+			} else {
+				throw new Error("Database returned 0 songs removed")
+			}
+		} catch (e) {
+			AlertBanner.Toggle(true, true, "Error removing song(s) from playlist", 7000, AlertBanner.bannerColors.error)
 		}
 		resolve()
 	})
