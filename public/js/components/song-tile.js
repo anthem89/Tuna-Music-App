@@ -22,7 +22,7 @@ export class SongTile extends MediaTile {
 			if (AudioPlayerElement.currentPlaylistId !== parentPlaylistId || parentPlaylistId == null) {
 				/** @type {InfiniteScrollSongs} */
 				const parentInfiniteScroll = this.closest("infinite-scroll-songs")
-				AudioPlayerElement.UpdateQueue(parentInfiniteScroll?.trackDataArray || [], parentPlaylistId)
+				AudioPlayerElement.UpdateQueue(parentInfiniteScroll?.trackDataArray || [this.trackData], parentPlaylistId)
 			}
 
 			await AudioPlayerElement.PlaySong(this.trackData, false)

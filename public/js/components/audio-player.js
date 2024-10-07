@@ -59,7 +59,7 @@ export class AudioPlayer extends HTMLElement {
 				lastSave = Date.now()
 			}
 		}
-		
+
 		this.audioElement.ontimeupdate = () => {
 			// Since mobile browsers don't fire the unload event (allowing the opportunity to save session state) when the app is minimized, the session state must be periodically saved when the app is hidden
 			if (isMobileUserAgent === true && document.visibilityState === "hidden") {
@@ -108,9 +108,11 @@ export class AudioPlayer extends HTMLElement {
 			if (updateRowStats === true && mediaTile.tagName === "SONG-TILE") {
 				const tableRow = mediaTile.closest("tr")
 				if (tableRow != null) {
-					tableRow.querySelector("td[name='date_last_played'] span").textContent = mediaTile.trackData.date_last_played ? dayjs(mediaTile.trackData.date_last_played + "Z").fromNow() : "N/A"
 					if (this.currentTrack.id === mediaTile.trackData.id || this.currentTrack.video_id === mediaTile.trackData.video_id) {
-						tableRow.querySelector("td[name='number_of_plays']").textContent = this.currentTrack.number_of_plays || "0"
+						const dateLastPlayedCell = tableRow.querySelector("td[name='date_last_played'] span")
+						if (dateLastPlayedCell != null) { dateLastPlayedCell.textContent = mediaTile.trackData.date_last_played ? dayjs(mediaTile.trackData.date_last_played + "Z").fromNow() : "N/A" }
+						const numberOfPlaysCell = tableRow.querySelector("td[name='number_of_plays']")
+						if (numberOfPlaysCell != null) { numberOfPlaysCell.textContent = this.currentTrack.number_of_plays || "0" }
 					}
 				}
 			}
@@ -154,9 +156,9 @@ export class AudioPlayer extends HTMLElement {
 		return new Promise(async (resolve) => {
 			try {
 				this.currentQueueIndex = this.GetTrackIndexInQueue(trackData)
-				this.currentTrack = this.trackQueue[this.currentQueueIndex]
+				if (this.currentQueueIndex === -1) { this.currentQueueIndex = 0 }
 
-				if (this.currentQueueIndex == null) { this.currentQueueIndex = 0 }
+				this.currentTrack = this.trackQueue[this.currentQueueIndex]
 
 				await this.LoadSongInAudioPlayer(this.currentTrack)
 				await this.audioElement.play()

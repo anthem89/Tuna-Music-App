@@ -14,7 +14,7 @@ export class InfiniteScrollSongs extends HTMLElement {
 
 		this.apiEndpoint = apiEndpoint
 		this.batchSize = 25 // The number of items to show using scroll virtualization
-		this.rowHeight = 66.8 // Must match the height in px of each tr element
+		this.rowHeight = 71.6 // Must match the height in px of each tr element
 		this.tbodyIndex = 0
 		this.scrollEnd = false
 

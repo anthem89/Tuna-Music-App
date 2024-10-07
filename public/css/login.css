@@ -25,6 +25,11 @@ body {
 	overflow: hidden;
 }
 
+.tuna-font {
+	font-family: "Anton", sans-serif;
+	font-style: italic;
+}
+
 .logo-container {
 	display: flex;
 	flex-direction: column;
@@ -37,10 +42,7 @@ body {
 
 .logo {
 	color: var(--darkText);
-	font-family: "Anton", sans-serif;
-	font-weight: bold;
 	font-size: 36px;
-	font-style: italic;
 	padding: 0px 10px;
 	margin: 0px 0px 10px 0px;
 }
@@ -53,7 +55,7 @@ h3 {
 
 .login-container {
 	background-color: var(--white);
-	padding: 20px;
+	padding: 50px;
 	border-radius: 15px;
 	box-shadow: 3px 3px 7px var(--shadow);
 	width: 300px;
@@ -93,7 +95,7 @@ input[type="password"] {
 	width: calc(100% - 20px);
 	padding: 10px;
 	margin: 10px 0px;
-	border: 1px solid var(--lightGray);
+	border: 1px solid rgb(160, 160, 160);
 	border-radius: 5px;
 	outline: none;
 }

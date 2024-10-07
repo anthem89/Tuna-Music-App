@@ -1,3 +1,8 @@
+.tuna-font {
+	font-family: "Anton", sans-serif;
+	font-style: italic;
+}
+
 /* Apply header-collapse class to document body in order to collapse the app header */
 body.header-collapse .header {
 	height: 0px !important;
@@ -51,7 +56,7 @@ body.header-collapse #module-content-container {
 		font-size: 24px;
 		color: var(--tunaPink);
 		height: 100%;
-		padding-left: 10px;
+		padding: 15px 0px 15px 10px;
 	}
 
 	/* When scrolling in mobile view, collapse the module title to the app header to save vertical space */
@@ -63,13 +68,14 @@ body.header-collapse #module-content-container {
 		transition: all 0.3s ease;
 		height: 45px;
 		margin-bottom: 0px;
+		margin-left: 10px;
 	}
 
 	#module-content-container.collapse-to-header #module-title {
 		position: absolute;
 		z-index: 1000;
-		font-size: 18px;
-		transform: translate3d(70px, -55px, 10px);
+		font-size: 22px;
+		transform: translate3d(60px, -58px, 10px);
 	}
 }
 
@@ -96,6 +102,7 @@ body.header-collapse #module-content-container {
 	border-radius: 5px;
 	overflow: hidden;
 	position: relative;
+	box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.4);
 }
 
 .media-tile .media-tile-image .loading-spinner {
@@ -152,8 +159,12 @@ body.header-collapse #module-content-container {
 	font-size: 16px;
 }
 
-.media-tile.is-playing .media-tile-primary-text{
+.media-tile.is-playing .media-tile-primary-text {
 	color: var(--tunaPink);
+}
+
+.media-tile .media-tile-secondary-text {
+	color: var(--darkGray);
 }
 
 .media-tile span {
@@ -181,12 +192,13 @@ body.header-collapse #module-content-container {
 .media-list-table table,
 .media-list-table {
 	width: 100%;
-	border-spacing: 0px 5px;
+	border-spacing: 0px 10px;
 	border-collapse: separate;
 }
 
 /* Desktop View */
 @media (min-width: 992px) {
+
 	.media-list-table table,
 	.media-list-table {
 		min-width: 900px;
@@ -222,7 +234,7 @@ body.header-collapse #module-content-container {
 
 .media-list-table .action-link {
 	cursor: pointer !important;
-	padding: 15px 5px;
+	padding: 21px 10px;
 }
 
 .media-actions-menu .media-actions-menu-header {
@@ -234,28 +246,29 @@ body.header-collapse #module-content-container {
 .media-actions-menu .media-actions-menu-header img {
 	border-radius: 5px;
 	min-width: 40px;
-    max-width: 40px;
-    width: 40px;
-    min-height: 40px;
-    max-height: 40px;
-    height: 40px;
+	max-width: 40px;
+	width: 40px;
+	min-height: 40px;
+	max-height: 40px;
+	height: 40px;
 	margin-right: 5px;
 }
 
-.media-actions-menu .media-actions-menu-header span{
+.media-actions-menu .media-actions-menu-header span {
 	color: var(--regularText);
 	font-style: normal;
 	text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
+	overflow: hidden;
+	white-space: nowrap;
 }
 
-.media-actions-menu .media-actions-menu-header span.media-tile-primary-text{
+.media-actions-menu .media-actions-menu-header span.media-tile-primary-text {
 	font-weight: bold;
 	font-size: 14px;
 }
 
-.media-actions-menu .media-actions-menu-header span.media-tile-secondary-text{
+.media-actions-menu .media-actions-menu-header span.media-tile-secondary-text {
 	font-weight: normal;
 	font-size: 12px;
+	color: var(--darkGray);
 }
