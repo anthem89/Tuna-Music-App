@@ -66,9 +66,7 @@ body.header-collapse #module-content-container {
 
 	#module-title {
 		transition: all 0.3s ease;
-		height: 45px;
 		margin-bottom: 0px;
-		margin-left: 10px;
 	}
 
 	#module-content-container.collapse-to-header #module-title {

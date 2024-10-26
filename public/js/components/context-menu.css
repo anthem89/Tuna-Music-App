@@ -46,6 +46,7 @@
 	display: flex;
 	flex-direction: column;
 	overflow-y: auto;
+	overflow-x: hidden;
 	scrollbar-width: none;
 	min-height: 300px;
 	max-height: calc(100dvh - 50px);
@@ -111,6 +112,12 @@
 	padding: 5px 10px;
 	pointer-events: none;
 	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow-x: hidden;
+}
+
+.contextmenu-container.mobile-view .contextmenu-text {
+	margin: 0px;
 }
 
 .contextmenu-icon {
