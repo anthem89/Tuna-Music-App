@@ -30,25 +30,56 @@ export class AudioPlayer extends HTMLElement {
 		this.shadowRoot.innerHTML = `
 			<link href="./js/components/audio-player.css" rel="stylesheet" type="text/css">
 
-			<div id="element-wrapper">
+			<div class="d-flex">
 				<img id="album-image" src="">
-				<audio controls>
-					<source src="" type="audio/mpeg">
-				</audio>
+				<div class="flex-grow-1">
+					<div class="progress-slider-container">
+						<input type="range" min="1" max="100" value="0" class="progress-slider">
+					</div>
+					<div class="d-flex justify-content-between align-items-center">
+						<div class="d-flex flex-column">
+							<span id="song-name" class="clampOneLine"></span>
+							<span id="artist-name" class="clampOneLine"></span>
+						</div>
+						<button id="play-button">
+							<i class="bi bi-play-fill ps-1 play-icon"></i>
+							<i class="bi bi-pause-fill pause-icon"></i>
+						</button>
+					</div>
+				</div>
 			</div>
-
+			<audio>
+				<source src="" type="audio/mpeg">
+			</audio>
 		`
 		InjectGlobalStylesheets(this)
 		this.audioElement = this.shadowRoot.querySelector("audio")
 
+		/** @type {HTMLInputElement} */
+		this.progressSlider = this.shadowRoot.querySelector(".progress-slider")
+		this.progressSlider.oninput = (e) => { this.#updateProgressSlider((e.target.value / this.progressSlider.max) * 100) }
+		this.progressSlider.onmousedown = (e) => { this.#progressSliderDragState(true) }
+		this.progressSlider.onmouseup = (e) => { this.#progressSliderDragState(false) }
+		this.progressSlider.ontouchstart = (e) => { this.#progressSliderDragState(true) }
+		this.progressSlider.ontouchend = (e) => {
+			this.#progressSliderDragState(false)
+			if (this.progressSliderIsDragging === true) {
+				this.#updateProgressSlider((e.target.value / this.progressSlider.max) * 100)
+			}
+		}
+		this.progressSliderIsDragging = false
+
 		this.albumImage = this.shadowRoot.querySelector("img")
 		this.albumImage.onerror = (e) => { e.target.src = "../../assets/img/no-album-art.png" }
 
+		this.playButton = this.shadowRoot.querySelector("#play-button")
+		this.playButton.onclick = () => { this.isPlaying === true ? this.audioElement.pause() : this.audioElement.play() }
 
 		let lastSave = 0
 		this.audioElement.onended = async () => {
 			this.isPlaying = false
 			this.isPaused = false
+			this.playButton.classList.toggle("is-playing", false)
 			if (this.trackQueue.length > 0) {
 				await this.PlayNextSongInQueue()
 			}
@@ -60,7 +91,12 @@ export class AudioPlayer extends HTMLElement {
 			}
 		}
 
-		this.audioElement.ontimeupdate = () => {
+		this.audioElement.ontimeupdate = (e) => {
+			// Sync the progress slider with the audio element
+			if (this.progressSliderIsDragging === false && isNaN(e.target.currentTime) === false && isNaN(e.target.duration) === false) {
+				this.#updateProgressSlider(e.target.currentTime / e.target.duration * 100)
+			}
+
 			// Since mobile browsers don't fire the unload event (allowing the opportunity to save session state) when the app is minimized, the session state must be periodically saved when the app is hidden
 			if (isMobileUserAgent === true && document.visibilityState === "hidden") {
 				const now = Date.now()
@@ -74,12 +110,14 @@ export class AudioPlayer extends HTMLElement {
 		this.audioElement.onplay = () => {
 			this.isPlaying = true
 			this.isPaused = false
+			this.playButton.classList.toggle("is-playing", true)
 			this.#updateMediaTiles(true)
 		}
 
 		this.audioElement.onpause = () => {
 			this.isPlaying = false
 			this.isPaused = true
+			this.playButton.classList.toggle("is-playing", false)
 		}
 
 		// Set up media session actions
@@ -96,6 +134,19 @@ export class AudioPlayer extends HTMLElement {
 			this.PlayPreviousSongInQueue()
 		})
 
+	}
+
+	#progressSliderDragState(isDragging) {
+		this.progressSliderIsDragging = isDragging
+		this.progressSlider.classList.toggle("slider-is-dragging", isDragging)
+		if (isDragging === false) {
+			this.audioElement.currentTime = (this.progressSlider.value / 100) * this.audioElement.duration
+		}
+	}
+
+	#updateProgressSlider(percent) {
+		this.progressSlider.value = percent
+		this.progressSlider.style.background = `linear-gradient(to right, var(--tunaPink) ${percent}%, var(--white) ${percent}%)`;
 	}
 
 	// Force all song tiles to test if their track id or video_id matches the currently playing track, and update accordingly
@@ -144,6 +195,8 @@ export class AudioPlayer extends HTMLElement {
 
 				this.audioElement.src = sourceUrl
 				this.albumImage.src = albumArt
+				this.shadowRoot.querySelector("#song-name").textContent = trackData.title || "Untitled Track"
+				this.shadowRoot.querySelector("#artist-name").textContent = trackData.artist || "Unknown Artist"
 				resolve()
 			} catch (e) {
 				reject(e)
@@ -272,6 +325,7 @@ export class AudioPlayer extends HTMLElement {
 	#resetAudioElement() {
 		this.isPlaying = false
 		this.isPaused = false
+		this.playButton.classList.toggle("is-playing", false)
 		this.audioElement.src = ""
 		this.audioElement.load()
 	}
@@ -280,6 +334,12 @@ export class AudioPlayer extends HTMLElement {
 		this.albumImage.onerror = null
 		this.audioElement.onended = null
 		this.audioElement.onplay = null
+		this.progressSlider.oninput = null
+		this.progressSlider.ontouchstart = null
+		this.progressSlider.ontouchend = null
+		this.progressSlider.onmousedown = null
+		this.progressSlider.onmouseup = null
+		this.playButton.onclick = null
 	}
 }
 

@@ -74,6 +74,7 @@ body.header-collapse #module-content-container {
 		z-index: 1000;
 		font-size: 22px;
 		transform: translate3d(60px, -58px, 10px);
+		padding-right: 5px;
 	}
 }
 
