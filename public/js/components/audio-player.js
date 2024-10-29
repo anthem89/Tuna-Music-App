@@ -34,7 +34,7 @@ export class AudioPlayer extends HTMLElement {
 				<img id="album-image" src="">
 				<div class="flex-grow-1">
 					<div class="progress-slider-container">
-						<input type="range" min="1" max="100" value="0" class="progress-slider">
+						<input type="range" min="0" max="100" value="0" step="0.01" class="progress-slider">
 					</div>
 					<div class="d-flex justify-content-between align-items-center">
 						<div class="d-flex flex-column">
@@ -108,16 +108,21 @@ export class AudioPlayer extends HTMLElement {
 		}
 
 		this.audioElement.onplay = () => {
-			this.isPlaying = true
+			const srcIsEmpty = isNullOrWhiteSpace(this.audioElement.src)
+			this.isPlaying = !srcIsEmpty
 			this.isPaused = false
-			this.playButton.classList.toggle("is-playing", true)
-			this.#updateMediaTiles(true)
+			this.playButton.classList.toggle("is-playing", !srcIsEmpty)
+			this.#updateMediaTiles(!srcIsEmpty)
 		}
 
 		this.audioElement.onpause = () => {
 			this.isPlaying = false
 			this.isPaused = true
 			this.playButton.classList.toggle("is-playing", false)
+		}
+
+		this.audioElement.onerror = (e) => {
+			this.resetAudioElement()
 		}
 
 		// Set up media session actions
@@ -161,7 +166,7 @@ export class AudioPlayer extends HTMLElement {
 				if (tableRow != null) {
 					if (this.currentTrack.id === mediaTile.trackData.id || this.currentTrack.video_id === mediaTile.trackData.video_id) {
 						const dateLastPlayedCell = tableRow.querySelector("td[name='date_last_played'] span")
-						if (dateLastPlayedCell != null) { dateLastPlayedCell.textContent = mediaTile.trackData.date_last_played ? dayjs(mediaTile.trackData.date_last_played + "Z").fromNow() : "N/A" }
+						if (dateLastPlayedCell != null) { dateLastPlayedCell.textContent = this.currentTrack.date_last_played ? dayjs(this.currentTrack.date_last_played + "Z").fromNow() : "N/A" }
 						const numberOfPlaysCell = tableRow.querySelector("td[name='number_of_plays']")
 						if (numberOfPlaysCell != null) { numberOfPlaysCell.textContent = this.currentTrack.number_of_plays || "0" }
 					}
@@ -197,6 +202,7 @@ export class AudioPlayer extends HTMLElement {
 				this.albumImage.src = albumArt
 				this.shadowRoot.querySelector("#song-name").textContent = trackData.title || "Untitled Track"
 				this.shadowRoot.querySelector("#artist-name").textContent = trackData.artist || "Unknown Artist"
+				document.querySelector("footer").classList.toggle("hidden", false)
 				resolve()
 			} catch (e) {
 				reject(e)
@@ -214,13 +220,15 @@ export class AudioPlayer extends HTMLElement {
 				this.currentTrack = this.trackQueue[this.currentQueueIndex]
 
 				await this.LoadSongInAudioPlayer(this.currentTrack)
-				await this.audioElement.play()
 
 				if (this.audioElement.src.startsWith("blob:") === false) {
 					// The incremental number of plays statistic will only apply if the song is played from the tuna library
 					this.currentTrack.date_last_played = CurrentUtcTimestamp()
 					this.currentTrack.number_of_plays += 1
 				}
+
+				await this.audioElement.play()
+
 				this.consecutiveErrorCount = 0
 				resolve(true)
 			} catch (e) {
@@ -229,8 +237,7 @@ export class AudioPlayer extends HTMLElement {
 				if (playNextOnFailure === true && this.trackQueue.length > 1 && this.consecutiveErrorCount < this.maximumConsecutiveErrorLimit) {
 					this.PlayNextSongInQueue()
 				} else {
-					this.#resetAudioElement()
-					this.#updateMediaTiles(false)
+					this.resetAudioElement()
 				}
 				resolve(false)
 			}
@@ -254,7 +261,7 @@ export class AudioPlayer extends HTMLElement {
 		this.currentQueueIndex = 0
 		// Reset the audio element
 		if (this.trackQueue.length === 0) {
-			this.#resetAudioElement()
+			this.resetAudioElement()
 		}
 	}
 
@@ -267,8 +274,9 @@ export class AudioPlayer extends HTMLElement {
 			// If the song that is currently playing gets removed, skip to the next song
 			if (targetIndex === this.currentQueueIndex) {
 				const wasPlaying = this.isPlaying
+				const wasPaused = this.isPaused
 				await this.PlayNextSongInQueue()
-				if (wasPlaying === false) {
+				if (wasPlaying === false || wasPaused === true) {
 					this.audioElement.pause()
 				}
 			}
@@ -322,12 +330,18 @@ export class AudioPlayer extends HTMLElement {
 		})
 	}
 
-	#resetAudioElement() {
+	resetAudioElement() {
 		this.isPlaying = false
 		this.isPaused = false
 		this.playButton.classList.toggle("is-playing", false)
+		this.albumImage.src = "../../assets/img/no-album-art.png"
+		this.shadowRoot.querySelector("#song-name").textContent = ""
+		this.shadowRoot.querySelector("#artist-name").textContent = ""
+		this.#updateProgressSlider(0)
 		this.audioElement.src = ""
 		this.audioElement.load()
+		document.querySelector("footer").classList.toggle("hidden", true)
+		this.#updateMediaTiles(false)
 	}
 
 	disconnectedCallback() {

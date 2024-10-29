@@ -19,7 +19,7 @@
 	--sidebarWidth: 300px;
 	--footer-gradient: linear-gradient(to bottom,
 			rgba(0, 0, 0, 0),
-			rgb(226, 226, 226, 0.8),
+			rgb(226, 226, 226, 0.2),
 			var(--lightGray));
 }
 

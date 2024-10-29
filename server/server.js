@@ -31,11 +31,12 @@ app.use(compression({
 	threshold: 1024, // Only compress responses larger than 1KB
 }))
 
-// Trust proxy headers (This is needed if using nginx reverse proxy)
-app.set("trust proxy", true)
-
 // Only allow secure connections in production environments
 if (process.env.NODE_ENV !== "development") {
+
+	// Trust proxy headers (This is needed if using nginx reverse proxy)
+	app.set("trust proxy", true)
+	
 	// Enable secure HTTP headers with helmet
 	app.use(helmet())
 	// Redirect HTTP requests to HTTPS
