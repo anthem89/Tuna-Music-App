@@ -54,11 +54,11 @@ export class PlaylistsScreen extends HTMLElement {
 		if (playlistTile == null) { return }
 		if (actionLink != null) {
 			const pos = actionLink.getBoundingClientRect()
-			this.playlistActionsMenu.ForceShow(pos.x, pos.y + pos.height, pos.height, false, true, playlistTile)
+			this.playlistActionsMenu.ForceShow(pos.x, pos.y + pos.height, pos.height, false, true, [playlistTile.playlistData], playlistTile, true)
 		} else {
 			if (e.target.closest(".btn-open-mobile-context-menu") != null) {
 				// User clicked on the "More options" button
-				this.playlistActionsMenu.ForceShow(0, 0, 0, false, false, playlistTile)
+				this.playlistActionsMenu.ForceShow(0, 0, 0, false, false, [playlistTile.playlistData], playlistTile, true)
 			} else {
 				SwitchToScreen("playlistSongs", playlistTile.playlistData)
 			}

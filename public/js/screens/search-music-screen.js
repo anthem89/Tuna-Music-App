@@ -41,7 +41,7 @@ export class SearchMusicScreen extends HTMLElement {
 		}
 		this.resultsData = null
 
-		this.songActionsMenu = new SongActionsMenu(null)
+		this.songActionsMenu = new SongActionsMenu(null, null)
 		this.songActionsMenu.SetVisibleOptions({ addToPlaylist: false, removeFromPlaylist: false, removeFromLibrary: false, downloadToDevice: false, editSongAttributes: false })
 	}
 
@@ -130,6 +130,8 @@ export class SearchMusicScreen extends HTMLElement {
 				searchResultsTable.classList.add("media-list-table")
 				RemoveAllChildren(this.tableWrapper)
 				this.tableWrapper.appendChild(searchResultsTable)
+
+				this.songActionsMenu.parentMediaListTable = searchResultsTable
 				resolve()
 			} catch (e) {
 				reject(e)
@@ -146,11 +148,11 @@ export class SearchMusicScreen extends HTMLElement {
 		if (songTile == null) { return }
 		if (actionLink != null) {
 			const pos = actionLink.getBoundingClientRect()
-			this.songActionsMenu.ForceShow(pos.x, pos.y + pos.height, pos.height, false, true, songTile)
+			this.songActionsMenu.ForceShow(pos.x, pos.y + pos.height, pos.height, false, true, [songTile.trackData], songTile, true)
 		} else {
 			if (e.target.closest(".btn-open-mobile-context-menu") != null) {
 				// User clicked on the "More options" button
-				this.songActionsMenu.ForceShow(0, 0, 0, false, false, songTile)
+				this.songActionsMenu.ForceShow(0, 0, 0, false, false, [songTile.trackData], songTile, true)
 			} else {
 				// User clicked on a row to play a song without downloading it to the library
 				songTile.Play(null)

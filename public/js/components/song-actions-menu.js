@@ -1,25 +1,34 @@
 import { ContextMenu } from "./context-menu.js"
 import * as AppFunctions from "../app-functions.js"
 import { SongTile } from "./song-tile.js"
-import { AlertBanner, AudioPlayerElement, FeatureNotAvailableYetNotice } from "../index.js"
+import { AlertBanner, AudioPlayerElement, FeatureNotAvailableYetNotice, MultiSelectMenu } from "../index.js"
 import { isMobileView } from "../utils.js"
 import { TrackData } from "./data-models.js"
+import { InfiniteScrollSongs } from "./infinite-scroll-songs.js"
 
 export class SongActionsMenu extends ContextMenu {
-	constructor(parentPlaylistId) {
+	constructor(parentPlaylistId, parentMediaListTable) {
 
 		super(null, [], "context", true)
 		this.customClass = "media-actions-menu"
 		this.parentPlaylistId = parentPlaylistId
+		this.parentMediaListTable = parentMediaListTable
 
+		/** @type {TrackData[]} */
+		this.trackDataArray = null
 		/** @type {SongTile} */
 		this.targetSongTile = null
+
+		this.menuCloseCallbacks["beforeSongActionsMenuClose"] = () => {
+			this.trackDataArray = null
+			this.targetSongTile = null
+		}
 
 		this._menuOptions = [
 			{
 				customHTML: "", // Insert the song tile data here when the menu opens
 				disabled: true,
-				hidden: false,
+				hidden: true,
 			},
 			"divider",
 			{
@@ -30,50 +39,67 @@ export class SongActionsMenu extends ContextMenu {
 			{
 				text: "Add to playlist",
 				iconClass: "bi bi-music-note-list",
-				subMenu: [
-					{
-						text: "Create new playlist",
-						iconClass: "bi bi-plus-circle",
-						clickEvent: () => { AppFunctions.OpenCreatePlaylistDialog({ addSongIdOnSubmit: this.targetSongTile.trackData.id }) }
-					}
-				]
 			},
 			{
 				text: "Remove from playlist",
 				iconClass: "bi bi-dash-circle",
-				clickEvent: () => { this.#removeFromPlaylist() }
+				clickEvent: () => {
+					MultiSelectMenu.DisableMultiSelectMode()
+					this.#removeSongsFrom("playlist")
+				}
 			},
 			"divider",
 			{
 				text: "Download to library",
 				iconClass: "bi bi-collection",
-				clickEvent: () => { this.#downloadToLibrary() }
+				clickEvent: () => {
+					MultiSelectMenu.DisableMultiSelectMode()
+					this.#downloadToLibrary()
+				}
 			},
 			{
 				text: "Remove from library",
 				iconClass: "bi bi-trash",
-				clickEvent: () => { this.#removeFromLibrary() }
+				clickEvent: () => {
+					MultiSelectMenu.DisableMultiSelectMode()
+					this.#removeSongsFrom("library")
+				}
 			},
 			{
 				text: "Download to device",
 				iconClass: "bi bi-download",
-				clickEvent: () => { AppFunctions.DownloadSongToDevice(this.targetSongTile.trackData) }
+				clickEvent: () => {
+					MultiSelectMenu.DisableMultiSelectMode()
+					AppFunctions.DownloadSongsToDevice(this.trackDataArray)
+				}
 			},
 			"divider",
 			{
 				text: "Set to play next",
 				iconClass: "bi bi-arrow-return-right",
-				clickEvent: () => { AudioPlayerElement.SetTrackToPlayNextInQueue(this.targetSongTile.trackData) }
+				clickEvent: async () => {
+					MultiSelectMenu.DisableMultiSelectMode()
+					const reversed = structuredClone(this.trackDataArray).reverse()
+					for (let trackData of reversed) {
+						await AudioPlayerElement.SetTrackToPlayNextInQueue(trackData)
+					}
+				}
 			},
 			{
 				text: "Add to queue",
 				iconClass: "bi bi-list-task",
-				clickEvent: () => { this.#addToQueue() }
+				clickEvent: () => {
+					MultiSelectMenu.DisableMultiSelectMode()
+					this.#addToQueue()
+				}
 			},
 			{
 				text: "Remove from queue",
 				iconClass: "bi bi-list-task",
-				clickEvent: () => { this.#removeFromQueue() }
+				clickEvent: () => {
+					MultiSelectMenu.DisableMultiSelectMode()
+					this.#removeSongsFrom("queue")
+				}
 			},
 			"divider",
 			{
@@ -96,53 +122,80 @@ export class SongActionsMenu extends ContextMenu {
 
 	}
 
-	/** @param {SongTile} targetSongTile */
-	ForceShow(posX, posY, targetElementHeight, defaultSelection, autoPosition, targetSongTile) {
+	/**
+	 * @param {TrackData[]} trackDataArray
+	 * @param {SongTile} targetSongTile
+	 **/
+	ForceShow(posX, posY, targetElementHeight, defaultSelection, autoPosition, trackDataArray, targetSongTile = null, autoCloseMultiSelectMenu = true) {
+		if (autoCloseMultiSelectMenu === true && MultiSelectMenu.multiSelectModeEnabled === true) { MultiSelectMenu.DisableMultiSelectMode(true) }
+
 		this.targetSongTile = targetSongTile
-		this.#createMenuHeader(this.targetSongTile.trackData)
+		this.trackDataArray = trackDataArray || []
+
 		this.#populateUserPlaylists()
+		this.#createMenuHeader()
 
-		const trackPositionInNowPlayingQueue = AudioPlayerElement.GetTrackIndexInQueue(this.targetSongTile.trackData)
-		const trackExistsInNowPlayingQueue = trackPositionInNowPlayingQueue > -1
-		const trackIsCurrentlyPlaying = trackPositionInNowPlayingQueue === AudioPlayerElement.currentQueueIndex
+		if (this.targetSongTile != null) {
+			const trackPositionInNowPlayingQueue = AudioPlayerElement.GetTrackIndexInQueue(this.targetSongTile.trackData)
+			const trackExistsInNowPlayingQueue = trackPositionInNowPlayingQueue > -1
+			const trackIsCurrentlyPlaying = trackPositionInNowPlayingQueue === AudioPlayerElement.currentQueueIndex
 
-		this.SetVisibleOptions({
-			downloadToLibrary: targetSongTile.trackData.id == null && !targetSongTile.isDownloading,
-			addToQueue: !trackExistsInNowPlayingQueue,
-			removeFromQueue: trackExistsInNowPlayingQueue,
-			playNext: !trackIsCurrentlyPlaying,
-		})
+			this.SetVisibleOptions({
+				downloadToLibrary: this.trackDataArray[0].id == null && !this.targetSongTile.isDownloading,
+				addToQueue: !trackExistsInNowPlayingQueue,
+				removeFromQueue: trackExistsInNowPlayingQueue,
+				playNext: !trackIsCurrentlyPlaying,
+			})
+		}
 
-		super.ForceShow(posX, posY, targetElementHeight, defaultSelection, autoPosition, targetSongTile)
+		super.ForceShow(posX, posY, targetElementHeight, defaultSelection, autoPosition, this.targetSongTile)
 	}
 
-	/** @param {TrackData} trackData */
-	#createMenuHeader(trackData) {
-		this._menuOptions[0].hidden = !isMobileView()
-		// If mobile view action sheet, then show the song information at the top of the context menu
-		if (this._menuOptions[0].hidden === false) {
+	#createMenuHeader() {
+		if (this.targetSongTile != null) {
+			this._menuOptions[0].hidden = !isMobileView()
+			// If mobile view action sheet, then show the song information at the top of the context menu
+			if (this._menuOptions[0].hidden === true) { return }
 			this._menuOptions[0].customHTML = `
 				<div class="media-actions-menu-header">
-					<img src="${trackData.album_art || "../../assets/img/no-album-art.png"}">
+					<img src="${this.targetSongTile.trackData.album_art || "../../assets/img/no-album-art.png"}">
 					<div class="media-tile-text-div">
-						<span class="media-tile-primary-text">${trackData.title}</span>
-						<span class="media-tile-secondary-text">${trackData.artist}</span>
+						<span class="media-tile-primary-text">${this.targetSongTile.trackData.title}</span>
+						<span class="media-tile-secondary-text">${this.targetSongTile.trackData.artist}</span>
 					</div>
 				</div>
+			`
+		} else {
+			this._menuOptions[0].hidden = false
+			this._menuOptions[0].customHTML = `
+				<div class="multi-select-header">${this.trackDataArray.length + " Item" + (this.trackDataArray.length === 1 ? "" : "s") + " Selected"}</div>
 			`
 		}
 	}
 
 	#populateUserPlaylists() {
+		const trackIdArray = this.trackDataArray.map((trackData) => trackData.id)
 		const addToPlaylist = this._menuOptions.find((menuItem) => menuItem.text === "Add to playlist")
 		if (addToPlaylist != null && Array.isArray(AppFunctions.PlaylistCache)) {
+			addToPlaylist.subMenu = []
+			addToPlaylist.subMenu.push({
+				text: "Create new playlist",
+				iconClass: "bi bi-plus-circle",
+				clickEvent: () => {
+					AppFunctions.OpenCreatePlaylistDialog({ addSongIdsOnSubmit: trackIdArray })
+					MultiSelectMenu.DisableMultiSelectMode()
+				}
+			})
 			addToPlaylist.subMenu.splice(1)
 			// Don't allow song to be re-added to the current playlist
 			const playlistMenuItems = AppFunctions.PlaylistCache.filter((playlistItem) => playlistItem.id !== this.parentPlaylistId).map((playlistItem) => {
 				return {
 					text: playlistItem.title,
 					iconClass: "bi bi-music-note-beamed",
-					clickEvent: () => { AppFunctions.AddSongsToPlaylist(playlistItem.id, [this.targetSongTile.trackData.id]) }
+					clickEvent: () => {
+						AppFunctions.AddSongsToPlaylist(playlistItem.id, trackIdArray)
+						MultiSelectMenu.DisableMultiSelectMode()
+					}
 				}
 			})
 			addToPlaylist.subMenu.push(...playlistMenuItems)
@@ -175,71 +228,112 @@ export class SongActionsMenu extends ContextMenu {
 	}
 
 	async #playSong() {
-		const targetSongTile = this.targetSongTile
-		targetSongTile.Play(this.parentPlaylistId)
+		if (this.targetSongTile == null) { return }
+		this.targetSongTile.Play(this.parentPlaylistId)
 	}
 
 	async #downloadToLibrary() {
-		const targetSongTile = this.targetSongTile
-		try {
-			const trackData = targetSongTile.trackData
-			if (trackData.id != null) {
-				AlertBanner.Toggle(true, true, "Song already exists in library", 7000, AlertBanner.bannerColors.info)
-				targetSongTile.ToggleDownloadingSpinner(false)
-				return
+		// IMPORTANT: this function assumes the song tiles that are being selected for download are NOT in an infinite scroll element (ie: they are not virtualized).
+		// All song tiles must be present and attached to the DOM in the shadow root element of the #module-content-container section
+		let songAlreadyDownloadedCount = 0
+		let downloadFailureCount = 0
+		let downloadPromises = []
+		/** @type {SongTile[]} */
+		const allSongTiles = Array.from(this.parentMediaListTable.querySelectorAll(".media-tile"))
+		const targetVideoIds = this.trackDataArray.map((trackData) => trackData.video_id)
+		const targetSongTiles = allSongTiles.filter((songTile) => targetVideoIds.includes(songTile.trackData.video_id))
+		const totalCount = this.trackDataArray.length
+		for (let songTile of targetSongTiles) {
+			if (songTile.trackData.id != null) {
+				songAlreadyDownloadedCount++
+				continue
 			}
-			targetSongTile.ToggleDownloadingSpinner(true)
-			// Download the song
-			const libraryUuid = await AppFunctions.DownloadSongToLibrary(trackData)
-			targetSongTile.trackData.id = libraryUuid
-			targetSongTile.closest("tr")?.querySelectorAll(".already-downloaded-checkmark").forEach((el) => { el.classList.toggle("hidden", false) })
-			AlertBanner.Toggle(true, true, "Song added to library", 7000, AlertBanner.bannerColors.success)
-		} catch (e) {
-			AlertBanner.Toggle(true, true, "Error downloading song", 7000, AlertBanner.bannerColors.error)
+			const downloadPromise = new Promise(async (resolve) => {
+				try {
+					songTile.ToggleDownloadingSpinner(true)
+					const libraryUuid = await AppFunctions.DownloadSongToLibrary(songTile.trackData)
+					songTile.trackData.id = libraryUuid
+					songTile.closest("tr")?.querySelectorAll(".already-downloaded-checkmark").forEach((el) => { el.classList.toggle("hidden", false) })
+				} catch (e) {
+					downloadFailureCount++
+				}
+				if (AudioPlayerElement.currentPlaylistId === "all-songs") {
+					AudioPlayerElement.AddTrackToQueue(songTile.trackData, "start")
+				}
+				songTile.ToggleDownloadingSpinner(false)
+				resolve()
+			})
+			downloadPromises.push(downloadPromise)
 		}
-		targetSongTile.ToggleDownloadingSpinner(false)
-	}
-
-	async #removeFromLibrary() {
-		try {
-			const targetSongTile = this.targetSongTile
-			AppFunctions.RemoveSongsFromLibrary([targetSongTile.trackData.id])
-			targetSongTile.Remove(this.parentPlaylistId, true)
-			AlertBanner.Toggle(true, true, "Song removed from library", 7000, AlertBanner.bannerColors.success)
-		} catch (e) {
-			AlertBanner.Toggle(true, true, "Error removing song from library", 7000, AlertBanner.bannerColors.error)
-		}
-	}
-
-	async #removeFromPlaylist() {
-		try {
-			const targetSongTile = this.targetSongTile
-			AppFunctions.RemoveSongsFromPlaylist(this.parentPlaylistId, [targetSongTile.trackData.id])
-			targetSongTile.Remove(this.parentPlaylistId, false)
-			AlertBanner.Toggle(true, true, "Song removed from playlist", 7000, AlertBanner.bannerColors.success)
-		} catch (e) {
-			AlertBanner.Toggle(true, true, "Error removing song from playlist", 7000, AlertBanner.bannerColors.error)
+		await Promise.all(downloadPromises)
+		const plural = totalCount !== 1 ? "s" : ""
+		if (songAlreadyDownloadedCount === totalCount) {
+			AlertBanner.Toggle(true, true, "Song(s) already in library", 7000, AlertBanner.bannerColors.info)
+		} else if (downloadFailureCount === totalCount) {
+			AlertBanner.Toggle(true, true, ("Error downloading " + totalCount + " song" + plural), 7000, AlertBanner.bannerColors.error)
+		} else {
+			AlertBanner.Toggle(true, true, (totalCount + " song" + plural + " added to library"), 7000, AlertBanner.bannerColors.success)
 		}
 	}
 
-	async #removeFromQueue() {
+	/** @param {String} removeFrom Options are "library", "playlist", "queue" */
+	async #removeSongsFrom(removeFrom) {
+		removeFrom = removeFrom.toLowerCase()
+		const totalCount = this.trackDataArray.length
+		const plural = totalCount !== 1 ? "s" : ""
 		try {
-			if (this.parentPlaylistId === "now-playing-queue") {
-				this.targetSongTile.Remove(this.parentPlaylistId, true)
+			// Handle removing the songTile visually from the page
+			const targetTrackIds = this.trackDataArray.map((trackData) => trackData.id)
+			/** @type {InfiniteScrollSongs} */
+			const parentInfiniteScroll = this.parentMediaListTable.closest("infinite-scroll-songs")
+			if (parentInfiniteScroll != null) {
+				if (removeFrom !== "queue" || (removeFrom === "queue" && this.parentPlaylistId === "now-playing-queue")) {
+					parentInfiniteScroll.RemoveTracks(this.trackDataArray)
+				}
+				if (["queue", "library"].includes(removeFrom) || (removeFrom === "playlist" && AudioPlayerElement.currentPlaylistId === this.parentPlaylistId)) {
+					for (let trackData of this.trackDataArray) {
+						await AudioPlayerElement.RemoveTrackFromQueue(trackData)
+					}
+				}
 			} else {
-				AudioPlayerElement.RemoveTrackFromQueue(this.targetSongTile.trackData)
+				/** @type {SongTile[]} */
+				const allSongTiles = Array.from(this.parentMediaListTable.querySelectorAll(".media-tile"))
+				const targetSongTiles = allSongTiles.filter((songTile) => targetTrackIds.includes(songTile.trackData.id))
+				for (let songTile of targetSongTiles) {
+					if (removeFrom !== "queue" || (removeFrom === "queue" && this.parentPlaylistId === "now-playing-queue")) {
+						// The SongTile.Remove method also automatically detects and removes the track from the now-playing queue if appropriate
+						songTile.Remove(this.parentPlaylistId, true)
+					} else if (removeFrom === "queue") {
+						await AudioPlayerElement.RemoveTrackFromQueue(songTile.trackData)
+					}
+				}
 			}
-			AlertBanner.Toggle(true, true, "Song removed from queue", 7000, AlertBanner.bannerColors.success)
+			// Handle removing the track in the appropriate database table
+			if (removeFrom === "library") {
+				await AppFunctions.RemoveSongsFromLibrary(targetTrackIds)
+			} else if (removeFrom === "playlist") {
+				await AppFunctions.RemoveSongsFromPlaylist(this.parentPlaylistId, targetTrackIds)
+			}
+
+			AlertBanner.Toggle(true, true, (totalCount + " song" + plural + " removed from " + removeFrom), 7000, AlertBanner.bannerColors.success)
 		} catch (e) {
-			AlertBanner.Toggle(true, true, "Error removing song from queue", 7000, AlertBanner.bannerColors.error)
+			AlertBanner.Toggle(true, true, "Error removing song(s) from " + removeFrom, 7000, AlertBanner.bannerColors.error)
 		}
 	}
 
 	#addToQueue() {
-		if (AudioPlayerElement.AddTrackToQueue(this.targetSongTile.trackData) === true) {
-			AlertBanner.Toggle(true, true, "Song added to queue", 7000, AlertBanner.bannerColors.success)
+		const totalCount = this.trackDataArray.length
+		let songAlreadyInQueueCount = 0
+		this.trackDataArray.forEach((trackData) => {
+			if (AudioPlayerElement.AddTrackToQueue(trackData, "end") === false) {
+				songAlreadyInQueueCount++
+			}
+		})
+		const plural = totalCount !== 1 ? "s" : ""
+		if (songAlreadyInQueueCount === totalCount) {
+			AlertBanner.Toggle(true, true, "Song(s) already in queue", 7000, AlertBanner.bannerColors.info)
 		} else {
-			AlertBanner.Toggle(true, true, "Song is already in queue", 7000, AlertBanner.bannerColors.info)
+			AlertBanner.Toggle(true, true, (totalCount + " song" + plural + " added to queue"), 7000, AlertBanner.bannerColors.success)
 		}
 	}
 }

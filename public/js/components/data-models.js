@@ -35,3 +35,23 @@ export class PlaylistData {
 		this.playlist_image = playlist_image
 	}
 }
+
+export class ArtistData {
+	constructor({ id, artist_name, artist_image }) {
+		this.id = id
+		this.artist_name = artist_name
+		this.artist_image = artist_image
+	}
+}
+
+export class AlbumData {
+	constructor({ id, title, album_art, artist_id, artist, release_date, genre }) {
+		this.id=  id
+		this.title = title
+		this.album_art = album_art
+		this.artist_id = artist_id
+		this.artist = artist
+		this.release_date = release_date
+		this.genre = genre
+	}
+}

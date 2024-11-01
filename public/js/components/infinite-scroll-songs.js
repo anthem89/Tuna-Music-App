@@ -8,10 +8,6 @@ dayjs.extend(dayjs_plugin_relativeTime)
 export class InfiniteScrollSongs extends HTMLElement {
 	constructor(apiEndpoint, parentPlaylistId) {
 		super()
-
-		this.parentPlaylistId = parentPlaylistId
-		this.songActionsMenu = new SongActionsMenu(parentPlaylistId)
-
 		this.apiEndpoint = apiEndpoint
 		this.batchSize = 25 // The number of items to show using scroll virtualization
 		this.rowHeight = 71.6 // Must match the height in px of each tr element
@@ -36,6 +32,9 @@ export class InfiniteScrollSongs extends HTMLElement {
 				</thead>
 			</table>
 		`
+
+		this.parentPlaylistId = parentPlaylistId
+		this.songActionsMenu = new SongActionsMenu(this.parentPlaylistId, this.querySelector(".media-list-table"))
 	}
 
 	async connectedCallback() {
@@ -114,21 +113,31 @@ export class InfiniteScrollSongs extends HTMLElement {
 		this.tbodyIndex += this.batchSize
 	}
 
-	/** @param {TrackData} targetTrackData */
-	RemoveTrack(targetTrackData) {
-		// Find the index of the track to be removed
-		const targetIndex = this.trackDataArray.findIndex((track) => {
-			if (targetTrackData.id != null) {
-				return track.id === targetTrackData.id
-			} else {
-				return track.video_id === targetTrackData.video_id
+	/** @param {TrackData[]} targetTrackArray */
+	RemoveTracks(targetTrackArray) {
+		const targetIds = new Set()
+		const targetVideoIds = new Set()
+		targetTrackArray.forEach(targetTrack => {
+			if (targetTrack.id != null) {
+				targetIds.add(targetTrack.id)
+			} else if (targetTrack.video_id != null) {
+				targetVideoIds.add(targetTrack.video_id)
 			}
 		})
-		if (targetIndex > -1) {
-			this.trackDataArray.splice(targetIndex, 1)
-
+		const originalLength = this.trackDataArray.length
+		this.trackDataArray = this.trackDataArray.filter(track => {
+			if (track.id != null && targetIds.has(track.id)) {
+				return false // Remove tracks with matching id
+			}
+			if (track.video_id != null && targetVideoIds.has(track.video_id)) {
+				return false // Remove tracks with matching video_id
+			}
+			return true // Keep the track if no match is found
+		})
+		// Only update observer and table if any tracks were removed
+		if (this.trackDataArray.length < originalLength) {
 			this.intersectionObserver.disconnect()
-			this.table.querySelectorAll("tbody").forEach((tbody, index) => {
+			this.table.querySelectorAll("tbody").forEach((tbody) => {
 				RemoveAllChildren(tbody)
 				this.intersectionObserver.observe(tbody)
 			})
@@ -167,12 +176,12 @@ export class InfiniteScrollSongs extends HTMLElement {
 		if (actionLink != null) {
 			if (actionLink.getAttribute("name") === "btn-actions") {
 				const pos = actionLink.getBoundingClientRect()
-				this.songActionsMenu.ForceShow(pos.x, pos.y + pos.height, pos.height, false, true, songTile)
+				this.songActionsMenu.ForceShow(pos.x, pos.y + pos.height, pos.height, false, true, [songTile.trackData], songTile, true)
 			}
 		} else {
 			if (e.target.closest(".btn-open-mobile-context-menu") != null) {
 				// User clicked on the "More options" button
-				this.songActionsMenu.ForceShow(0, 0, 0, false, false, songTile)
+				this.songActionsMenu.ForceShow(0, 0, 0, false, false, [songTile.trackData], songTile, true)
 			} else {
 				songTile.Play(this.parentPlaylistId)
 			}

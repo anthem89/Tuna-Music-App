@@ -95,7 +95,7 @@ export function GetUserPlaylists() {
 	})
 }
 
-export function OpenCreatePlaylistDialog({ addSongIdOnSubmit } = {}) {
+export function OpenCreatePlaylistDialog({ addSongIdsOnSubmit } = {}) {
 	const html = `
 		<div class="d-flex flex-column">
 			<input id="playlist-name-input" type="text" class="flex-grow-1 mb-3" placeholder="Playlist name" autocomplete="off" maxlength="50"">
@@ -125,8 +125,8 @@ export function OpenCreatePlaylistDialog({ addSongIdOnSubmit } = {}) {
 				// Add the newly created playlist to the playlist cache
 				PlaylistCache.unshift(newPlaylistData)
 				// If user requested to add a song when creating the playlist
-				if (isNullOrWhiteSpace(addSongIdOnSubmit) === false) {
-					await AddSongsToPlaylist(newPlaylistData.id, [addSongIdOnSubmit])
+				if (Array.isArray(addSongIdsOnSubmit) === true) {
+					await AddSongsToPlaylist(newPlaylistData.id, addSongIdsOnSubmit)
 				} else {
 					AlertBanner.Toggle(true, true, "Successfully created playlist", 7000, AlertBanner.bannerColors.success)
 				}
@@ -194,43 +194,54 @@ export function RemoveSongsFromPlaylist(playlistId, trackIdArray) {
 	})
 }
 
-/** @param {TrackData} trackData */
-export async function DownloadSongToDevice(trackData) {
-	return new Promise(async (resolve, reject) => {
-		let tempLink
-		try {
-			// Try to fetch the song from the client in-memory cache first (most economical)
-			let bloblUrl = temporarySongCache[trackData.video_id]
-			if (bloblUrl == null) {
-				if (isNullOrWhiteSpace(trackData.id)) {
-					if (isNullOrWhiteSpace(trackData.video_id)) { throw new Error("Cannot play song without either a library id or video id") }
-					// Download the song directly from YouTube
-					bloblUrl = await CacheSongFromYouTube(trackData.video_id)
-					if (bloblUrl == null) { throw new Error("error downloading song from YouTube") }
-				} else {
-					// Download the song from the Tuna library
-					const res = await fetch("./play-song?library-uuid=" + trackData.id)
-					const resblob = await res.blob()
-					bloblUrl = URL.createObjectURL(resblob)
-					// Store the song in cache
-					temporarySongCache[trackData.video_id] = bloblUrl
+/** @param {TrackData[]} trackDataArray */
+export async function DownloadSongsToDevice(trackDataArray) {
+	const totalCount = trackDataArray.length
+	let failureCount = 0
+	let promises = []
+	for (const trackData of trackDataArray) {
+		const promise = new Promise(async (resolve) => {
+			let tempLink
+			try {
+				// Try to fetch the song from the client in-memory cache first (most economical)
+				let bloblUrl = temporarySongCache[trackData.video_id]
+				if (bloblUrl == null) {
+					if (isNullOrWhiteSpace(trackData.id)) {
+						if (isNullOrWhiteSpace(trackData.video_id)) { throw new Error("Cannot play song without either a library id or video id") }
+						// Download the song directly from YouTube
+						bloblUrl = await CacheSongFromYouTube(trackData.video_id)
+						if (bloblUrl == null) { throw new Error("error downloading song from YouTube") }
+					} else {
+						// Download the song from the Tuna library
+						const res = await fetch("./play-song?library-uuid=" + trackData.id)
+						const resblob = await res.blob()
+						bloblUrl = URL.createObjectURL(resblob)
+						// Store the song in cache
+						temporarySongCache[trackData.video_id] = bloblUrl
+					}
 				}
+				tempLink = document.createElement("a")
+				tempLink.href = bloblUrl
+				tempLink.download = (trackData.artist || "Unknown Artist") + " - " + (trackData.title || "Unknown Title") + (trackData.file_format || ".mp3")
+				document.body.appendChild(tempLink)
+				tempLink.click()
+			} catch (e) {
+				failureCount++
+			} finally {
+				if (tempLink != null) { tempLink.remove() }
+				CleanupTemporarySongBlobCache()
+				resolve()
 			}
-			tempLink = document.createElement("a")
-			tempLink.href = bloblUrl
-			tempLink.download = (trackData.artist || "Unknown Artist") + " - " + (trackData.title || "Unknown Title") + (trackData.file_format || ".mp3")
-			document.body.appendChild(tempLink)
-			tempLink.click()
-			AlertBanner.Toggle(true, true, "Successfully downloaded song", 7000, AlertBanner.bannerColors.success)
-			resolve()
-		} catch (e) {
-			AlertBanner.Toggle(true, true, "Error downloading song", 7000, AlertBanner.bannerColors.error)
-			reject(e)
-		} finally {
-			if (tempLink != null) { tempLink.remove() }
-			CleanupTemporarySongBlobCache()
-		}
-	})
+		})
+		promises.push(promise)
+	}
+	await Promise.all(promises)
+	if (failureCount === totalCount) {
+		AlertBanner.Toggle(true, true, "Error downloading song(s)", 7000, AlertBanner.bannerColors.error)
+	} else {
+		const successCount = totalCount - failureCount
+		AlertBanner.Toggle(true, true, ("Successfully downloaded " + successCount + " / " + totalCount + " songs"), 7000, AlertBanner.bannerColors.success)
+	}
 }
 
 // Only keep a limited number of blob ojects in the in-memory song cache to preserve memory on the user's device

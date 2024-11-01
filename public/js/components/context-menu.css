@@ -172,8 +172,8 @@
 	background-color: #DFDFDF;
 }
 
-.contextmenu-item.hover.disabled {
-	background-color: transparent;
+.contextmenu-item.disabled.hover {
+	background-color: transparent !important;
 }
 
 .contextmenu-container.mobile-view::before {

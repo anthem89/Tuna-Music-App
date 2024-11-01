@@ -1,10 +1,15 @@
-import { AudioPlayerElement } from "../index.js"
+import { AudioPlayerElement, MultiSelectMenu } from "../index.js"
 
 export class MediaTile extends HTMLElement {
-	constructor(image, primaryText, secondaryText) {
+	constructor(image, primaryText, secondaryText, allowMultiSelect) {
 		super()
-
+		const checkboxHtml = `
+			<div class="media-tile-checkbox-container">
+				<input type="checkbox" class="form-check-input me-3">
+			</div>
+		`
 		const html = `
+			${allowMultiSelect ? checkboxHtml : ""}
 			<div class="media-tile-image">
 				<img src="${image || "../../assets/img/no-album-art.png"}">
 				<div class="loading-spinner">
@@ -28,6 +33,11 @@ export class MediaTile extends HTMLElement {
 		}
 		this.primaryTextElement = this.querySelector(".media-tile-primary-text")
 		this.secondaryTextElement = this.querySelector(".media-tile-secondary-text")
+		this.allowMultiSelect = allowMultiSelect
+		if (this.allowMultiSelect === true) {
+			this.checkboxContainer =  this.querySelector(".media-tile-checkbox-container")
+			this.checkbox = this.checkboxContainer.firstElementChild
+		}
 
 		this.isBuffering = false
 		this.isDownloading = false
@@ -36,6 +46,17 @@ export class MediaTile extends HTMLElement {
 	connectedCallback() {
 		// When this tile loads, test if its video_id or id match the currently playing song, then set the "is-playing" attribute accordingly
 		this.isCurrentlyPlaying()
+
+		if (this.allowMultiSelect === true) {
+			this.checkboxContainer.onclick = (e) => {
+				e.stopPropagation()
+				const isChecked = this.checkbox.checked
+				if (e.target !== this.checkbox) {
+					this.checkbox.checked = !isChecked
+				}
+				this.checkbox.checked ? MultiSelectMenu.AddToMultiSelect(this) : MultiSelectMenu.RemoveFromMultiSelect(this)
+			}
+		}
 	}
 
 	isCurrentlyPlaying() {
@@ -67,6 +88,9 @@ export class MediaTile extends HTMLElement {
 
 	disconnectedCallback() {
 		this.imageElement.onerror = null
+		if (this.allowMultiSelect === true) {
+			this.checkboxContainer.onclick = null
+		}
 	}
 }
 

@@ -2,14 +2,14 @@ import { InjectGlobalStylesheets } from "../utils.js"
 import { LogOut } from "../index.js"
 
 export const AppSettings = {
-	autoCreateQueue: null,
+	autoResetQueue: null,
 	preferHighQualityDownload: null,
 }
 
 function initializeAppSettings() {
 	// Initialize default settings
 	const appSettings = JSON.parse(localStorage.getItem("app-settings"))
-	AppSettings.autoCreateQueue = appSettings?.["autoCreateQueue"] != null ? appSettings["autoCreateQueue"] : true
+	AppSettings.autoResetQueue = appSettings?.["autoResetQueue"] != null ? appSettings["autoResetQueue"] : true
 	AppSettings.preferHighQualityDownload = appSettings?.["preferHighQualityDownload"] != null ? appSettings["preferHighQualityDownload"] : false
 
 }
@@ -35,7 +35,7 @@ export class SettingsScreen extends HTMLElement {
 
 				<div class="setting-row form-check form-switch">
 					<label class="form-check-label">Playing a song automatically resets the queue</label>
-					<input id="auto-create-queue-switch" class="form-check-input" type="checkbox" role="switch" ${AppSettings.autoCreateQueue ? "checked" : ""}>
+					<input id="auto-reset-queue-switch" class="form-check-input" type="checkbox" role="switch" ${AppSettings.autoResetQueue ? "checked" : ""}>
 				</div>
 
 				<div class="setting-row">
@@ -57,8 +57,8 @@ export class SettingsScreen extends HTMLElement {
 			this.SaveSettings()
 		}
 
-		this.shadowRoot.querySelector("#auto-create-queue-switch").onchange = (e) => {
-			AppSettings.autoCreateQueue = e.target.checked
+		this.shadowRoot.querySelector("#auto-reset-queue-switch").onchange = (e) => {
+			AppSettings.autoResetQueue = e.target.checked
 			this.SaveSettings()
 		}
 
@@ -74,7 +74,7 @@ export class SettingsScreen extends HTMLElement {
 
 	disconnectedCallback() {
 		this.shadowRoot.querySelector("#high-quality-download-switch").onchange = null
-		this.shadowRoot.querySelector("#auto-create-queue-switch").onchange = null
+		this.shadowRoot.querySelector("#auto-reset-queue-switch").onchange = null
 		this.shadowRoot.querySelector("#btn-logout").onclick = null
 	}
 }

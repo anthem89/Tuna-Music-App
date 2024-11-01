@@ -7,6 +7,7 @@ import compression from "compression"
 import helmet from "helmet"
 import cors from "cors"
 import dotenv from "dotenv"
+import fs from "fs/promises"
 dotenv.config()
 
 
@@ -21,6 +22,9 @@ import playlistsRoute from "../routes/playlists.js"
 
 // Get the directory name of the current module
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// Create the music directory folder if it doesn't already exist
+fs.mkdir(path.join( __dirname, "..", "music-library"), { recursive: true })
 
 const app = express()
 const port = process.env.PORT

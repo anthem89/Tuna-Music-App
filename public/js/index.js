@@ -1,6 +1,7 @@
 import { RemoveAllChildren, isMobileView } from "./utils.js"
 import * as banners from "./components/alert-banner.js"
 import * as modals from "./components/confirmation-modal.js"
+import { MultiSelectMenu as multiSelectMenu } from "./components/multi-select-menu.js"
 import { AudioPlayer } from "./components/audio-player.js"
 import { NavigationHistory } from "./components/navigation-history.js"
 import { ContextMenu } from "./components/context-menu.js"
@@ -15,6 +16,7 @@ import { SettingsScreen } from "./screens/settings-screen.js"
 import { NowPlayingScreen } from "./screens/now-playing-screen.js"
 import { SaveSessionState, RestoreSessionState, GetUserPlaylists } from "./app-functions.js"
 
+
 /** @type {banners.AlertBanner} */
 export const AlertBanner = document.querySelector("alert-banner")
 /** @type {modals.ConfirmationModal} */
@@ -23,6 +25,8 @@ export const ConfirmationModal = document.querySelector("confirmation-modal")
 export const AppNavigationHistory = new NavigationHistory()
 /** @type {AudioPlayer} */
 export const AudioPlayerElement = document.querySelector("audio-player")
+/** @type {multiSelectMenu} */
+export const MultiSelectMenu = document.querySelector("multi-select-menu")
 export let CurrentScreen = {
 	screenKey: null,
 	args: null
@@ -77,6 +81,7 @@ export function SwitchToScreen(screenKey, args) {
 			CurrentScreen.screenKey = screenKey
 			CurrentScreen.args = args
 
+			MultiSelectMenu.DisableMultiSelectMode(true)
 			if (targetScreen.prototype != null) {
 				// Remove the contents of the previously active module
 				const contentWrapper = document.querySelector("#module-content-container > section")
@@ -88,10 +93,10 @@ export function SwitchToScreen(screenKey, args) {
 				/** @type {HTMLElement} */
 				const screenElement = new NavMenuStructure[screenKey].prototype(args)
 				contentWrapper.classList.add("pre-transition")
-				contentWrapper.style.visibility = "hidden"
+				contentWrapper.classList.add("visually-hidden")
 				// Wait until the module's custom HTML element has finished initializing
 				screenElement.addEventListener("customElementLoaded", () => {
-					contentWrapper.style.visibility = "visible"
+					contentWrapper.classList.remove("visually-hidden")
 					requestAnimationFrame(() => {
 						contentWrapper.classList.remove("pre-transition")
 					})
@@ -324,11 +329,15 @@ function InitializeSwipeGestures() {
 	// Allow opening menu when swiping right from off screen
 	document.addEventListener("touchstart", (e) => {
 		if (isMobileView() === false) { return }
+		MultiSelectMenu.startLongPress(e)
+
 		swipePositions.startX = e.touches[0].clientX
 	}, { passive: true })
 
 	document.addEventListener("touchmove", (e) => {
 		if (isMobileView() === false) { return }
+		MultiSelectMenu.longPressMove(e)
+
 		if (document.querySelector(".contextmenu-pageMask") != null) { return }
 		if (document.body.classList.contains("sidebar-visible") || swipePositions.startX > 20) { return }
 		sideBarNavMenu.classList.toggle("isDragging", true)
@@ -337,16 +346,21 @@ function InitializeSwipeGestures() {
 		// Prevent dragging beyond the boundaries
 		if (translateX < -sideBarWidth) { translateX = -sideBarWidth }
 		if (translateX > 0) { translateX = 0 }
-
 		sideBarNavMenu.style.transform = `translate3d(${translateX}px, 0px, 0px)`
 	}, { passive: true })
 
 	document.addEventListener("touchend", () => {
 		if (isMobileView() === false) { return }
+		MultiSelectMenu.cancelLongPress()
+
 		if (sideBarNavMenu.classList.contains("isDragging") === false) { return }
 		sideBarNavMenu.classList.toggle("isDragging", false)
 		const menuPosition = parseInt(sideBarNavMenu.style.transform.replace("translate3d(", "").replace("px, 0px, 0px)", ""))
 		ToggleSideNavMenu(menuPosition > sideBarWidth * -1 + swipePositions.minimumSwipeDistance)
+	})
+
+	document.addEventListener("touchcancel", () => {
+		MultiSelectMenu.cancelLongPress()
 	})
 }
 
@@ -366,6 +380,8 @@ window.addEventListener("popstate", (e) => {
 			activeContextMenus.forEach((contextMenu) => {
 				contextMenu.classReference.ForceClose()
 			})
+		} else if (MultiSelectMenu.multiSelectModeEnabled === true) {
+			MultiSelectMenu.DisableMultiSelectMode()
 		} else if (document.body.classList.contains("sidebar-visible")) {
 			// CLose sidebar nav if visible
 			document.body.classList.toggle("sidebar-visible", false)

@@ -18,7 +18,7 @@ export class AudioPlayer extends HTMLElement {
 
 		/** @type {TrackData[]} */
 		this.trackQueue = []
-		this.currentQueueIndex = 0
+		this.currentQueueIndex = -1
 		this.isPlaying = false
 		this.isPaused = false
 
@@ -151,12 +151,13 @@ export class AudioPlayer extends HTMLElement {
 
 	#updateProgressSlider(percent) {
 		this.progressSlider.value = percent
-		this.progressSlider.style.background = `linear-gradient(to right, var(--tunaPink) ${percent}%, var(--white) ${percent}%)`;
+		this.progressSlider.style.background = `linear-gradient(to right, var(--tunaPink) ${percent}%, transparent ${percent}%)`;
 	}
 
 	// Force all song tiles to test if their track id or video_id matches the currently playing track, and update accordingly
 	#updateMediaTiles(updateRowStats) {
-		const currentScreenElement = document.querySelector("#module-content-container section").firstElementChild.shadowRoot
+		const currentScreenElement = document.querySelector("#module-content-container section")?.firstElementChild?.shadowRoot
+		if (currentScreenElement == null) { return }
 		currentScreenElement.querySelectorAll(".media-tile").forEach(/** @param {MediaTile} mediaTile */(mediaTile) => {
 			mediaTile.isCurrentlyPlaying()
 
@@ -262,6 +263,7 @@ export class AudioPlayer extends HTMLElement {
 		// Reset the audio element
 		if (this.trackQueue.length === 0) {
 			this.resetAudioElement()
+			this.currentQueueIndex = -1
 		}
 	}
 
@@ -287,14 +289,23 @@ export class AudioPlayer extends HTMLElement {
 			}
 		} else {
 			this.UpdateQueue([], this.currentPlaylistId)
+			this.currentQueueIndex = -1
 		}
 	}
 
-	/** @param {TrackData} trackData */
-	AddTrackToQueue(trackData) {
+	/**
+	 * @param {TrackData} trackData
+	 * @param {String} position Options are "start" or "end"
+	 **/
+	AddTrackToQueue(trackData, position = "end") {
 		if (this.GetTrackIndexInQueue(trackData) === -1) {
 			const clonedTrack = new TrackData({ ...trackData })
-			this.trackQueue.push(clonedTrack)
+			if (position === "start") {
+				this.trackQueue.splice(0, 0, clonedTrack)
+				this.currentQueueIndex++
+			} else {
+				this.trackQueue.push(clonedTrack)
+			}
 			if (this.trackQueue.length === 1) {
 				this.LoadSongInAudioPlayer(clonedTrack)
 			}
@@ -306,13 +317,16 @@ export class AudioPlayer extends HTMLElement {
 
 	/** @param {TrackData} trackData */
 	SetTrackToPlayNextInQueue(trackData) {
-		const targetTrackIndex = this.GetTrackIndexInQueue(trackData)
-		if (targetTrackIndex === -1) {
-			this.AddTrackToQueue(trackData)
-		} else {
-			this.RemoveTrackFromQueue(trackData)
-			this.trackQueue.splice(this.currentQueueIndex + 1, 0, new TrackData({ ...trackData }))
-		}
+		return new Promise(async (resolve) => {
+			try {
+				const targetTrackIndex = this.GetTrackIndexInQueue(trackData)
+				if (targetTrackIndex > -1) {
+					await this.RemoveTrackFromQueue(trackData)
+				}
+				this.trackQueue.splice(this.currentQueueIndex + 1, 0, new TrackData({ ...trackData }))
+			} catch { }
+			resolve()
+		})
 	}
 
 	ClearQueue() {
@@ -338,7 +352,7 @@ export class AudioPlayer extends HTMLElement {
 		this.shadowRoot.querySelector("#song-name").textContent = ""
 		this.shadowRoot.querySelector("#artist-name").textContent = ""
 		this.#updateProgressSlider(0)
-		this.audioElement.src = ""
+		this.audioElement.removeAttribute("src")
 		this.audioElement.load()
 		document.querySelector("footer").classList.toggle("hidden", true)
 		this.#updateMediaTiles(false)

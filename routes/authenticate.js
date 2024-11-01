@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken"
 import bcrypt from "bcryptjs"
 import * as Database from "../server/database.js"
 
-export const JWT_SECRET = "6dd69891-1303-4462-aab3-5dcc014f23c0"
+export const JWT_SECRET = "6dd69891-1303-4462-aab3-5dcc014f23c0" // This is just a randomly generated uuidv4. It is needed as a seed string to generate the JWT
 
 // Middleware to authenticate and protect routes
 export function authenticationMiddleware(req, res, next) {
