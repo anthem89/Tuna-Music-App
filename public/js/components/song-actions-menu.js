@@ -12,12 +12,13 @@ export class SongActionsMenu extends ContextMenu {
 		super(null, [], "context", true)
 		this.customClass = "media-actions-menu"
 		this.parentPlaylistId = parentPlaylistId
-		this.parentMediaListTable = parentMediaListTable
 
 		/** @type {TrackData[]} */
 		this.trackDataArray = null
 		/** @type {SongTile} */
 		this.targetSongTile = null
+		/** @type {HTMLElement} */
+		this.parentMediaListTable = parentMediaListTable
 
 		this.menuCloseCallbacks["beforeSongActionsMenuClose"] = () => {
 			this.trackDataArray = null
@@ -39,6 +40,7 @@ export class SongActionsMenu extends ContextMenu {
 			{
 				text: "Add to playlist",
 				iconClass: "bi bi-music-note-list",
+				// The click event for this is assigned below in the "#populateUserPlaylists" method
 			},
 			{
 				text: "Remove from playlist",
@@ -77,12 +79,9 @@ export class SongActionsMenu extends ContextMenu {
 			{
 				text: "Set to play next",
 				iconClass: "bi bi-arrow-return-right",
-				clickEvent: async () => {
+				clickEvent: () => {
 					MultiSelectMenu.DisableMultiSelectMode()
-					const reversed = structuredClone(this.trackDataArray).reverse()
-					for (let trackData of reversed) {
-						await AudioPlayerElement.SetTrackToPlayNextInQueue(trackData)
-					}
+					this.#setToPlayNext()
 				}
 			},
 			{
@@ -182,7 +181,7 @@ export class SongActionsMenu extends ContextMenu {
 				text: "Create new playlist",
 				iconClass: "bi bi-plus-circle",
 				clickEvent: () => {
-					AppFunctions.OpenCreatePlaylistDialog({ addSongIdsOnSubmit: trackIdArray })
+					AppFunctions.OpenPlaylistAttributesDialog(trackIdArray, "create", null)
 					MultiSelectMenu.DisableMultiSelectMode()
 				}
 			})
@@ -239,10 +238,10 @@ export class SongActionsMenu extends ContextMenu {
 		let downloadFailureCount = 0
 		let downloadPromises = []
 		/** @type {SongTile[]} */
-		const allSongTiles = Array.from(this.parentMediaListTable.querySelectorAll(".media-tile"))
+		const allSongTiles = Array.from(this.parentMediaListTable.querySelectorAll("song-tile"))
 		const targetVideoIds = this.trackDataArray.map((trackData) => trackData.video_id)
 		const targetSongTiles = allSongTiles.filter((songTile) => targetVideoIds.includes(songTile.trackData.video_id))
-		const totalCount = this.trackDataArray.length
+		let totalCount = this.trackDataArray.length
 		for (let songTile of targetSongTiles) {
 			if (songTile.trackData.id != null) {
 				songAlreadyDownloadedCount++
@@ -266,12 +265,14 @@ export class SongActionsMenu extends ContextMenu {
 			downloadPromises.push(downloadPromise)
 		}
 		await Promise.all(downloadPromises)
-		const plural = totalCount !== 1 ? "s" : ""
-		if (songAlreadyDownloadedCount === totalCount) {
+		let plural = totalCount !== 1 ? "s" : ""
+		if (songAlreadyDownloadedCount === totalCount && totalCount > 0) {
 			AlertBanner.Toggle(true, true, "Song(s) already in library", 7000, AlertBanner.bannerColors.info)
-		} else if (downloadFailureCount === totalCount) {
+		} else if (downloadFailureCount === totalCount && totalCount > 0) {
 			AlertBanner.Toggle(true, true, ("Error downloading " + totalCount + " song" + plural), 7000, AlertBanner.bannerColors.error)
 		} else {
+			totalCount = totalCount - downloadFailureCount - songAlreadyDownloadedCount
+			plural = totalCount !== 1 ? "s" : ""
 			AlertBanner.Toggle(true, true, (totalCount + " song" + plural + " added to library"), 7000, AlertBanner.bannerColors.success)
 		}
 	}
@@ -279,9 +280,9 @@ export class SongActionsMenu extends ContextMenu {
 	/** @param {String} removeFrom Options are "library", "playlist", "queue" */
 	async #removeSongsFrom(removeFrom) {
 		removeFrom = removeFrom.toLowerCase()
-		const totalCount = this.trackDataArray.length
-		const plural = totalCount !== 1 ? "s" : ""
+
 		try {
+			let totalCount = 0
 			// Handle removing the songTile visually from the page
 			const targetTrackIds = this.trackDataArray.map((trackData) => trackData.id)
 			/** @type {InfiniteScrollSongs} */
@@ -289,22 +290,23 @@ export class SongActionsMenu extends ContextMenu {
 			if (parentInfiniteScroll != null) {
 				if (removeFrom !== "queue" || (removeFrom === "queue" && this.parentPlaylistId === "now-playing-queue")) {
 					parentInfiniteScroll.RemoveTracks(this.trackDataArray)
+					totalCount = this.trackDataArray.length
 				}
 				if (["queue", "library"].includes(removeFrom) || (removeFrom === "playlist" && AudioPlayerElement.currentPlaylistId === this.parentPlaylistId)) {
 					for (let trackData of this.trackDataArray) {
-						await AudioPlayerElement.RemoveTrackFromQueue(trackData)
+						if (await AudioPlayerElement.RemoveTrackFromQueue(trackData, true) === true) { totalCount++ }
 					}
 				}
 			} else {
 				/** @type {SongTile[]} */
-				const allSongTiles = Array.from(this.parentMediaListTable.querySelectorAll(".media-tile"))
+				const allSongTiles = Array.from(this.parentMediaListTable.querySelectorAll("song-tile"))
 				const targetSongTiles = allSongTiles.filter((songTile) => targetTrackIds.includes(songTile.trackData.id))
 				for (let songTile of targetSongTiles) {
 					if (removeFrom !== "queue" || (removeFrom === "queue" && this.parentPlaylistId === "now-playing-queue")) {
 						// The SongTile.Remove method also automatically detects and removes the track from the now-playing queue if appropriate
-						songTile.Remove(this.parentPlaylistId, true)
+						if (await songTile.Remove(this.parentPlaylistId, true) === true) { totalCount++ }
 					} else if (removeFrom === "queue") {
-						await AudioPlayerElement.RemoveTrackFromQueue(songTile.trackData)
+						if (await AudioPlayerElement.RemoveTrackFromQueue(songTile.trackData, true) === true) { totalCount++ }
 					}
 				}
 			}
@@ -314,27 +316,57 @@ export class SongActionsMenu extends ContextMenu {
 			} else if (removeFrom === "playlist") {
 				await AppFunctions.RemoveSongsFromPlaylist(this.parentPlaylistId, targetTrackIds)
 			}
-
+			const plural = totalCount !== 1 ? "s" : ""
 			AlertBanner.Toggle(true, true, (totalCount + " song" + plural + " removed from " + removeFrom), 7000, AlertBanner.bannerColors.success)
 		} catch (e) {
 			AlertBanner.Toggle(true, true, "Error removing song(s) from " + removeFrom, 7000, AlertBanner.bannerColors.error)
+			console.error(e)
 		}
 	}
 
 	#addToQueue() {
-		const totalCount = this.trackDataArray.length
-		let songAlreadyInQueueCount = 0
-		this.trackDataArray.forEach((trackData) => {
-			if (AudioPlayerElement.AddTrackToQueue(trackData, "end") === false) {
-				songAlreadyInQueueCount++
+		try {
+			let totalCount = this.trackDataArray.length
+			let songAlreadyInQueueCount = 0
+			this.trackDataArray.forEach((trackData) => {
+				if (AudioPlayerElement.AddTrackToQueue(trackData, "end") === false) {
+					songAlreadyInQueueCount++
+				}
+			})
+			if (songAlreadyInQueueCount === totalCount && totalCount > 0) {
+				AlertBanner.Toggle(true, true, "Song(s) already in queue", 7000, AlertBanner.bannerColors.info)
+			} else {
+				totalCount = totalCount - songAlreadyInQueueCount
+				const plural = totalCount !== 1 ? "s" : ""
+				AlertBanner.Toggle(true, true, (totalCount + " song" + plural + " added to queue"), 7000, AlertBanner.bannerColors.success)
 			}
-		})
-		const plural = totalCount !== 1 ? "s" : ""
-		if (songAlreadyInQueueCount === totalCount) {
-			AlertBanner.Toggle(true, true, "Song(s) already in queue", 7000, AlertBanner.bannerColors.info)
-		} else {
-			AlertBanner.Toggle(true, true, (totalCount + " song" + plural + " added to queue"), 7000, AlertBanner.bannerColors.success)
+		} catch (e) {
+			AlertBanner.Toggle(true, true, "Error adding song(s) to queue", 7000, AlertBanner.bannerColors.error)
+			console.error(e)
 		}
+	}
+
+	async #setToPlayNext() {
+		try {
+			const reversed = structuredClone(this.trackDataArray).reverse()
+			for (let trackData of reversed) {
+				await AudioPlayerElement.SetTrackToPlayNextInQueue(trackData)
+			}
+			AlertBanner.Toggle(true, true, "Added " + reversed.length + " song(s) to play next", 7000, AlertBanner.bannerColors.success)
+		} catch (e) {
+			AlertBanner.Toggle(true, true, "Error adding song(s) to play next", 7000, AlertBanner.bannerColors.error)
+			console.error(e)
+		}
+	}
+
+	Dispose() {
+		this.Destroy()
+		this.menuCloseCallbacks = null
+		this.parentMediaListTable = null
+		this.parentPlaylistId = null
+		this.trackDataArray = null
+		this.targetSongTile = null
+		this._menuOptions = null
 	}
 }
 

@@ -34,9 +34,7 @@ export class HomeScreen extends HTMLElement {
 		return greeting + " " + username
 	}
 
-	disconnectedCallback() {
-
-	}
+	// disconnectedCallback() {}
 }
 
 customElements.define("home-screen", HomeScreen)

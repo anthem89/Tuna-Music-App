@@ -1,11 +1,12 @@
 import { ContextMenu } from "./context-menu.js"
 import { PlaylistTile } from "./playlist-tile.js"
 import { isMobileView } from "../utils.js"
-import { PlaylistData } from "./data-models.js"
-import { MultiSelectMenu } from "../index.js"
+import { MultiSelectMenu, AlertBanner, AudioPlayerElement } from "../index.js"
+import { TrackData, PlaylistData } from "./data-models.js"
+import * as AppFunctions from "../app-functions.js"
 
 export class PlaylistActionsMenu extends ContextMenu {
-	constructor() {
+	constructor(parentMediaListTable) {
 
 		super(null, [], "context", true)
 		this.customClass = "media-actions-menu"
@@ -14,6 +15,8 @@ export class PlaylistActionsMenu extends ContextMenu {
 		this.playlistDataArray = null
 		/** @type {PlaylistTile} */
 		this.targetPlaylistTile = null
+		/** @type {HTMLElement} */
+		this.parentMediaListTable = parentMediaListTable
 
 		this.menuCloseCallbacks["beforePlaylistActionsMenuClose"] = () => {
 			this.playlistDataArray = null
@@ -30,34 +33,57 @@ export class PlaylistActionsMenu extends ContextMenu {
 			{
 				text: "Play playlist",
 				iconClass: "bi bi-play-circle",
-				clickEvent: () => { }
+				clickEvent: () => { this.#playPlaylist() }
+			},
+			{
+				text: "Set to play next",
+				iconClass: "bi bi-arrow-return-right",
+				clickEvent: () => {
+					MultiSelectMenu.DisableMultiSelectMode()
+					this.#setToPlayNext()
+				}
 			},
 			{
 				text: "Add playlist to queue",
 				iconClass: "bi bi-list-task",
-				clickEvent: () => { }
+				clickEvent: () => {
+					MultiSelectMenu.DisableMultiSelectMode()
+					this.#addPlaylistToQueue()
+				}
 			},
 			"divider",
 			{
 				text: "Download to device",
 				iconClass: "bi bi-download",
-				clickEvent: () => { }
+				clickEvent: () => {
+					MultiSelectMenu.DisableMultiSelectMode()
+					this.#downloadToDevice()
+				}
 			},
 			"divider",
 			{
-				text: "Copy playlist",
+				text: "Copy to new playlist",
 				iconClass: "bi bi-copy",
-				clickEvent: () => { }
+				clickEvent: () => {
+					MultiSelectMenu.DisableMultiSelectMode()
+					this.#copyPlaylist()
+				}
 			},
 			{
 				text: "Delete playlist",
 				iconClass: "bi bi-trash",
-				clickEvent: () => { }
+				clickEvent: () => {
+					MultiSelectMenu.DisableMultiSelectMode()
+					this.#deletePlaylist()
+				}
 			},
 			{
 				text: "Edit playlist attributes",
 				iconClass: "bi bi-pencil-square",
-				clickEvent: () => { }
+				clickEvent: () => {
+					MultiSelectMenu.DisableMultiSelectMode()
+					this.#editPlaylistAttributes()
+				}
 			},
 		]
 
@@ -96,13 +122,14 @@ export class PlaylistActionsMenu extends ContextMenu {
 		}
 	}
 
-	SetVisibleOptions({ playPlaylist, addPlaylistToQueue, downloadToDevice, copyPlaylist, deletePlaylist, editPlaylistAttributes } = {}) {
+	SetVisibleOptions({ playPlaylist, playNext, addPlaylistToQueue, downloadToDevice, copyPlaylist, deletePlaylist, editPlaylistAttributes } = {}) {
 		for (let option of this._menuOptions) {
 			if (option === "divider") { continue }
 			if (option.text === "Play playlist") { if (playPlaylist != null) { option.hidden = !playPlaylist } }
+			if (option.text === "Set to play next") { if (playNext != null) { option.hidden = !playNext } }
 			if (option.text === "Add playlist to queue") { if (addPlaylistToQueue != null) { option.hidden = !addPlaylistToQueue } }
 			if (option.text === "Download to device") { if (downloadToDevice != null) { option.hidden = !downloadToDevice } }
-			if (option.text === "Copy playlist") { if (copyPlaylist != null) { option.hidden = !copyPlaylist } }
+			if (option.text === "Copy to new playlist") { if (copyPlaylist != null) { option.hidden = !copyPlaylist } }
 			if (option.text === "Delete playlist") { if (deletePlaylist != null) { option.hidden = !deletePlaylist } }
 			if (option.text === "Edit playlist attributes") { if (editPlaylistAttributes != null) { option.hidden = !editPlaylistAttributes } }
 		}
@@ -115,6 +142,123 @@ export class PlaylistActionsMenu extends ContextMenu {
 		}
 	}
 
+	#getTrackDataArrayForSelectedPlaylists() {
+		return new Promise(async (resolve, reject) => {
+			try {
+				/** @type {TrackData[]} */
+				const trackDataArray = []
+				for (const playlistData of this.playlistDataArray) {
+					let trackData = await AppFunctions.GetPlaylistTrackDataArray(playlistData.id)
+					if (trackData != null) {
+						trackDataArray.push(...trackData)
+					}
+				}
+				resolve(trackDataArray)
+			} catch (e) {
+				reject(e)
+			}
+		})
+	}
+
+	#playPlaylist() {
+		if (this.targetPlaylistTile == null) { return }
+		this.targetPlaylistTile.Play()
+	}
+
+	async #setToPlayNext() {
+		try {
+			/** @type {TrackData[]} */
+			const trackDataArray = await this.#getTrackDataArrayForSelectedPlaylists()
+			const reversed = structuredClone(trackDataArray).reverse()
+			for (let trackData of reversed) {
+				await AudioPlayerElement.SetTrackToPlayNextInQueue(trackData)
+			}
+			AlertBanner.Toggle(true, true, "Added " + reversed.length + " song(s) to play next", 7000, AlertBanner.bannerColors.success)
+		} catch (e) {
+			AlertBanner.Toggle(true, true, "Error adding song(s) to play next", 7000, AlertBanner.bannerColors.error)
+			console.error(e)
+		}
+	}
+
+	async #addPlaylistToQueue() {
+		try {
+			/** @type {TrackData[]} */
+			const trackDataArray = await this.#getTrackDataArrayForSelectedPlaylists()
+			let totalCount = trackDataArray.length
+			let songAlreadyInQueueCount = 0
+			trackDataArray.forEach((trackData) => {
+				if (AudioPlayerElement.AddTrackToQueue(trackData, "end") === false) {
+					songAlreadyInQueueCount++
+				}
+			})
+
+			if (songAlreadyInQueueCount === totalCount && totalCount > 0) {
+				AlertBanner.Toggle(true, true, "Song(s) already in queue", 7000, AlertBanner.bannerColors.info)
+			} else {
+				totalCount = totalCount - songAlreadyInQueueCount
+				const plural = totalCount !== 1 ? "s" : ""
+				AlertBanner.Toggle(true, true, (totalCount + " song" + plural + " added to queue"), 7000, AlertBanner.bannerColors.success)
+			}
+		} catch (e) {
+			AlertBanner.Toggle(true, true, "Error adding song(s) to queue", 7000, AlertBanner.bannerColors.error)
+			console.error(e)
+		}
+	}
+
+	async #downloadToDevice() {
+		try {
+			/** @type {TrackData[]} */
+			const trackDataArray = await this.#getTrackDataArrayForSelectedPlaylists()
+			AppFunctions.DownloadSongsToDevice(trackDataArray)
+		} catch (e) {
+			console.error(e)
+		}
+	}
+
+	async #copyPlaylist() {
+		try {
+			/** @type {TrackData[]} */
+			const trackDataArray = await this.#getTrackDataArrayForSelectedPlaylists()
+			const trackIdArray = trackDataArray.map((trackData) => trackData.id)
+			AppFunctions.OpenPlaylistAttributesDialog(trackIdArray, "copy", null)
+		} catch (e) {
+			console.error(e)
+		}
+	}
+
+	async #deletePlaylist() {
+		try {
+			// Handle removing the playlistTile visually from the page
+			/** @type {PlaylistTile[]} */
+			const allPlaylistTiles = Array.from(this.parentMediaListTable.querySelectorAll("playlist-tile"))
+			const targetPlaylistIds = this.playlistDataArray.map((playlistData) => playlistData.id)
+			const targetPlaylistTiles = allPlaylistTiles.filter((playlistTile) => targetPlaylistIds.includes(playlistTile.playlistData.id))
+			for (let playlistTile of targetPlaylistTiles) {
+				if (AudioPlayerElement.currentPlaylistId === playlistTile.playlistData.id) {
+					AudioPlayerElement.currentPlaylistId = null
+				}
+				playlistTile.Remove()
+			}
+			// Handle removing the playlist in the appropriate database table
+			await AppFunctions.DeletePlaylists(targetPlaylistIds)
+		} catch (e) {
+			console.error(e)
+		}
+	}
+
+	#editPlaylistAttributes() {
+		if (this.targetPlaylistTile == null) { return }
+		AppFunctions.OpenPlaylistAttributesDialog(null, "edit", this.targetPlaylistTile)
+	}
+
+	Dispose() {
+		this.Destroy()
+		this.menuCloseCallbacks = null
+		this.playlistDataArray = null
+		this.targetPlaylistTile = null
+		this.parentMediaListTable = null
+		this._menuOptions = null
+	}
 }
 
 

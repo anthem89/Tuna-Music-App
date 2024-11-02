@@ -62,7 +62,7 @@ router.get("/playlist-songs", async (req, res) => {
 		const top = parseInt(req.query.top || -1)
 		// Get sorting and filtering parameters
 		const sortField = allowedSongFilterFields.includes(req.query.sortField) ? ("s." + req.query.sortField) : "ps.list_position"
-		const sortOrder = req.query.sortOrder?.toLowerCase() === "asc" ? "ASC" : "DESC"
+		const sortOrder = req.query.sortOrder?.toLowerCase() === "desc" ? "DESC" : "ASC"
 		const filterField = allowedSongFilterFields.includes(req.query.filterField) ? req.query.filterField : null
 		const filterValue = req.query.filterValue
 		// Base query to join playlist_songs and songs table
@@ -138,17 +138,23 @@ router.post("/add-songs", async (req, res) => {
 		if (playlistId == null || playlistId === "") { throw new Error("A valid playlist id is required") }
 		if (!Array.isArray(songIds) || songIds.length === 0) { throw new Error("A valid array of song ids is required") }
 
+		// Fetch the current max list_position for the playlist
+		const positionQuery = "SELECT COALESCE(MAX(list_position), 0) AS maxPosition FROM playlist_songs WHERE playlist_id = ?"
+		const result = await Database.readQuery(positionQuery, [playlistId])
+		let currentPosition = result[0]?.maxPosition || 0
+
 		// Build the query for bulk insertion
 		let params = []
 		let placeholders = []
 		songIds.forEach(songId => {
-			// Skip invalid or empty song IDs
+			// Skip invalid or empty song IDs		
 			if (songId && songId !== "") {
-				// Query will automatically add the list_position when adding the song to the db table by using a subquery to find the current max list position
-				placeholders.push("(?, ?, ?, CURRENT_TIMESTAMP, (SELECT COALESCE(MAX(list_position), 0) + 1 FROM playlist_songs WHERE playlist_id = ?))")
-				params.push(playlistId, songId, userId, playlistId) // add playlistId again for the subquery
+				currentPosition += 1 // Increment for each song
+				placeholders.push("(?, ?, ?, CURRENT_TIMESTAMP, ?)")
+				params.push(playlistId, songId, userId, currentPosition)
 			}
 		})
+
 		// If no valid songs were provided, do nothing
 		if (params.length === 0) {
 			return res.send({ status: "No valid song ids were provided" })
@@ -172,38 +178,38 @@ router.post("/add-songs", async (req, res) => {
 })
 
 router.post("/remove-songs", async (req, res) => {
-    try {
-        const playlistId = req.body?.playlistId
-        const songIds = req.body?.songIds // Expecting an array of song IDs
-        const userId = req.user?.id
+	try {
+		const playlistId = req.body?.playlistId
+		const songIds = req.body?.songIds // Expecting an array of song IDs
+		const userId = req.user?.id
 
-        if (userId == null) { throw new Error("A valid user id is required") }
-        if (playlistId == null || playlistId === "") { throw new Error("A valid playlist id is required") }
-        if (!Array.isArray(songIds) || songIds.length === 0) { throw new Error("A valid array of song ids is required") }
+		if (userId == null) { throw new Error("A valid user id is required") }
+		if (playlistId == null || playlistId === "") { throw new Error("A valid playlist id is required") }
+		if (!Array.isArray(songIds) || songIds.length === 0) { throw new Error("A valid array of song ids is required") }
 
-        // Build the query for bulk deletion
-        let placeholders = []
-        let params = [playlistId, userId]
-        songIds.forEach(songId => {
-            // Skip invalid or empty song IDs
-            if (songId && songId !== "") {
-                placeholders.push("?")
-                params.push(songId)
-            }
-        })
-        // If no valid songs were provided, do nothing
-        if (placeholders.length === 0) {
-            return res.send({ status: "No valid song ids were provided" })
-        }
-        // Step 1: Delete the songs
-        const deleteQuery = `
+		// Build the query for bulk deletion
+		let placeholders = []
+		let params = [playlistId, userId]
+		songIds.forEach(songId => {
+			// Skip invalid or empty song IDs
+			if (songId && songId !== "") {
+				placeholders.push("?")
+				params.push(songId)
+			}
+		})
+		// If no valid songs were provided, do nothing
+		if (placeholders.length === 0) {
+			return res.send({ status: "No valid song ids were provided" })
+		}
+		// Step 1: Delete the songs
+		const deleteQuery = `
             DELETE FROM playlist_songs
             WHERE playlist_id = ? AND user_id = ?
             AND song_id IN (${placeholders.join(", ")});
         `
-        const dbDeleteResult = await Database.writeQuery(deleteQuery, params)
-        // Step 2: Recalculate the new list_positions for each song
-        const updateQuery = `
+		const dbDeleteResult = await Database.writeQuery(deleteQuery, params)
+		// Step 2: Recalculate the new list_positions for each song
+		const updateQuery = `
             UPDATE playlist_songs
             SET list_position = (
                 SELECT COUNT(*)
@@ -213,34 +219,40 @@ router.post("/remove-songs", async (req, res) => {
             )
             WHERE playlist_id = ?;
         `
-        await Database.writeQuery(updateQuery, [playlistId])
+		await Database.writeQuery(updateQuery, [playlistId])
 
-        res.send({
-            status: `${dbDeleteResult.changes} songs removed from playlist`,
-            removedCount: dbDeleteResult.changes,
-            playlistId: playlistId
-        })
-    } catch (e) {
-        res.status(404).send({ error: e.toString() })
-    }
+		res.send({
+			status: `${dbDeleteResult.changes} songs removed from playlist`,
+			removedCount: dbDeleteResult.changes,
+			playlistId: playlistId
+		})
+	} catch (e) {
+		res.status(404).send({ error: e.toString() })
+	}
 })
 
 
-router.delete("/delete-playlist", async (req, res) => {
+router.delete("/delete-playlists", async (req, res) => {
 	try {
-		const playlistId = req.body?.playlistId
+		const playlistIdArray = req.body?.playlistIdArray
 		const userId = req.user?.id
 
 		if (userId == null) { throw new Error("A valid user id is required") }
-		if (playlistId == null) { throw new Error("A valid playlist id is required") }
+		if (!Array.isArray(playlistIdArray) || playlistIdArray.length === 0) {
+			throw new Error("A valid array of playlist ids is required")
+		}
 
-		const query = "DELETE FROM playlists WHERE id = ? AND user_id = ?;"
-		const params = [playlistId, userId]
-		await Database.writeQuery(query, params)
+		// Create placeholders for each playlistId
+		const placeholders = playlistIdArray.map(() => "?").join(", ")
+		const query = `DELETE FROM playlists WHERE id IN (${placeholders}) AND user_id = ?;`
+		const params = [...playlistIdArray, userId]
+
+		const dbResult = await Database.writeQuery(query, params)
 
 		res.send({
 			status: "success",
-			playlistId: playlistId
+			deletedCount: dbResult.changes,
+			playlistIdArray: playlistIdArray
 		})
 	} catch (e) {
 		res.status(404).send({ error: e.toString() })

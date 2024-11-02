@@ -1,4 +1,4 @@
-import { RemoveAllChildren } from "../utils.js"
+import { RemoveAllChildren, SetCursorToEndOfInput } from "../utils.js"
 import { AlertBanner } from "./alert-banner.js"
 
 export class ConfirmationModal extends HTMLElement {
@@ -74,7 +74,7 @@ export class ConfirmationModal extends HTMLElement {
 
 				// Focus the first input element once the modal is shown (if there is one)
 				this.bootstrapModalObject._element.addEventListener("shown.bs.modal", (e) => {
-					e.target.querySelector("input[type='text']")?.focus()
+					SetCursorToEndOfInput(e.target.querySelector("input[type='text']"))
 				}, { once: true })
 
 				this.bootstrapModalObject._element.addEventListener("hidden.bs.modal", () => {

@@ -82,12 +82,12 @@ app.use(cookieParser())
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
+// Routes that do not require authentication
 app.get("/login", (req, res) => { res.sendFile(path.join(__dirname, "../public", "login.html")) })
-app.get("/assets/img/fish-512.png", (req, res) => { res.sendFile(path.join(__dirname, "../public", "assets", "img", "fish-512.png")) })
+app.get("/assets/img/:filename", (req, res) => { res.sendFile(path.join(__dirname, "../public", "assets", "img", req.params.filename)) })
 app.get("/css/login.css", (req, res) => { res.sendFile(path.join(__dirname, "../public", "css", "login.css")) })
 app.get("/js/login.js", (req, res) => { res.sendFile(path.join(__dirname, "../public", "js", "login.js")) })
 app.use("/manifest.json", (req, res) => { res.sendFile(path.join(__dirname, "../public", "manifest.json")) })
-
 app.use("/authenticate", authenticateRoute)
 app.use("/logout", logoutRoute)
 

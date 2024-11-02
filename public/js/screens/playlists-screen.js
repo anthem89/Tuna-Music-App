@@ -25,8 +25,6 @@ export class PlaylistsScreen extends HTMLElement {
 			this.#handleRowClick(e)
 		}
 
-		this.playlistActionsMenu = new PlaylistActionsMenu()
-
 		const columnHeaders = ["Playlist", "Actions", "Description"]
 		const tableData = []
 		if (Array.isArray(PlaylistCache)) {
@@ -44,6 +42,8 @@ export class PlaylistsScreen extends HTMLElement {
 		const playlistTable = new DataTable(columnHeaders, tableData)
 		playlistTable.classList.add("media-list-table")
 		this.tableWrapper.appendChild(playlistTable)
+
+		this.playlistActionsMenu = new PlaylistActionsMenu(playlistTable)
 	}
 
 	#handleRowClick(e) {
@@ -66,7 +66,10 @@ export class PlaylistsScreen extends HTMLElement {
 	}
 
 	disconnectedCallback() {
-
+		this.playlistActionsMenu.Dispose()
+		this.playlistActionsMenu = null
+		this.tableWrapper.onclick = null
+		this.tableWrapper = null
 	}
 }
 

@@ -13,6 +13,7 @@ export class InfiniteScrollSongs extends HTMLElement {
 		this.rowHeight = 71.6 // Must match the height in px of each tr element
 		this.tbodyIndex = 0
 		this.scrollEnd = false
+		this.parentPlaylistId = parentPlaylistId
 
 		/** @type {TrackData[]} */
 		this.trackDataArray = []
@@ -32,9 +33,6 @@ export class InfiniteScrollSongs extends HTMLElement {
 				</thead>
 			</table>
 		`
-
-		this.parentPlaylistId = parentPlaylistId
-		this.songActionsMenu = new SongActionsMenu(this.parentPlaylistId, this.querySelector(".media-list-table"))
 	}
 
 	async connectedCallback() {
@@ -44,7 +42,9 @@ export class InfiniteScrollSongs extends HTMLElement {
 			threshold: 0.01 // 0% of the target entry needs to be visible before triggering an intersection
 		})
 
-		this.table = this.querySelector("table")
+		this.mediaListTable = this.querySelector(".media-list-table")
+		this.songActionsMenu = new SongActionsMenu(this.parentPlaylistId, this.mediaListTable)
+
 		this.onclick = (e) => { this.#handleRowClick(e) }
 		await this.#fetchData()
 		this.#createTableSection(Math.min(this.trackDataArray.length, this.batchSize))
@@ -61,7 +61,7 @@ export class InfiniteScrollSongs extends HTMLElement {
 					this.#populateTableSection(tbody, this.trackDataArray.slice(startIndex, startIndex + this.batchSize))
 				}
 				// If user has scrolled to last batch in the list, then create a new tbody element
-				if (tbody === this.table.lastElementChild && this.scrollEnd === false) {
+				if (tbody === this.mediaListTable.lastElementChild && this.scrollEnd === false) {
 					const remainingRows = this.trackDataArray.length - this.batchSize - parseInt(tbody.dataset.startIndex)
 					if (remainingRows <= this.batchSize) {
 						this.scrollEnd = true
@@ -108,7 +108,7 @@ export class InfiniteScrollSongs extends HTMLElement {
 		const tbody = document.createElement("tbody")
 		tbody.dataset.startIndex = this.tbodyIndex
 		tbody.style.height = (rowCount * this.rowHeight) + "px"
-		this.table.insertAdjacentElement("beforeend", tbody)
+		this.mediaListTable.insertAdjacentElement("beforeend", tbody)
 		this.intersectionObserver.observe(tbody)
 		this.tbodyIndex += this.batchSize
 	}
@@ -137,7 +137,7 @@ export class InfiniteScrollSongs extends HTMLElement {
 		// Only update observer and table if any tracks were removed
 		if (this.trackDataArray.length < originalLength) {
 			this.intersectionObserver.disconnect()
-			this.table.querySelectorAll("tbody").forEach((tbody) => {
+			this.mediaListTable.querySelectorAll("tbody").forEach((tbody) => {
 				RemoveAllChildren(tbody)
 				this.intersectionObserver.observe(tbody)
 			})
@@ -200,6 +200,13 @@ export class InfiniteScrollSongs extends HTMLElement {
 	disconnectedCallback() {
 		this.onclick = null
 		this.intersectionObserver.disconnect()
+		this.intersectionObserver = null
+		this.songActionsMenu.Dispose()
+		this.songActionsMenu = null
+		this.mediaListTable = null
+		this.parentPlaylistId = null
+		this.trackDataArray = null
+		this.mediaListTable = null
 	}
 }
 

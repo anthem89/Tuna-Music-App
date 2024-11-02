@@ -165,6 +165,9 @@ export class SearchMusicScreen extends HTMLElement {
 		this.tableWrapper.onclick = null
 		this.autocompleteInput.suggestionsElement.onclick = null
 		this.autocompleteInput.inputElement.onkeydown = null
+		this.songActionsMenu.Dispose()
+		this.songActionsMenu = null
+		this.resultsData = null
 	}
 }
 

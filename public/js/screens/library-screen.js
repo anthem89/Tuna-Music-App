@@ -15,13 +15,11 @@ export class LibraryScreen extends HTMLElement {
 		InjectGlobalStylesheets(this)
 
 		const libraryTable = new InfiniteScrollSongs("/user-library", "all-songs")
-		libraryTable.songActionsMenu.SetVisibleOptions({ removeFromPlaylist: false, downloadToLibrary: false })
 		this.shadowRoot.querySelector("#library-table-wrapper").appendChild(libraryTable)
+		libraryTable.songActionsMenu.SetVisibleOptions({ removeFromPlaylist: false, downloadToLibrary: false })
 	}
 
-	disconnectedCallback() {
-
-	}
+	// disconnectedCallback() {}
 }
 
 customElements.define("library-screen", LibraryScreen)

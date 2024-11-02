@@ -18,9 +18,7 @@ export class SearchPodcastsScreen extends HTMLElement {
 
 	}
 
-	disconnectedCallback() {
-
-	}
+	// disconnectedCallback() {}
 }
 
 customElements.define("search-podcasts-screen", SearchPodcastsScreen)

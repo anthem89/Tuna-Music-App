@@ -15,9 +15,7 @@ export class NowPlayingScreen extends HTMLElement {
 
 	}
 
-	disconnectedCallback() {
-
-	}
+	// disconnectedCallback() {}
 }
 
 customElements.define("now-playing-screen", NowPlayingScreen)

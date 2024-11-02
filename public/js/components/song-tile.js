@@ -57,16 +57,21 @@ export class SongTile extends MediaTile {
 				}
 				// Remove the track from the now playing queue if appropriate
 				if (parentPlaylistId === AudioPlayerElement.currentPlaylistId || ignorePlaylistId === true) {
-					await AudioPlayerElement.RemoveTrackFromQueue(this.trackData)
+					await AudioPlayerElement.RemoveTrackFromQueue(this.trackData, true)
 				}
-			} catch { }
-			resolve()
+				resolve(true)
+			} catch (e) {
+				console.error(e)
+				resolve(false)
+			}
 		})
 
 	}
 
 	disconnectedCallback() {
 		super.disconnectedCallback()
+		this.trackData = null
+		this.checkbox = null
 	}
 }
 

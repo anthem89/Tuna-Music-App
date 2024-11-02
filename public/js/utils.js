@@ -62,3 +62,10 @@ export function isNullOrWhiteSpace(string) {
 export function Sleep(milliseconds) {
 	return new Promise((resolve) => { setTimeout(resolve, milliseconds) })
 }
+
+export function SetCursorToEndOfInput(inputElement) {
+	if(inputElement == null){ return }
+    inputElement.focus()
+    const length = inputElement.value.length
+    inputElement.setSelectionRange(length, length)
+}

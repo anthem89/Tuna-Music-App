@@ -83,14 +83,14 @@ export class MultiSelectMenu extends HTMLElement {
 	}
 
 	#openActionsMenu() {
-		let actionsMenu
+		const pos = this.btnActions.getBoundingClientRect()
 		switch (this.tileType) {
 			case "SONG-TILE":
 				/** @type {InfiniteScrollSongs} */
 				const infiniteScrollElement = this.parentMediaListTable.closest("infinite-scroll-songs")
 				const parentPlaylistId = infiniteScrollElement?.parentPlaylistId
-				actionsMenu = new SongActionsMenu(parentPlaylistId, this.parentMediaListTable)
-				actionsMenu.SetVisibleOptions({
+				let songActionsMenu = new SongActionsMenu(parentPlaylistId, this.parentMediaListTable)
+				songActionsMenu.SetVisibleOptions({
 					playSong: false,
 					addToPlaylist: CurrentScreen.screenKey !== "searchMusic",
 					removeFromPlaylist: CurrentScreen.screenKey === "playlistSongs",
@@ -103,9 +103,17 @@ export class MultiSelectMenu extends HTMLElement {
 					viewAlbum: false,
 					editSongAttributes: false,
 				})
+				songActionsMenu.menuCloseCallbacks["beforeClose"] = () => { songActionsMenu.Dispose(); songActionsMenu = null }
+				songActionsMenu.ForceShow(pos.x, pos.y + pos.height, pos.height, false, true, this.multiSelectArray, null, false)
 				break
 			case "PLAYLIST-TILE":
-				actionsMenu = new PlaylistActionsMenu()
+				let playlistActionsMenu = new PlaylistActionsMenu(this.parentMediaListTable)
+				playlistActionsMenu.SetVisibleOptions({
+					playPlaylist: false,
+					editPlaylistAttributes: false,
+				})
+				playlistActionsMenu.menuCloseCallbacks["beforeClose"] = () => { playlistActionsMenu.Dispose(); playlistActionsMenu = null }
+				playlistActionsMenu.ForceShow(pos.x, pos.y + pos.height, pos.height, false, true, this.multiSelectArray, null, false)
 				break
 			case "ARTIST-TILE":
 				return
@@ -114,8 +122,6 @@ export class MultiSelectMenu extends HTMLElement {
 				return
 				break
 		}
-		const pos = this.btnActions.getBoundingClientRect()
-		actionsMenu.ForceShow(pos.x, pos.y + pos.height, pos.height, false, true, this.multiSelectArray, null, false)
 	}
 
 	#getMediaTileData(mediaTile) {

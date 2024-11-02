@@ -543,7 +543,7 @@ export class ContextMenu {
 				option["clickEvent"] = null
 			}
 		})
-		menuCloseCallbacks = {}
+		this.menuCloseCallbacks = null
 		if (this._clickListener != null) {
 			document.removeEventListener("contextmenu", this._clickListener)
 		}

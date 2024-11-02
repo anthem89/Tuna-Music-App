@@ -1,6 +1,7 @@
 import { PlaylistData } from "./data-models.js"
 import { MediaTile } from "./media-tile.js"
-import { MultiSelectMenu } from "../index.js"
+import { MultiSelectMenu, AudioPlayerElement, AlertBanner } from "../index.js"
+import { GetPlaylistTrackDataArray } from "../app-functions.js"
 
 export class PlaylistTile extends MediaTile {
 	/** @param {PlaylistData} playlistData */
@@ -18,8 +19,35 @@ export class PlaylistTile extends MediaTile {
 		}
 	}
 
+	async Play() {
+		try {
+			const trackDataArray = await GetPlaylistTrackDataArray(this.playlistData.id)
+			AudioPlayerElement.UpdateQueue(trackDataArray, this.playlistData.id)
+			if (trackDataArray.length > 0) {
+				AudioPlayerElement.PlaySong(trackDataArray[0], true)
+			}
+		} catch (e) {
+			AlertBanner.Toggle(true, true, "Error playing playlist", 7000, AlertBanner.bannerColors.error)
+		}
+	}
+
+	/** @param {PlaylistData} playlistData */
+	UpdatePlaylistAttributes(playlistData) {
+		const parentTable = this.closest("table")
+		const descriptionColumnIndex = Array.from(parentTable.querySelectorAll("th")).findIndex((header)=> header.textContent.toLowerCase() === "description" )
+		const descriptionCell = this.closest("tr").querySelector("td:nth-child(" + (descriptionColumnIndex + 1) + ")")
+		descriptionCell.textContent = playlistData.description || ""
+		this.primaryTextElement.textContent = playlistData.title || "Untitled Playlist"
+	}
+
+	Remove() {
+		this.closest("tr").remove()
+	}
+
 	disconnectedCallback() {
 		super.disconnectedCallback()
+		this.playlistData = null
+		this.checkbox = null
 	}
 }
 

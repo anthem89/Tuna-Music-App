@@ -82,7 +82,7 @@ body.header-collapse #module-content-container {
 .media-tile {
 	display: flex;
 	align-items: center;
-	max-width: 350px;
+	max-width: 450px;
 	width: 100%;
 	cursor: pointer;
 	height: 60px;

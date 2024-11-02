@@ -26,7 +26,7 @@ export class PlaylistSongsScreen extends HTMLElement {
 	}
 
 	disconnectedCallback() {
-
+		this.tableWrapper = null
 	}
 }
 

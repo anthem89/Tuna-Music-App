@@ -206,6 +206,7 @@ export class AudioPlayer extends HTMLElement {
 				document.querySelector("footer").classList.toggle("hidden", false)
 				resolve()
 			} catch (e) {
+				console.error(e)
 				reject(e)
 			}
 		})
@@ -240,18 +241,27 @@ export class AudioPlayer extends HTMLElement {
 				} else {
 					this.resetAudioElement()
 				}
+				console.error(e)
 				resolve(false)
 			}
 		})
 	}
 
 	async PlayNextSongInQueue() {
-		this.currentQueueIndex = (this.currentQueueIndex + 1) % this.trackQueue.length  // Loop back to start if at end
+		if (this.currentQueueIndex === this.trackQueue.length - 1) {
+			this.currentQueueIndex = 0 // Loop back to start if at end
+		} else {
+			this.currentQueueIndex ++
+		}
 		await this.PlaySong(this.trackQueue[this.currentQueueIndex], true)
 	}
 
 	async PlayPreviousSongInQueue() {
-		this.currentQueueIndex = (this.currentQueueIndex - 1 + this.trackQueue.length) % this.trackQueue.length  // Loop to end if at start
+		if (this.currentQueueIndex > 0) {
+			this.currentQueueIndex --
+		} else {
+			this.currentQueueIndex = this.trackQueue.length - 1 // Loop to end if at start
+		}
 		await this.PlaySong(this.trackQueue[this.currentQueueIndex], false)
 	}
 
@@ -268,29 +278,40 @@ export class AudioPlayer extends HTMLElement {
 	}
 
 	/** @param {TrackData} targetTrackData */
-	async RemoveTrackFromQueue(targetTrackData) {
-		const targetIndex = this.GetTrackIndexInQueue(targetTrackData)
-		// If the track is not found, do nothing
-		if (targetIndex === -1) { return }
-		if (this.trackQueue.length > 1) {
-			// If the song that is currently playing gets removed, skip to the next song
-			if (targetIndex === this.currentQueueIndex) {
-				const wasPlaying = this.isPlaying
-				const wasPaused = this.isPaused
-				await this.PlayNextSongInQueue()
-				if (wasPlaying === false || wasPaused === true) {
-					this.audioElement.pause()
+	async RemoveTrackFromQueue(targetTrackData, autoPlayNextSong = true) {
+		return new Promise(async (resolve, reject) => {
+			try {
+				const targetIndex = this.GetTrackIndexInQueue(targetTrackData)
+				// If the track is not found, do nothing
+				if (targetIndex === -1) {
+					resolve(false)
+					return
 				}
+				if (this.trackQueue.length > 1) {
+					// If the song that is currently playing gets removed, skip to the next song
+					if (targetIndex === this.currentQueueIndex && autoPlayNextSong === true) {
+						const wasPlaying = this.isPlaying
+						const wasPaused = this.isPaused
+						await this.PlayNextSongInQueue()
+						if (wasPlaying === false || wasPaused === true) {
+							this.audioElement.pause()
+						}
+					}
+					// Remove the target track from the queue and adjust the current queue index accordingly
+					this.trackQueue.splice(targetIndex, 1)
+					if (targetIndex < this.currentQueueIndex && this.currentQueueIndex > 0) {
+						this.currentQueueIndex -= 1
+					}
+				} else {
+					this.UpdateQueue([], this.currentPlaylistId)
+					this.currentQueueIndex = -1
+				}
+				resolve(true)
+			} catch (e) {
+				console.error(e)
+				reject(e)
 			}
-			// Remove the target track from the queue and adjust the current queue index accordingly
-			this.trackQueue.splice(targetIndex, 1)
-			if (targetIndex < this.currentQueueIndex && this.currentQueueIndex > 0) {
-				this.currentQueueIndex -= 1
-			}
-		} else {
-			this.UpdateQueue([], this.currentPlaylistId)
-			this.currentQueueIndex = -1
-		}
+		})
 	}
 
 	/**
@@ -321,11 +342,14 @@ export class AudioPlayer extends HTMLElement {
 			try {
 				const targetTrackIndex = this.GetTrackIndexInQueue(trackData)
 				if (targetTrackIndex > -1) {
-					await this.RemoveTrackFromQueue(trackData)
+					await this.RemoveTrackFromQueue(trackData, false)
 				}
 				this.trackQueue.splice(this.currentQueueIndex + 1, 0, new TrackData({ ...trackData }))
-			} catch { }
-			resolve()
+				resolve(true)
+			} catch (e) {
+				console.error(e)
+				resolve(false)
+			}
 		})
 	}
 
